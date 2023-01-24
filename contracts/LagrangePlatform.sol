@@ -12,13 +12,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract LagrangePlatform is Ownable {
     IERC20 public lagrangeToken;
 
-    mapping(address => uint) claimBalance;
-
     event DataUpload(string wcid, uint size, uint reward);
     event ModelUpload(string wcid, uint reward);
     event Claim(address claimer, uint amount);
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address lagrangeTokenAddress) {
         lagrangeToken = IERC20(lagrangeTokenAddress);
     }
@@ -34,20 +31,12 @@ contract LagrangePlatform is Ownable {
         } else {
             reward = 0.5 ether * numGB;
         }
-
-        claimBalance[msg.sender] += reward;
         emit DataUpload(wcid, size, reward);
     }
 
     function rewardModelUpload(string memory wcid) public {
         uint reward = 2 ether;
-        
-        claimBalance[msg.sender] += reward;
         emit ModelUpload(wcid, reward);
-    }
-
-    function updateBalance(address account, uint balance) public onlyOwner {
-        claimBalance[account] = balance;
     }
 
     function withdraw(uint amount) public onlyOwner {
