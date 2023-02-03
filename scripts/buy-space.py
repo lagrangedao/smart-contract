@@ -25,7 +25,7 @@ print(f"Connected to blockchain, chain id is {web3.eth.chain_id}. the latest blo
 
 # epoch_time = 15
 
-space_contract_address = "0x42e815a32784465CF7973722620474D5C59F9946"
+space_contract_address = "0x82D937426F43e99DA6811F167eCFB0103cd07E6B"
 space_abi_file = open('../contracts/abi/SpacePayment.json')
 space_abi = json.load(space_abi_file)
 
