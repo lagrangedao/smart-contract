@@ -29,8 +29,9 @@ contract SpacePayment is Ownable {
 
     LagrangeDAOToken public ladToken;
 
-    event SpaceCreated(uint256 id, address owner, uint256 hardwareType, uint256 expiryBlock);
-    event ExpiryExtended(uint256 id, uint256 expiryBlock);
+    event Deposit(address account, uint amount);
+    event SpaceCreated(uint256 id, address owner, uint256 hardwareType, uint256 expiryBlock, uint price);
+    event ExpiryExtended(uint256 id, uint256 expiryBlock, uint price);
     event EpochDurationChanged(uint256 epochDuration);
     event HardwarePriceChanged(uint256 hardwareType, string name, uint256 price);
 
@@ -53,6 +54,8 @@ contract SpacePayment is Ownable {
 
         ladToken.transferFrom(msg.sender, address(this), amount);
         balance[msg.sender] += amount;
+
+        emit Deposit(msg.sender, amount);
     }
 
     function balanceOf(address account) public view returns (uint256) {
@@ -74,7 +77,7 @@ contract SpacePayment is Ownable {
         balance[msg.sender] -= price;
         idToSpace[spaceId] = Space(msg.sender, hardwareType, expiryBlock);
 
-        emit SpaceCreated(spaceId, msg.sender, hardwareType, expiryBlock);
+        emit SpaceCreated(spaceId, msg.sender, hardwareType, expiryBlock, price);
     }
 
     function extendSpace(uint256 spaceId, uint256 blocks) public {
@@ -90,7 +93,7 @@ contract SpacePayment is Ownable {
             idToSpace[spaceId].expiryBlock += blocks;
         }
 
-        emit ExpiryExtended(spaceId, idToSpace[spaceId].expiryBlock);
+        emit ExpiryExtended(spaceId, idToSpace[spaceId].expiryBlock, price);
     }
 
     function isExpired(uint256 spaceId) public view returns (bool) {
