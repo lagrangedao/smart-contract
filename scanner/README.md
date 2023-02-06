@@ -1,11 +1,24 @@
-# Steps to run Polygon scanning script:  
+# Steps to run Polygon scanning script:
+
 1. Configure the `.env` file by renaming `sample.env` to `.env`
 2. Add your Polygon testnet Alchemy link and the Polygon API key to `.env`
 3. Run `polygon_API_scanner.py` (which queries all the success/failure transactions using Polygon's API) by using the following command:
+
 ```
 python3 polygon_API_scanner.py
 ```
+
 4. Alternatively, you can use the block scanner which iterates over each block by using the following command:
+
 ```
 python3 scan_polygon_payment.py
+```
+
+# Steps to run BSC scanning script:
+
+1. Add your BSC testnet API key to `.env`
+2. Run `bsc_API_scanner.py` (which queries all the success/failure transactions using BSC's API) by using the following command:
+
+```
+python3 bsc_API_scanner.py
 ```
