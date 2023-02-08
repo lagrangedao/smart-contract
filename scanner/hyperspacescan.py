@@ -3,8 +3,18 @@ from decouple import config
 from web3.middleware import geth_poa_middleware
 from web3.contract import ContractEvent
 import time
+import mysql.connector
 
 hyperspace_url = config('HYPERSPACE_URL')
+
+# MySQL DB:
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  password="Sql@12345",
+  database='HYPERSPACE'
+)
+mycursor = mydb.cursor()
 
 # HTTPProvider:
 w3 = Web3(Web3.HTTPProvider(hyperspace_url))
@@ -21,32 +31,40 @@ ABI = '[ { "inputs": [ { "internalType": "address", "name": "tokenAddress", "typ
 is_address_valid = w3.isAddress(CONTRACT_ADDRESS)
 #print(is_address_valid)
 
+# Block on which the contract was deployed:
 from_block = 53304
 target_block = w3.eth.get_block('latest')
+# Block chunk to be scanned:
 batchSize = 1000
 
+sql = "INSERT INTO depositTransactions(blocknumber,event,accountAddress,amount,TxHash) VALUES "
+
 while from_block <  target_block.number:
-    try:
-        toBlock = from_block + batchSize
+    toBlock = from_block + batchSize
+    print(from_block,toBlock)
 
-        contract = w3.eth.contract(address=Web3.toChecksumAddress(CONTRACT_ADDRESS), abi=ABI)
+    contract = w3.eth.contract(address=Web3.toChecksumAddress(CONTRACT_ADDRESS), abi=ABI)
 
-        depositEvents = contract.events.Deposit.getLogs(fromBlock=from_block, toBlock=toBlock)
-        start_block = toBlock
+    depositEvents = contract.events.Deposit.getLogs(fromBlock=from_block, toBlock=toBlock)
+    start_block = toBlock
 
-        # TODO: connect to DB and create new entry with the values:
-        print(depositEvents[0].blockNumber,
-            depositEvents[0].event,
-            depositEvents[0].args.account,
-            depositEvents[0].args.amount,
-            depositEvents[0].transactionHash.hex())
+    if depositEvents != ():
+        val = "(" + str(depositEvents[0].blockNumber) + ", '" + str(depositEvents[0].event) + "', '" + str(depositEvents[0].args.account) + "', " + str(depositEvents[0].args.amount/ 10 ** 18) + ", '" + str(depositEvents[0].transactionHash.hex()) + "')"
+        sqlCommand = sql + val
+        # print(sqlCommand)
+        mycursor.execute(sqlCommand)
+        mydb.commit()
 
-        from_block = from_block + batchSize + 1
-        blockDiff = target_block.number - from_block
+        print(mycursor.rowcount, "record inserted.")
 
-        if(blockDiff < batchSize):
-            batchSize = blockDiff
-        
-        break
-    except:
-        time.sleep(2)
+        # print(depositEvents[0].blockNumber,
+        #     depositEvents[0].event,
+        #     depositEvents[0].args.account,
+        #     depositEvents[0].args.amount,
+        #     depositEvents[0].transactionHash.hex())
+
+    from_block = from_block + batchSize + 1
+    blockDiff = target_block.number - from_block
+
+    if(blockDiff < batchSize):
+        batchSize = blockDiff
