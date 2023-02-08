@@ -22,3 +22,18 @@ python3 scan_polygon_payment.py
 ```
 python3 bsc_API_scanner.py
 ```
+
+# Steps to run Hyperspace scanning script:
+
+1. Configure the `.env` file by renaming `sample.env` to `.env`
+2. Add the Hyperspace node URL to `HYPERSPACE_URL=` as shown below:
+
+```
+HYPERSPACE_URL=https://api.hyperspace.node.glif.io/rpc/v1
+```
+
+3. Run the script:
+
+```
+python3 hyperspacescan.py
+```
