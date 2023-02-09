@@ -37,7 +37,7 @@ target_block = w3.eth.get_block('latest')
 # Block chunk to be scanned:
 batchSize = 1000
 
-sql = "INSERT INTO depositTransactions(blocknumber,event,accountAddress,amount,TxHash) VALUES "
+sql = "INSERT INTO depositTransactions(blocknumber,event,accountAddress,recepientAddress,amount,TxHash,TxTimeStamp) VALUES "
 
 while from_block <  target_block.number:
     toBlock = from_block + batchSize
@@ -56,13 +56,15 @@ while from_block <  target_block.number:
         while i < depositEventsSize:
             # print(i)
             if blocknumInit != depositEvents[i].blockNumber:
+                depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
+                # print(depositTimeStamp)
                 # print(depositEvents[i].blockNumber,
                 # depositEvents[i].event,
                 # depositEvents[i].args.account,
                 # depositEvents[i].args.amount,
                 # depositEvents[i].transactionHash.hex())
 
-                val = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "')"
+                val = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "')"
                 sqlCommand = sql + val
 
                 try:
