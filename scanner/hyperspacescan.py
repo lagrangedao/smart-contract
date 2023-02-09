@@ -49,22 +49,40 @@ while from_block <  target_block.number:
     start_block = toBlock
 
     if depositEvents != ():
-        val = "(" + str(depositEvents[0].blockNumber) + ", '" + str(depositEvents[0].event) + "', '" + str(depositEvents[0].args.account) + "', " + str(depositEvents[0].args.amount/ 10 ** 18) + ", '" + str(depositEvents[0].transactionHash.hex()) + "')"
-        sqlCommand = sql + val
-        # print(sqlCommand)
-        mycursor.execute(sqlCommand)
-        mydb.commit()
+        depositEventsSize = len(depositEvents)
+        i = 0
+        blocknumInit = 0
 
-        print(mycursor.rowcount, "record inserted.")
+        while i < depositEventsSize:
+            # print(i)
+            if blocknumInit != depositEvents[i].blockNumber:
+                # print(depositEvents[i].blockNumber,
+                # depositEvents[i].event,
+                # depositEvents[i].args.account,
+                # depositEvents[i].args.amount,
+                # depositEvents[i].transactionHash.hex())
 
-        # print(depositEvents[0].blockNumber,
-        #     depositEvents[0].event,
-        #     depositEvents[0].args.account,
-        #     depositEvents[0].args.amount,
-        #     depositEvents[0].transactionHash.hex())
+                val = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "')"
+                sqlCommand = sql + val
+
+                try:
+                    mycursor.execute(sqlCommand)
+                except:
+                    print("Please check the SQL command")
+
+                mydb.commit()
+                print(mycursor.rowcount, "record inserted.")
+
+            blocknumInit = depositEvents[i].blockNumber
+            i = i+1
 
     from_block = from_block + batchSize + 1
     blockDiff = target_block.number - from_block
+
+    # print("target_block: ",target_block.number)
+    # print("batchSize: ",batchSize)
+    # print("from_block ",from_block)
+    # print("blockDiff: ",blockDiff)
 
     if(blockDiff < batchSize):
         batchSize = blockDiff
