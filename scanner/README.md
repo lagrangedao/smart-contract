@@ -31,8 +31,17 @@ python3 bsc_API_scanner.py
 ```
 HYPERSPACE_URL=https://api.hyperspace.node.glif.io/rpc/v1
 ```
-
-3. Run the script:
+3. Install MySQL connector by executing the following command:
+```
+pip install mysql-connector-python
+```
+4. Create a database on `localhost` with the following credentials and DB name:
+```
+user="root",
+password="Sql@12345",
+database='HYPERSPACE'
+```
+5. Run the script:
 
 ```
 python3 hyperspacescan.py
