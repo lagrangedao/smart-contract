@@ -114,7 +114,7 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS `lad_block`.`events` (
+CREATE TABLE IF NOT EXISTS `lad_block`.`event_logs` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `address` VARCHAR(100) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
