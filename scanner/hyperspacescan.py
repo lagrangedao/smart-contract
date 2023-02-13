@@ -12,7 +12,7 @@ mydb = mysql.connector.connect(
   host="localhost",
   user="root",
   password="Sql@12345",
-  database='HYPERSPACE'
+  database='lad_block'
 )
 mycursor = mydb.cursor()
 
@@ -37,7 +37,7 @@ target_block = w3.eth.get_block('latest')
 # Block chunk to be scanned:
 batchSize = 1000
 
-sql = "INSERT INTO depositTransactions(blocknumber,event,accountAddress,recepientAddress,amount,TxHash,TxTimeStamp) VALUES "
+sql = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,contract_id,coin_id) VALUES "
 
 while from_block <  target_block.number:
     toBlock = from_block + batchSize
@@ -56,7 +56,9 @@ while from_block <  target_block.number:
         while i < depositEventsSize:
             # print(i)
             if blocknumInit != depositEvents[i].blockNumber:
-                depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
+                # TODO: Debug on depositTimeStamp
+                # depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
+
                 # print(depositTimeStamp)
                 # print(depositEvents[i].blockNumber,
                 # depositEvents[i].event,
@@ -64,8 +66,9 @@ while from_block <  target_block.number:
                 # depositEvents[i].args.amount,
                 # depositEvents[i].transactionHash.hex())
 
-                val = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "')"
-                sqlCommand = sql + val
+                # val = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "')"
+                val2 = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
+                sqlCommand = sql + val2
 
                 try:
                     mycursor.execute(sqlCommand)
