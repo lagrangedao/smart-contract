@@ -95,7 +95,6 @@ while from_block <  target_block.number:
 
         spaceCreatedEventVal = "(" + str(spaceCreatedEvent[0].blockNumber) + ", '" + str(spaceCreatedEvent[0].event) + "', '" + str(spaceCreatedEvent[0].args.owner) + "', '" + str(spaceCreatedEvent[0].address) + "', " + str(spaceCreatedEvent[0].args.price) + ", '" + str(spaceCreatedEvent[0].transactionHash.hex()) + "', '" + str(spaceCreatedEventTimeStamp) + "', " + "2, " + "1" + ")"
         sqlCommandSpaceCreated = sqlQuery + spaceCreatedEventVal
-        print(sqlCommandSpaceCreated)
 
         try:
             mycursor.execute(sqlCommandSpaceCreated)
@@ -103,17 +102,35 @@ while from_block <  target_block.number:
             print(spaceCreatedEvent[0].blockNumber,mycursor.rowcount, "spaceCreated record inserted.")
         except:
             print("Please check the spaceCreated SQL command")
-        
-# AttributeDict({'args': AttributeDict({'id': 0, 'owner': '0x689CbCeA23a5E4de84d909eDB8Ae86596a938b6c', 'hardwareType': 1, 'expiryBlock': 27267146, 'price': 0}), 'event': 'SpaceCreated', 'logIndex': 2, 'transactionIndex': 3, 'transactionHash': HexBytes('0xefb54bc232e756295a2c21c9dcb1d6e73dd204fa844a35d5f55f07a213783b26'), 'address': '0x5DF166d2875c82f6f3B172e8eeBAbB87b627014c', 'blockHash': HexBytes('0x90bff822ed39b4a017ba99fed9cefbebcd863ca92dfd9e7e259fe3ee13ac9a2f'), 'blockNumber': 27267046})
+    
     if expiryExtendedEvent != ():
-        expiryExtendedEventSize = len(expiryExtendedEvent)
-        print(expiryExtendedEvent[0].blockNumber,
-            "expiryExtendedEvent")
+        # expiryExtendedEventSize = len(expiryExtendedEvent)
+        expiryExtendedEventTimeStamp = w3.eth.get_block(expiryExtendedEvent[0].blockNumber).timestamp
+
+        expiryExtendedEventVal = "(" + str(expiryExtendedEvent[0].blockNumber) + ", '" + str(expiryExtendedEvent[0].event) + "', '" + "NA" + "', '" + str(expiryExtendedEvent[0].address) + "', " + str(expiryExtendedEvent[0].args.price) + ", '" + str(expiryExtendedEvent[0].transactionHash.hex()) + "', '" + str(expiryExtendedEventTimeStamp) + "', " + "2, " + "1" + ")"
+        sqlCommandExpiryExtendedEventVal = sqlQuery + expiryExtendedEventVal
+
+        try:
+            mycursor.execute(sqlCommandExpiryExtendedEventVal)
+            mydb.commit()
+            print(expiryExtendedEvent[0].blockNumber,mycursor.rowcount, "expiryExtended record inserted.")
+        except:
+            print("Please check the expiryExtended SQL command")
+
 
     if hardwarePriceChangedEvent != ():
-        hardwarePriceChangedEventSize = len(hardwarePriceChangedEvent)
-        print(hardwarePriceChangedEvent[0].blockNumber,
-        "hardwarePriceChangedEvent")
+        # hardwarePriceChangedEventSize = len(hardwarePriceChangedEvent)
+        hardwarePriceChangedEventTimeStamp = w3.eth.get_block(hardwarePriceChangedEvent[0].blockNumber).timestamp
+
+        hardwarePriceChangedEventVal = "(" + str(hardwarePriceChangedEvent[0].blockNumber) + ", '" + str(hardwarePriceChangedEvent[0].event) + "', '" + "Contract owner" + "', '" + str(hardwarePriceChangedEvent[0].address) + "', " + str(hardwarePriceChangedEvent[0].args.price/ 10 ** 18) + ", '" + str(hardwarePriceChangedEvent[0].transactionHash.hex()) + "', '" + str(hardwarePriceChangedEventTimeStamp) + "', " + "2, " + "1" + ")"
+        sqlCommandhardwarePriceChangedEvent = sqlQuery + hardwarePriceChangedEventVal
+
+        try:
+            mycursor.execute(sqlCommandhardwarePriceChangedEvent)
+            mydb.commit()
+            print(hardwarePriceChangedEvent[0].blockNumber,mycursor.rowcount, "hardwarePriceChanged record inserted.")
+        except:
+            print("Please check the hardwarePriceChanged SQL command")
 
     from_block = from_block + batchSize + 1
     blockDiff = target_block.number - from_block
