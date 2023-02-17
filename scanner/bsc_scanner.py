@@ -38,7 +38,7 @@ target_block = w3.eth.get_block('latest')
 # Block chunk to be scanned:
 batchSize = 1000
 
-sql = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,created_at,contract_id,coin_id) VALUES "
+sqlQuery = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,created_at,contract_id,coin_id) VALUES "
 
 while from_block <  target_block.number:
     toBlock = from_block + batchSize
@@ -47,10 +47,16 @@ while from_block <  target_block.number:
     contract = w3.eth.contract(address=Web3.toChecksumAddress(CONTRACT_ADDRESS), abi=ABI)
 
     depositEvents = contract.events.Deposit.getLogs(fromBlock=from_block, toBlock=toBlock)
+    spaceCreatedEvent = contract.events.SpaceCreated.getLogs(fromBlock=from_block, toBlock=toBlock)
+    expiryExtendedEvent = contract.events.ExpiryExtended.getLogs(fromBlock=from_block, toBlock=toBlock)
+    hardwarePriceChangedEvent = contract.events.HardwarePriceChanged.getLogs(fromBlock=from_block, toBlock=toBlock)
+
     start_block = toBlock
 
     if depositEvents != ():
         depositEventsSize = len(depositEvents)
+        # print("depositEventsSize ",depositEventsSize)
+
         i = 0
         blocknumInit = 0
 
@@ -59,26 +65,55 @@ while from_block <  target_block.number:
             if blocknumInit != depositEvents[i].blockNumber:
                 
                 depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
+            
                 # print(depositEvents[i].blockNumber,
                 # depositEvents[i].event,
                 # depositEvents[i].args.account,
                 # depositEvents[i].args.amount,
                 # depositEvents[i].transactionHash.hex())
 
-                val = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "', " + "1, " + "1" + ")"
+                depositVal = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "', " + "2, " + "1" + ")"
                 # val2 = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
-                sqlCommand = sql + val
+                sqlCommandDeposit = sqlQuery + depositVal
 
                 try:
-                    mycursor.execute(sqlCommand)
+                    mycursor.execute(sqlCommandDeposit)
+                    mydb.commit()
+                    print(depositEvents[i].blockNumber,mycursor.rowcount, "deposit record inserted.")
                 except:
-                    print("Please check the SQL command")
+                    print("Please check the deposit SQL command")
 
-                mydb.commit()
-                print(mycursor.rowcount, "record inserted.")
+                # mydb.commit()
+                # print(depositEvents[i].blockNumber,mycursor.rowcount, "deposit record inserted.")
 
             blocknumInit = depositEvents[i].blockNumber
             i = i+1
+
+    if spaceCreatedEvent != ():
+        # spaceCreatedEventSize = len(spaceCreatedEvent)
+        spaceCreatedEventTimeStamp = w3.eth.get_block(spaceCreatedEvent[0].blockNumber).timestamp
+
+        spaceCreatedEventVal = "(" + str(spaceCreatedEvent[0].blockNumber) + ", '" + str(spaceCreatedEvent[0].event) + "', '" + str(spaceCreatedEvent[0].args.owner) + "', '" + str(spaceCreatedEvent[0].address) + "', " + str(spaceCreatedEvent[0].args.price) + ", '" + str(spaceCreatedEvent[0].transactionHash.hex()) + "', '" + str(spaceCreatedEventTimeStamp) + "', " + "2, " + "1" + ")"
+        sqlCommandSpaceCreated = sqlQuery + spaceCreatedEventVal
+        print(sqlCommandSpaceCreated)
+
+        try:
+            mycursor.execute(sqlCommandSpaceCreated)
+            mydb.commit()
+            print(spaceCreatedEvent[0].blockNumber,mycursor.rowcount, "spaceCreated record inserted.")
+        except:
+            print("Please check the spaceCreated SQL command")
+        
+# AttributeDict({'args': AttributeDict({'id': 0, 'owner': '0x689CbCeA23a5E4de84d909eDB8Ae86596a938b6c', 'hardwareType': 1, 'expiryBlock': 27267146, 'price': 0}), 'event': 'SpaceCreated', 'logIndex': 2, 'transactionIndex': 3, 'transactionHash': HexBytes('0xefb54bc232e756295a2c21c9dcb1d6e73dd204fa844a35d5f55f07a213783b26'), 'address': '0x5DF166d2875c82f6f3B172e8eeBAbB87b627014c', 'blockHash': HexBytes('0x90bff822ed39b4a017ba99fed9cefbebcd863ca92dfd9e7e259fe3ee13ac9a2f'), 'blockNumber': 27267046})
+    if expiryExtendedEvent != ():
+        expiryExtendedEventSize = len(expiryExtendedEvent)
+        print(expiryExtendedEvent[0].blockNumber,
+            "expiryExtendedEvent")
+
+    if hardwarePriceChangedEvent != ():
+        hardwarePriceChangedEventSize = len(hardwarePriceChangedEvent)
+        print(hardwarePriceChangedEvent[0].blockNumber,
+        "hardwarePriceChangedEvent")
 
     from_block = from_block + batchSize + 1
     blockDiff = target_block.number - from_block

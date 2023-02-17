@@ -30,7 +30,7 @@ COLLATE = utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS `lad_block`.`transaction` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `block_number` INT(11) NOT NULL,
-  `event` VARCHAR(10) NOT NULL,
+  `event` VARCHAR(100) NOT NULL,
   `account_address` VARCHAR(100) NOT NULL,
   `recipient_address` VARCHAR(100) NOT NULL,
   `amount` BIGINT(20) NULL DEFAULT NULL,
