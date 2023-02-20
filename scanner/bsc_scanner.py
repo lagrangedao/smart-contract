@@ -32,9 +32,17 @@ ABI = json.load(space_abi_file)
 is_address_valid = w3.isAddress(CONTRACT_ADDRESS)
 #print(is_address_valid)
 
+lastScanBlockCommand = "select last_scan_block_number_payment from network WHERE id = 2"
+mycursor.execute(lastScanBlockCommand)
+lastScannedBlock = mycursor.fetchall()
+# print(lastScannedBlock[0][0])
+
 # Block on which the contract was deployed:
-from_block = 27243037
+from_block = lastScannedBlock[0][0] + 1 #27243037
+print(from_block)
 target_block = w3.eth.get_block('latest')
+print(target_block.number)
+lastBlockAfterScan = 0
 # Block chunk to be scanned:
 batchSize = 1000
 
@@ -43,6 +51,7 @@ sqlQuery = "INSERT INTO transaction(block_number,event,account_address,recipient
 while from_block <  target_block.number:
     toBlock = from_block + batchSize
     print(from_block,toBlock)
+    lastTxBlock = 0
 
     contract = w3.eth.contract(address=Web3.toChecksumAddress(CONTRACT_ADDRESS), abi=ABI)
 
@@ -50,8 +59,6 @@ while from_block <  target_block.number:
     spaceCreatedEvent = contract.events.SpaceCreated.getLogs(fromBlock=from_block, toBlock=toBlock)
     expiryExtendedEvent = contract.events.ExpiryExtended.getLogs(fromBlock=from_block, toBlock=toBlock)
     hardwarePriceChangedEvent = contract.events.HardwarePriceChanged.getLogs(fromBlock=from_block, toBlock=toBlock)
-
-    start_block = toBlock
 
     if depositEvents != ():
         depositEventsSize = len(depositEvents)
@@ -77,6 +84,7 @@ while from_block <  target_block.number:
                 sqlCommandDeposit = sqlQuery + depositVal
 
                 try:
+                    lastBlockAfterScan = depositEvents[i].blockNumber
                     mycursor.execute(sqlCommandDeposit)
                     mydb.commit()
                     print(depositEvents[i].blockNumber,mycursor.rowcount, "deposit record inserted.")
@@ -97,6 +105,7 @@ while from_block <  target_block.number:
         sqlCommandSpaceCreated = sqlQuery + spaceCreatedEventVal
 
         try:
+            lastBlockAfterScan = spaceCreatedEvent[0].blockNumber
             mycursor.execute(sqlCommandSpaceCreated)
             mydb.commit()
             print(spaceCreatedEvent[0].blockNumber,mycursor.rowcount, "spaceCreated record inserted.")
@@ -111,6 +120,7 @@ while from_block <  target_block.number:
         sqlCommandExpiryExtendedEventVal = sqlQuery + expiryExtendedEventVal
 
         try:
+            lastBlockAfterScan = expiryExtendedEvent[0].blockNumber
             mycursor.execute(sqlCommandExpiryExtendedEventVal)
             mydb.commit()
             print(expiryExtendedEvent[0].blockNumber,mycursor.rowcount, "expiryExtended record inserted.")
@@ -126,6 +136,7 @@ while from_block <  target_block.number:
         sqlCommandhardwarePriceChangedEvent = sqlQuery + hardwarePriceChangedEventVal
 
         try:
+            lastBlockAfterScan = hardwarePriceChangedEvent[0].blockNumber
             mycursor.execute(sqlCommandhardwarePriceChangedEvent)
             mydb.commit()
             print(hardwarePriceChangedEvent[0].blockNumber,mycursor.rowcount, "hardwarePriceChanged record inserted.")
@@ -142,3 +153,17 @@ while from_block <  target_block.number:
 
     if(blockDiff < batchSize):
         batchSize = blockDiff
+
+    if(lastTxBlock != 0):
+        lastBlockAfterScan = lastTxBlock
+
+# Update last_scan_block
+updateLastBlock = "UPDATE network SET last_scan_block_number_payment = (%s) WHERE id=2"
+toBlkList = []
+if(lastBlockAfterScan != 0):
+    toBlkList.append(lastBlockAfterScan)
+    mycursor.execute(updateLastBlock,toBlkList)
+    print(toBlkList)
+    mydb.commit()
+else:
+    print("Please wait for some blocks to be mined")
