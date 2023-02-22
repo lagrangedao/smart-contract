@@ -31,11 +31,17 @@ ABI = '[ { "inputs": [ { "internalType": "address", "name": "tokenAddress", "typ
 is_address_valid = w3.isAddress(CONTRACT_ADDRESS)
 #print(is_address_valid)
 
+lastScanBlockCommand = "select last_scan_block_number_payment from network WHERE id = 2"
+mycursor.execute(lastScanBlockCommand)
+lastScannedBlock = mycursor.fetchall()
+
 # Block on which the contract was deployed:
-from_block = 53304
+from_block = lastScannedBlock[0][0] + 1
 target_block = w3.eth.get_block('latest')
 # Block chunk to be scanned:
 batchSize = 1000
+
+print("from_block: ",from_block)
 
 sql = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,contract_id,coin_id) VALUES "
 
@@ -46,7 +52,9 @@ while from_block <  target_block.number:
     contract = w3.eth.contract(address=Web3.toChecksumAddress(CONTRACT_ADDRESS), abi=ABI)
 
     depositEvents = contract.events.Deposit.getLogs(fromBlock=from_block, toBlock=toBlock)
-    start_block = toBlock
+    spaceCreatedEvent = contract.events.SpaceCreated.getLogs(fromBlock=from_block, toBlock=toBlock)
+    expiryExtendedEvent = contract.events.ExpiryExtended.getLogs(fromBlock=from_block, toBlock=toBlock)
+    hardwarePriceChangedEvent = contract.events.HardwarePriceChanged.getLogs(fromBlock=from_block, toBlock=toBlock)
 
     if depositEvents != ():
         depositEventsSize = len(depositEvents)
@@ -57,7 +65,9 @@ while from_block <  target_block.number:
             # print(i)
             if blocknumInit != depositEvents[i].blockNumber:
                 # TODO: Debug on depositTimeStamp
+                # print("debugging...")
                 # depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
+                # print(depositTimeStamp)
 
                 # print(depositTimeStamp)
                 # print(depositEvents[i].blockNumber,
@@ -72,13 +82,61 @@ while from_block <  target_block.number:
 
                 try:
                     mycursor.execute(sqlCommand)
-                except:
+                except mydb.Error as e:
+                    print(e)
+                    # print("Please check the SQL command")
+
+                mydb.commit()
+                print(depositEvents[i].blockNumber,mycursor.rowcount, "depositEvents record inserted.")
+
+            blocknumInit = depositEvents[i].blockNumber
+            i = i+1
+
+    if spaceCreatedEvent != ():
+        # (AttributeDict({'args': AttributeDict({'id': 1, 'owner': '0xA878795d2C93985444f1e2A077FA324d59C759b0', 'hardwareType': 1, 'expiryBlock': 67811, 'price': 0}), 'event': 'SpaceCreated', 'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0x35df469992eafcfac50cb003a047f806c21877d6a3017385ee8a17f395cd7bb8'), 'address': '0x82D937426F43e99DA6811F167eCFB0103cd07E6B', 'blockHash': HexBytes('0x9a01e9b4500af9ae2aa3194b60a9d4b816e6b183141b71ab519daca0ac30be95'), 'blockNumber': 67711}), AttributeDict({'args': AttributeDict({'id': 2, 'owner': '0xA878795d2C93985444f1e2A077FA324d59C759b0', 'hardwareType': 2, 'expiryBlock': 67728, 'price': 10000000000000000000}), 'event': 'SpaceCreated', 'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0xb6a5910a8aba99c47cd2d408e00a8de08d0ee1a5eee1936813c005bc47bc3633'), 'address': '0x82D937426F43e99DA6811F167eCFB0103cd07E6B', 'blockHash': HexBytes('0x9dd3cb3d720479a8dcea08ded060171fd23bafde5bac666aa4e504c4ae8e0de2'), 'blockNumber': 67718}))
+        spaceCreatedEventSize = len(spaceCreatedEvent)
+        i = 0
+        blocknumInit = 0
+    
+
+        while i < spaceCreatedEventSize:
+            # print(i)
+            if blocknumInit != spaceCreatedEvent[i].blockNumber:
+                val2 = "(" + str(spaceCreatedEvent[i].blockNumber) + ", '" + str(spaceCreatedEvent[i].event) + "', '" + str(spaceCreatedEvent[i].args.owner) + "', '" + str(spaceCreatedEvent[i].address) + "', " + str(spaceCreatedEvent[i].args.price/ 10 ** 18) + ", '" + str(spaceCreatedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
+                sqlCommand = sql + val2
+
+                try:
+                    mycursor.execute(sqlCommand)
+                except mydb.Error as e:
                     print("Please check the SQL command")
 
                 mydb.commit()
-                print(mycursor.rowcount, "record inserted.")
+                print(spaceCreatedEvent[i].blockNumber,mycursor.rowcount, "spaceCreatedEvent record inserted.")
 
-            blocknumInit = depositEvents[i].blockNumber
+            blocknumInit = spaceCreatedEvent[i].blockNumber
+            i = i+1
+
+    if expiryExtendedEvent != ():
+        expiryExtendedEventSize = len(expiryExtendedEvent)
+        i = 0
+        blocknumInit = 0
+    
+
+        while i < expiryExtendedEventSize:
+            # print(i)
+            if blocknumInit != expiryExtendedEvent[i].blockNumber:
+                val2 = "(" + str(expiryExtendedEvent[i].blockNumber) + ", '" + str(expiryExtendedEvent[i].event) + "', '" + str(expiryExtendedEvent[i].args.owner) + "', '" + str(expiryExtendedEvent[i].address) + "', " + str(expiryExtendedEvent[i].args.price/ 10 ** 18) + ", '" + str(expiryExtendedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
+                sqlCommand = sql + val2
+
+                try:
+                    mycursor.execute(sqlCommand)
+                except mydb.Error as e:
+                    print("Please check the SQL command")
+
+                mydb.commit()
+                print(expiryExtendedEvent[i].blockNumber,mycursor.rowcount, "expiryExtendedEvent record inserted.")
+
+            blocknumInit = expiryExtendedEvent[i].blockNumber
             i = i+1
 
     from_block = from_block + batchSize + 1
@@ -91,3 +149,11 @@ while from_block <  target_block.number:
 
     if(blockDiff < batchSize):
         batchSize = blockDiff
+
+# Update last_scan_block
+updateLastBlock = "UPDATE network SET last_scan_block_number_payment = (%s) WHERE id=1"
+toBlkList = []
+toBlkList.append(target_block.number)
+mycursor.execute(updateLastBlock,toBlkList)
+# print(toBlkList)
+mydb.commit()
