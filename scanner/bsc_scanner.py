@@ -39,12 +39,13 @@ lastScannedBlock = mycursor.fetchall()
 
 # Block on which the contract was deployed:
 from_block = lastScannedBlock[0][0] + 1 #27243037
-print(from_block)
 target_block = w3.eth.get_block('latest')
-print(target_block.number)
 
 # Block chunk to be scanned:
 batchSize = 1000
+
+txContractID = 2
+txCoinID = 1
 
 sqlQuery = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,created_at,contract_id,coin_id) VALUES "
 
@@ -63,37 +64,28 @@ while from_block <  target_block.number:
         depositEventsSize = len(depositEvents)
         # print("depositEventsSize ",depositEventsSize)
 
-        i = 0
-        blocknumInit = 0
+        depositTimeStamp = w3.eth.get_block(depositEvents[0].blockNumber).timestamp
+    
+        # txBlockNumber = str(depositEvents[0].blockNumber)
+        # txEvent = str(depositEvents[0].event)
+        # accountAddr = str(depositEvents[0].args.account)
+        # contractAddr = str(depositEvents[0].address)
+        # txAmount = str(depositEvents[0].args.amount/ 10 ** 18)
+        # txHash = str(depositEvents[0].transactionHash.hex())
 
-        while i < depositEventsSize:
-            # print(i)
-            if blocknumInit != depositEvents[i].blockNumber:
-                
-                depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
-            
-                # print(depositEvents[i].blockNumber,
-                # depositEvents[i].event,
-                # depositEvents[i].args.account,
-                # depositEvents[i].args.amount,
-                # depositEvents[i].transactionHash.hex())
+        # sqlTestQuery = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,created_at,contract_id,coin_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) "
 
-                depositVal = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "', " + "2, " + "1" + ")"
-                # val2 = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
-                sqlCommandDeposit = sqlQuery + depositVal
+        depositVal = "(" + str(depositEvents[0].blockNumber) + ", '" + str(depositEvents[0].event) + "', '" + str(depositEvents[0].args.account) + "', '" + str(depositEvents[0].address) + "', " + str(depositEvents[0].args.amount/ 10 ** 18) + ", '" + str(depositEvents[0].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "', " + "2, " + "1" + ")"
+        # val2 = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
+        sqlCommandDeposit = sqlQuery + depositVal
 
-                try:
-                    mycursor.execute(sqlCommandDeposit)
-                    mydb.commit()
-                    print(depositEvents[i].blockNumber,mycursor.rowcount, "deposit record inserted.")
-                except:
-                    print("Please check the deposit SQL command")
-
-                # mydb.commit()
-                # print(depositEvents[i].blockNumber,mycursor.rowcount, "deposit record inserted.")
-
-            blocknumInit = depositEvents[i].blockNumber
-            i = i+1
+        try:
+            mycursor.execute(sqlCommandDeposit)
+            mydb.commit()
+            print(depositEvents[0].blockNumber,mycursor.rowcount, "deposit record inserted.")
+        except mydb.Error as e:
+            print(e)
+            # print("Please check the deposit SQL command")
 
     if spaceCreatedEvent != ():
         # spaceCreatedEventSize = len(spaceCreatedEvent)
@@ -106,8 +98,9 @@ while from_block <  target_block.number:
             mycursor.execute(sqlCommandSpaceCreated)
             mydb.commit()
             print(spaceCreatedEvent[0].blockNumber,mycursor.rowcount, "spaceCreated record inserted.")
-        except:
-            print("Please check the spaceCreated SQL command")
+        except mydb.Error as e:
+            print(e)
+            # print("Please check the spaceCreated SQL command")
     
     if expiryExtendedEvent != ():
         # expiryExtendedEventSize = len(expiryExtendedEvent)
@@ -120,8 +113,9 @@ while from_block <  target_block.number:
             mycursor.execute(sqlCommandExpiryExtendedEventVal)
             mydb.commit()
             print(expiryExtendedEvent[0].blockNumber,mycursor.rowcount, "expiryExtended record inserted.")
-        except:
-            print("Please check the expiryExtended SQL command")
+        except mydb.Error as e:
+            print(e)
+            # print("Please check the expiryExtended SQL command")
 
 
     if hardwarePriceChangedEvent != ():
@@ -135,12 +129,14 @@ while from_block <  target_block.number:
             mycursor.execute(sqlCommandhardwarePriceChangedEvent)
             mydb.commit()
             print(hardwarePriceChangedEvent[0].blockNumber,mycursor.rowcount, "hardwarePriceChanged record inserted.")
-        except:
-            print("Please check the hardwarePriceChanged SQL command")
+        except mydb.Error as e:
+            print(e)
+            # print("Please check the hardwarePriceChanged SQL command")
 
     from_block = from_block + batchSize + 1
     blockDiff = target_block.number - from_block
 
+    # For debugging:
     # print("target_block: ",target_block.number)
     # print("batchSize: ",batchSize)
     # print("from_block ",from_block)
@@ -156,11 +152,3 @@ toBlkList.append(target_block.number)
 mycursor.execute(updateLastBlock,toBlkList)
 # print(toBlkList)
 mydb.commit()
-
-# if(lastBlockAfterScan != 0):
-#     toBlkList.append(lastBlockAfterScan)
-#     mycursor.execute(updateLastBlock,toBlkList)
-#     print(toBlkList)
-#     mydb.commit()
-# else:
-#     print("Please wait for some blocks to be mined")
