@@ -108,7 +108,7 @@ while from_block < target_block.number:
                 try:
                     mycursor.execute(sqlCommand)
                 except mydb.Error as e:
-                    print("Please check the SQL command")
+                    print(e)
 
                 mydb.commit()
                 print(spaceCreatedEvent[i].blockNumber,mycursor.rowcount, "spaceCreatedEvent record inserted.")
@@ -136,7 +136,7 @@ while from_block < target_block.number:
                 try:
                     mycursor.execute(sqlCommand)
                 except mydb.Error as e:
-                    print("Please check the SQL command")
+                    print(e)
 
                 mydb.commit()
                 print(expiryExtendedEvent[i].blockNumber,mycursor.rowcount, "expiryExtendedEvent record inserted.")
@@ -163,7 +163,7 @@ while from_block < target_block.number:
                 try:
                     mycursor.execute(sqlCommand)
                 except mydb.Error as e:
-                    print("Please check the SQL command")
+                    print(e)
 
                 mydb.commit()
                 print(hardwarePriceChangedEvent[i].blockNumber,mycursor.rowcount, "hardwarePriceChangedEvent record inserted.")
