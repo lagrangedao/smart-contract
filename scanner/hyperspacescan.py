@@ -31,7 +31,7 @@ ABI = '[ { "inputs": [ { "internalType": "address", "name": "tokenAddress", "typ
 is_address_valid = w3.isAddress(CONTRACT_ADDRESS)
 #print(is_address_valid)
 
-lastScanBlockCommand = "select last_scan_block_number_payment from network WHERE id = 2"
+lastScanBlockCommand = "select last_scan_block_number_payment from network WHERE id = 1"
 mycursor.execute(lastScanBlockCommand)
 lastScannedBlock = mycursor.fetchall()
 
@@ -124,8 +124,13 @@ while from_block <  target_block.number:
 
         while i < expiryExtendedEventSize:
             # print(i)
+            # AttributeDict({'args': AttributeDict({'id': 1, 'expiryBlock': 177177, 'price': 0}), 'event': 'ExpiryExtended', 'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0xa26eacb33ab18ad213a4d423a384138d9f8bca0ee4edc24f947d958820510d5b'), 'address': '0x82D937426F43e99DA6811F167eCFB0103cd07E6B', 'blockHash': HexBytes('0x64c7ef3520d953682444605a305c40b6f8c4bbd58217aed0db42ca5a3ff178c5'), 'blockNumber': 108366})
+            # AttributeDict({'chainId': '0xc45', 'nonce': 67, 'hash': HexBytes('0xa26eacb33ab18ad213a4d423a384138d9f8bca0ee4edc24f947d958820510d5b'), 'blockHash': HexBytes('0x64c7ef3520d953682444605a305c40b6f8c4bbd58217aed0db42ca5a3ff178c5'), 'blockNumber': 108366, 'transactionIndex': 0, 'from': '0xA878795d2C93985444f1e2A077FA324d59C759b0', 'to': '0x82D937426F43e99DA6811F167eCFB0103cd07E6B', 'value': 0, 'type': '0x2', 'input': '0x1df8c923000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000003e8', 'gas': 15066110, 'maxFeePerGas': 250000000000, 'maxPriorityFeePerGas': 5000000000, 'accessList': [], 'v': 1, 'r': HexBytes('0x86ad00cd837d10acc58144b17f8c55bef6b3456cb4bd0ae19f0b7df36e6918a0'), 's': HexBytes('0x28d7f8188363294f317a20055122baff076b8379adf108dd261c6f52d87be569')})
+            txHash = expiryExtendedEvent[i].transactionHash.hex()
+            txInputDecoded = w3.eth.get_transaction(txHash)
+            # print(expiryExtendedEvent[i])
             if blocknumInit != expiryExtendedEvent[i].blockNumber:
-                val2 = "(" + str(expiryExtendedEvent[i].blockNumber) + ", '" + str(expiryExtendedEvent[i].event) + "', '" + str(expiryExtendedEvent[i].args.owner) + "', '" + str(expiryExtendedEvent[i].address) + "', " + str(expiryExtendedEvent[i].args.price/ 10 ** 18) + ", '" + str(expiryExtendedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
+                val2 = "(" + str(expiryExtendedEvent[i].blockNumber) + ", '" + str(expiryExtendedEvent[i].event) + "', '" + str(txInputDecoded['from']) + "', '" + str(expiryExtendedEvent[i].address) + "', " + str(expiryExtendedEvent[i].args.price/ 10 ** 18) + ", '" + str(expiryExtendedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
                 sqlCommand = sql + val2
 
                 try:
@@ -137,6 +142,33 @@ while from_block <  target_block.number:
                 print(expiryExtendedEvent[i].blockNumber,mycursor.rowcount, "expiryExtendedEvent record inserted.")
 
             blocknumInit = expiryExtendedEvent[i].blockNumber
+            i = i+1
+
+    if hardwarePriceChangedEvent != ():
+        # (AttributeDict({'args': AttributeDict({'id': 1, 'owner': '0xA878795d2C93985444f1e2A077FA324d59C759b0', 'hardwareType': 1, 'expiryBlock': 67811, 'price': 0}), 'event': 'SpaceCreated', 'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0x35df469992eafcfac50cb003a047f806c21877d6a3017385ee8a17f395cd7bb8'), 'address': '0x82D937426F43e99DA6811F167eCFB0103cd07E6B', 'blockHash': HexBytes('0x9a01e9b4500af9ae2aa3194b60a9d4b816e6b183141b71ab519daca0ac30be95'), 'blockNumber': 67711}), AttributeDict({'args': AttributeDict({'id': 2, 'owner': '0xA878795d2C93985444f1e2A077FA324d59C759b0', 'hardwareType': 2, 'expiryBlock': 67728, 'price': 10000000000000000000}), 'event': 'SpaceCreated', 'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0xb6a5910a8aba99c47cd2d408e00a8de08d0ee1a5eee1936813c005bc47bc3633'), 'address': '0x82D937426F43e99DA6811F167eCFB0103cd07E6B', 'blockHash': HexBytes('0x9dd3cb3d720479a8dcea08ded060171fd23bafde5bac666aa4e504c4ae8e0de2'), 'blockNumber': 67718}))
+        hardwarePriceChangedEventSize = len(hardwarePriceChangedEvent)
+        i = 0
+        blocknumInit = 0
+    
+
+        while i < hardwarePriceChangedEventSize:
+            # print(i)
+            txHash = hardwarePriceChangedEvent[i].transactionHash.hex()
+            txInputDecoded = w3.eth.get_transaction(txHash)
+
+            if blocknumInit != hardwarePriceChangedEvent[i].blockNumber:
+                val2 = "(" + str(hardwarePriceChangedEvent[i].blockNumber) + ", '" + str(hardwarePriceChangedEvent[i].event) + "', '" + str(txInputDecoded['from']) + "', '" + str(hardwarePriceChangedEvent[i].address) + "', " + str(hardwarePriceChangedEvent[i].args.price/ 10 ** 18) + ", '" + str(hardwarePriceChangedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
+                sqlCommand = sql + val2
+
+                try:
+                    mycursor.execute(sqlCommand)
+                except mydb.Error as e:
+                    print("Please check the SQL command")
+
+                mydb.commit()
+                print(hardwarePriceChangedEvent[i].blockNumber,mycursor.rowcount, "hardwarePriceChangedEvent record inserted.")
+
+            blocknumInit = hardwarePriceChangedEvent[i].blockNumber
             i = i+1
 
     from_block = from_block + batchSize + 1
