@@ -45,7 +45,7 @@ print("from_block: ",from_block)
 
 sql = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,contract_id,coin_id) VALUES "
 
-while from_block <  target_block.number:
+while from_block < target_block.number:
     toBlock = from_block + batchSize
     print(from_block,toBlock)
 
