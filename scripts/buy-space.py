@@ -11,17 +11,30 @@ import json
 from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
 
-
 from dotenv import load_dotenv
 
 load_dotenv()
+
+print('''
+                                           _  _           
+888       888          888                                              888                 8888888888 8888888888 888     888 888b     d888 
+888   o   888          888                                              888                 888        888        888     888 8888b   d8888 
+888  d8b  888          888                                              888                 888        888        888     888 88888b.d88888 
+888 d888b 888  .d88b.  888  .d8888b .d88b.  88888b.d88b.   .d88b.       888888 .d88b.       8888888    8888888    Y88b   d88P 888Y88888P888 
+888d88888b888 d8P  Y8b 888 d88P"   d88""88b 888 "888 "88b d8P  Y8b      888   d88""88b      888        888         Y88b d88P  888 Y888P 888 
+88888P Y88888 88888888 888 888     888  888 888  888  888 88888888      888   888  888      888        888          Y88o88P   888  Y8P  888 
+8888P   Y8888 Y8b.     888 Y88b.   Y88..88P 888  888  888 Y8b.          Y88b. Y88..88P      888        888           Y888P    888   "   888 
+888P     Y888  "Y8888  888  "Y8888P "Y88P"  888  888  888  "Y8888        "Y888 "Y88P"       888        8888888888     Y8P     888       888 
+                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                          
+''')
 
 rpc_endpoint = os.getenv("rpc_endpoint")
 assert rpc_endpoint is not None, "You must set rpc_endpoint in .env file"
 web3 = Web3(HTTPProvider(rpc_endpoint))
 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 block_number = web3.eth.block_number
-print(f"Connected to blockchain, chain id is {web3.eth.chain_id}. the latest block is {block_number:,}\n")
+print(f"Connected to {rpc_endpoint}, chain id is {web3.eth.chain_id}. the latest block is {block_number:,}\n")
 
 # epoch_time = 15
 
@@ -43,7 +56,7 @@ assert web3.isChecksumAddress(token_contract_address), f"Not a valid contract ad
 tx_config = {
     'from': wallet_address,
     'maxFeePerGas': web3.toWei('250', 'gwei'),
-	'maxPriorityFeePerGas': web3.toWei('5', 'gwei'),
+    'maxPriorityFeePerGas': web3.toWei('5', 'gwei'),
 }
 
 # Show users the current status of token and his address
@@ -54,8 +67,8 @@ token_decimals = token_contract.functions.decimals().call()
 
 token_balance = token_contract.functions.balanceOf(wallet_address).call()
 
-print(f"wallet address: {wallet_address}")
-print(f"account balance: {token_balance/(10**token_decimals):,} {token_symbol}")
+print(f"Your payment wallet address: {wallet_address}")
+print(f"Your Account balance: {token_balance / (10 ** token_decimals):,} {token_symbol}")
 # print(f"epoch time: 1 block per {epoch_time} seconds\n")
 
 hardware_type = input(" 0. CPU Only - 2 vCPU - 16 GiB - Free \
@@ -81,11 +94,11 @@ if not confirm.lower().startswith("y"):
     print("Aborted")
     sys.exit(1)
 
-
-print(f"\ndepositing {price} {token_symbol} into contract...")
+print(f"\nDepositing {price} {token_symbol} into contract...")
 nonce = web3.eth.getTransactionCount(wallet_address)
 tx_config["nonce"] = nonce
-approve_tx = token_contract.functions.approve(space_contract_address, int(price) * 10**token_decimals).buildTransaction(tx_config)
+approve_tx = token_contract.functions.approve(space_contract_address,
+                                              int(price) * 10 ** token_decimals).buildTransaction(tx_config)
 
 # SIGN TX
 signed_tx = web3.eth.account.signTransaction(approve_tx, private_key)
@@ -95,7 +108,7 @@ hash = web3.toHex(tx_hash)
 
 nonce = web3.eth.getTransactionCount(wallet_address)
 tx_config["nonce"] = nonce
-deposit_tx = space_contract.functions.deposit(int(price) * 10**token_decimals).buildTransaction(tx_config)
+deposit_tx = space_contract.functions.deposit(int(price) * 10 ** token_decimals).buildTransaction(tx_config)
 
 # SIGN TX
 signed_tx = web3.eth.account.signTransaction(deposit_tx, private_key)
@@ -103,8 +116,7 @@ tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
 web3.eth.wait_for_transaction_receipt(tx_hash)
 hash = web3.toHex(tx_hash)
 
-print(f"transaction hash: {hash}")
-
+print(f"Deposit is completed. Tx Hash: https://hyperspace.filfox.info/en/message/{hash}")
 
 print(f"\npurchasing space...")
 nonce = web3.eth.getTransactionCount(wallet_address)
@@ -117,4 +129,4 @@ tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
 web3.eth.wait_for_transaction_receipt(tx_hash)
 hash = web3.toHex(tx_hash)
 
-print(f"transaction hash: {hash}")
+print(f"Purchasing Success. Tx Hash: https://hyperspace.filfox.info/en/message/{hash}")
