@@ -4,6 +4,22 @@
 2. `LagrangePlatform` rewards users for uploading data and models to the Langrange Platform
 3. `SpacePayment` allows users to purchase spaces
 
+## Addresses
+
+### Hyperspace Testnet
+
+| Contract     | Address                                    |
+| ------------ | ------------------------------------------ |
+| LADToken     | 0xCdB765D539637a4A6B434ea43C27eE0C05804B33 |
+| SpacePayment | 0x82D937426F43e99DA6811F167eCFB0103cd07E6B |
+
+### Binance Testnet
+
+| Contract     | Address                                    |
+| ------------ | ------------------------------------------ |
+| LADToken     | 0x05dD79893Aa2cFA754aEBb33398416F90590D5B1 |
+| SpacePayment | 0x5DF166d2875c82f6f3B172e8eeBAbB87b627014c |
+
 ## Functions
 
 ## LagrangeDAOToken.sol
