@@ -38,7 +38,7 @@ mycursor.execute(lastScanBlockCommand)
 lastScannedBlock = mycursor.fetchall()
 
 # Block on which the contract was deployed:
-from_block = 113518 #lastScannedBlock[0][0] + 1
+from_block = 108401 #lastScannedBlock[0][0] + 1
 target_block = w3.eth.get_block('latest')
 # Block chunk to be scanned:
 batchSize = 1000
@@ -85,12 +85,24 @@ while from_block < target_block.number:
                 # depositEvents[i].args.amount,
                 # depositEvents[i].transactionHash.hex())
 
+                txHash = depositEvents[i].transactionHash.hex()
+                txInputDecoded = w3.eth.getTransactionReceipt(txHash)
+                #print("txInputDecoded: ",txInputDecoded)
+                logs = contract.events.Deposit().processReceipt(txInputDecoded)
+
+                result = dict(logs[0].args)
+                tx_data = json.dumps(result, cls=HexJsonEncoder)
+
                 # val = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "')"
                 txVal = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
                 sqlCommand = txSQL + txVal
 
+                txLogVal = "('" + str(logs[0].address) + "', '" + str(depositEvents[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
+                logCommand = logSQL + txLogVal
+
                 try:
                     mycursor.execute(sqlCommand)
+                    mycursor.execute(logCommand)
                 except mydb.Error as e:
                     print(e)
                     # print("Please check the SQL command")
@@ -117,7 +129,7 @@ while from_block < target_block.number:
                 logs = contract.events.SpaceCreated().processReceipt(txInputDecoded)
                 result = dict(logs[0].args)
                 tx_data = json.dumps(result, cls=HexJsonEncoder)
-                print("logs: ",logs[0].transactionIndex)
+                # print("logs: ",logs[0].transactionIndex)
                 # print("JSON str: ",tx_json)
 
                 txVal = "(" + str(spaceCreatedEvent[i].blockNumber) + ", '" + str(spaceCreatedEvent[i].event) + "', '" + str(spaceCreatedEvent[i].args.owner) + "', '" + str(spaceCreatedEvent[i].address) + "', " + str(spaceCreatedEvent[i].args.price/ 10 ** 18) + ", '" + str(spaceCreatedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
@@ -125,7 +137,7 @@ while from_block < target_block.number:
                 
                 txLogVal = "('" + str(logs[0].address) + "', '" + str(spaceCreatedEvent[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
                 logCommand = logSQL + txLogVal
-                print(logCommand)
+                # print(logCommand)
 
                 try:
                     mycursor.execute(sqlCommand)
@@ -153,11 +165,22 @@ while from_block < target_block.number:
             txInputDecoded = w3.eth.get_transaction(txHash)
             # print(expiryExtendedEvent[i])
             if blocknumInit != expiryExtendedEvent[i].blockNumber:
+                # Tx logs:
+                # txHash = expiryExtendedEvent[i].transactionHash.hex()
+                # txInputDecoded = w3.eth.getTransactionReceipt(txHash)
+                logs = contract.events.ExpiryExtended().processReceipt(txInputDecoded)
+                result = dict(logs[0].args)
+                tx_data = json.dumps(result, cls=HexJsonEncoder)
+
                 txVal = "(" + str(expiryExtendedEvent[i].blockNumber) + ", '" + str(expiryExtendedEvent[i].event) + "', '" + str(txInputDecoded['from']) + "', '" + str(expiryExtendedEvent[i].address) + "', " + str(expiryExtendedEvent[i].args.price/ 10 ** 18) + ", '" + str(expiryExtendedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
                 sqlCommand = txSQL + txVal
 
+                txLogVal = "('" + str(logs[0].address) + "', '" + str(expiryExtendedEvent[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
+                logCommand = logSQL + txLogVal
+
                 try:
                     mycursor.execute(sqlCommand)
+                    mycursor.execute(logCommand)
                 except mydb.Error as e:
                     print(e)
 
@@ -180,11 +203,19 @@ while from_block < target_block.number:
             txInputDecoded = w3.eth.get_transaction(txHash)
 
             if blocknumInit != hardwarePriceChangedEvent[i].blockNumber:
+                logs = contract.events.HardwarePriceChanged().processReceipt(txInputDecoded)
+                result = dict(logs[0].args)
+                tx_data = json.dumps(result, cls=HexJsonEncoder)
+
                 txVal = "(" + str(hardwarePriceChangedEvent[i].blockNumber) + ", '" + str(hardwarePriceChangedEvent[i].event) + "', '" + str(txInputDecoded['from']) + "', '" + str(hardwarePriceChangedEvent[i].address) + "', " + str(hardwarePriceChangedEvent[i].args.price/ 10 ** 18) + ", '" + str(hardwarePriceChangedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
                 sqlCommand = txSQL + txVal
 
+                txLogVal = "('" + str(logs[0].address) + "', '" + str(hardwarePriceChangedEvent[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
+                logCommand = logSQL + txLogVal
+
                 try:
                     mycursor.execute(sqlCommand)
+                    mycursor.execute(logCommand)
                 except mydb.Error as e:
                     print(e)
 
@@ -212,3 +243,6 @@ toBlkList.append(target_block.number)
 mycursor.execute(updateLastBlock,toBlkList)
 # print(toBlkList)
 mydb.commit()
+
+#txInputDecoded:  AttributeDict({'transactionHash': HexBytes('0xa0ac9595d821206e3775f66611dfcc8fc80a7a91d714274da1e7755b61b9e7e5'), 'transactionIndex': 0, 'blockHash': HexBytes('0xdb92b1931ad295ece36c12b02414088c71b5f62fc1553824188f88793294984f'), 'blockNumber': 113548, 'from': '0x96216849c49358B10257cb55b28eA603c874b05E', 'to': '0x82D937426F43e99DA6811F167eCFB0103cd07E6B', 'root': '0x0000000000000000000000000000000000000000000000000000000000000000', 'status': 1, 'contractAddress': None, 'cumulativeGasUsed': 0, 'gasUsed': 13042927, 'effectiveGasPrice': 6245016272, 'logsBloom': HexBytes('0x3f7fdcbffafdfebfd4973bdfeb531b294cbb6db13774b69d3fcfedd9feff43f32fcbdde6ebfcc58b4fff52e687f2fdffee975af0a67dd5f9f6b9da7b0fbfe736afbbfffddbee1fc3cbdb716a8f9ae963de7f75f1e5ffbe7cd769b53df390a1d7bd97447b7fdf8bf6197786bdacfaed1ee0d7fedef0bfddc90bbb7ad055fff9d9b5476447edf47f137f57ebf2e7d56f777ff1bef56bbb96ffa9775bff6f6f9993f2ba11f5719febb749eb93df6c7fde3be65d6ebfbed7fdd8a8fdd6ff16d0d73f970de552671127f77bec6fd1d8bfdbe74679fbcf9e7adafd7b9d19afbf986f977ef15b6db6d7c844dfbfdff6f9bef38fd9b7557db79f8affeffcfb5efb76f76e'), 
+#'logs': [AttributeDict({'address': '0xCdB765D539637a4A6B434ea43C27eE0C05804B33', 'data': '0x0000000000000000000000000000000000000000000000000000000000000000', 'topics': [HexBytes('0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925'), HexBytes('0x00000000000000000000000096216849c49358b10257cb55b28ea603c874b05e'), HexBytes('0x00000000000000000000000082d937426f43e99da6811f167ecfb0103cd07e6b')], 'removed': False, 'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0xa0ac9595d821206e3775f66611dfcc8fc80a7a91d714274da1e7755b61b9e7e5'), 'blockHash': HexBytes('0xdb92b1931ad295ece36c12b02414088c71b5f62fc1553824188f88793294984f'), 'blockNumber': 113548}), AttributeDict({'address': '0xCdB765D539637a4A6B434ea43C27eE0C05804B33', 'data': '0x0000000000000000000000000000000000000000000000000000000000000000', 'topics': [HexBytes('0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'), HexBytes('0x00000000000000000000000096216849c49358b10257cb55b28ea603c874b05e'), HexBytes('0x00000000000000000000000082d937426f43e99da6811f167ecfb0103cd07e6b')], 'removed': False, 'logIndex': 1, 'transactionIndex': 0, 'transactionHash': HexBytes('0xa0ac9595d821206e3775f66611dfcc8fc80a7a91d714274da1e7755b61b9e7e5'), 'blockHash': HexBytes('0xdb92b1931ad295ece36c12b02414088c71b5f62fc1553824188f88793294984f'), 'blockNumber': 113548}), AttributeDict({'address': '0x82D937426F43e99DA6811F167eCFB0103cd07E6B', 'data': '0x00000000000000000000000096216849c49358b10257cb55b28ea603c874b05e0000000000000000000000000000000000000000000000000000000000000000', 'topics': [HexBytes('0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c')], 'removed': False, 'logIndex': 2, 'transactionIndex': 0, 'transactionHash': HexBytes('0xa0ac9595d821206e3775f66611dfcc8fc80a7a91d714274da1e7755b61b9e7e5'), 'blockHash': HexBytes('0xdb92b1931ad295ece36c12b02414088c71b5f62fc1553824188f88793294984f'), 'blockNumber': 113548})], 'type': '0x2'})
