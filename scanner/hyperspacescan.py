@@ -45,7 +45,7 @@ batchSize = 1000
 
 print("from_block: ",from_block)
 
-txSQL = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,contract_id,coin_id) VALUES "
+txSQL = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,created_at,contract_id,coin_id) VALUES "
 logSQL = "INSERT INTO event_logs(address,name,data,log_index,removed) VALUES "
 
 class HexJsonEncoder(json.JSONEncoder):
@@ -73,7 +73,6 @@ while from_block < target_block.number:
         while i < depositEventsSize:
             # print(i)
             if blocknumInit != depositEvents[i].blockNumber:
-                # TODO: Debug on depositTimeStamp
                 #print("debugging...")
                 #print(depositEvents[i].blockNumber)
                 depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
@@ -95,7 +94,7 @@ while from_block < target_block.number:
                 tx_data = json.dumps(result, cls=HexJsonEncoder)
 
                 # val = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "')"
-                txVal = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
+                txVal = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "', " + "1, " + "1" + ")"
                 sqlCommand = txSQL + txVal
 
                 txLogVal = "('" + str(logs[0].address) + "', '" + str(depositEvents[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
@@ -124,6 +123,8 @@ while from_block < target_block.number:
             # print(i)
             
             if blocknumInit != spaceCreatedEvent[i].blockNumber:
+                spaceCreatedTimeStamp = w3.eth.get_block(spaceCreatedEvent[i].blockNumber).timestamp
+
                 # Tx logs:
                 txHash = spaceCreatedEvent[i].transactionHash.hex()
                 txInputDecoded = w3.eth.getTransactionReceipt(txHash)
@@ -133,7 +134,7 @@ while from_block < target_block.number:
                 # print("logs: ",logs[0].transactionIndex)
                 # print("JSON str: ",tx_json)
 
-                txVal = "(" + str(spaceCreatedEvent[i].blockNumber) + ", '" + str(spaceCreatedEvent[i].event) + "', '" + str(spaceCreatedEvent[i].args.owner) + "', '" + str(spaceCreatedEvent[i].address) + "', " + str(spaceCreatedEvent[i].args.price/ 10 ** 18) + ", '" + str(spaceCreatedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
+                txVal = "(" + str(spaceCreatedEvent[i].blockNumber) + ", '" + str(spaceCreatedEvent[i].event) + "', '" + str(spaceCreatedEvent[i].args.owner) + "', '" + str(spaceCreatedEvent[i].address) + "', " + str(spaceCreatedEvent[i].args.price/ 10 ** 18) + ", '" + str(spaceCreatedEvent[i].transactionHash.hex()) + "', '" + str(spaceCreatedTimeStamp) + "', " + "1, " + "1" + ")"
                 sqlCommand = txSQL + txVal
                 
                 txLogVal = "('" + str(logs[0].address) + "', '" + str(spaceCreatedEvent[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
@@ -166,6 +167,8 @@ while from_block < target_block.number:
             txInputDecoded = w3.eth.get_transaction_receipt(txHash)
             # print(expiryExtendedEvent[i])
             if blocknumInit != expiryExtendedEvent[i].blockNumber:
+                expiryExtendedTimeStamp = w3.eth.get_block(expiryExtendedEvent[i].blockNumber).timestamp
+
                 # Tx logs:
                 # txHash = expiryExtendedEvent[i].transactionHash.hex()
                 # txInputDecoded = w3.eth.getTransactionReceipt(txHash)
@@ -173,7 +176,7 @@ while from_block < target_block.number:
                 result = dict(logs[0].args)
                 tx_data = json.dumps(result, cls=HexJsonEncoder)
 
-                txVal = "(" + str(expiryExtendedEvent[i].blockNumber) + ", '" + str(expiryExtendedEvent[i].event) + "', '" + str(txInputDecoded['from']) + "', '" + str(expiryExtendedEvent[i].address) + "', " + str(expiryExtendedEvent[i].args.price/ 10 ** 18) + ", '" + str(expiryExtendedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
+                txVal = "(" + str(expiryExtendedEvent[i].blockNumber) + ", '" + str(expiryExtendedEvent[i].event) + "', '" + str(txInputDecoded['from']) + "', '" + str(expiryExtendedEvent[i].address) + "', " + str(expiryExtendedEvent[i].args.price/ 10 ** 18) + ", '" + str(expiryExtendedEvent[i].transactionHash.hex()) + "', '" + str(expiryExtendedTimeStamp) + "', " + "1, " + "1" + ")"
                 sqlCommand = txSQL + txVal
 
                 txLogVal = "('" + str(logs[0].address) + "', '" + str(expiryExtendedEvent[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
@@ -201,6 +204,9 @@ while from_block < target_block.number:
         while i < hardwarePriceChangedEventSize:
             # print(i)
             if blocknumInit != hardwarePriceChangedEvent[i].blockNumber:
+                hardwarePriceChangedTimeStamp = w3.eth.get_block(hardwarePriceChangedEvent[i].blockNumber).timestamp
+
+                # Tx Logs:
                 txHash = hardwarePriceChangedEvent[i].transactionHash.hex()
                 txInputDecoded = w3.eth.get_transaction_receipt(txHash)
                 #print("txInputDecoded: ",txInputDecoded)
@@ -209,7 +215,7 @@ while from_block < target_block.number:
                 result = dict(logs[0].args)
                 tx_data = json.dumps(result, cls=HexJsonEncoder)
 
-                txVal = "(" + str(hardwarePriceChangedEvent[i].blockNumber) + ", '" + str(hardwarePriceChangedEvent[i].event) + "', '" + str(txInputDecoded['from']) + "', '" + str(hardwarePriceChangedEvent[i].address) + "', " + str(hardwarePriceChangedEvent[i].args.price/ 10 ** 18) + ", '" + str(hardwarePriceChangedEvent[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
+                txVal = "(" + str(hardwarePriceChangedEvent[i].blockNumber) + ", '" + str(hardwarePriceChangedEvent[i].event) + "', '" + str(txInputDecoded['from']) + "', '" + str(hardwarePriceChangedEvent[i].address) + "', " + str(hardwarePriceChangedEvent[i].args.price/ 10 ** 18) + ", '" + str(hardwarePriceChangedEvent[i].transactionHash.hex()) + "', '" + str(hardwarePriceChangedTimeStamp) + "', " + "1, " + "1" + ")"
                 sqlCommand = txSQL + txVal
 
                 txLogVal = "('" + str(logs[0].address) + "', '" + str(hardwarePriceChangedEvent[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
