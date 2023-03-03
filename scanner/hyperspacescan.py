@@ -38,7 +38,7 @@ mycursor.execute(lastScanBlockCommand)
 lastScannedBlock = mycursor.fetchall()
 
 # Block on which the contract was deployed:
-from_block = 108401 #lastScannedBlock[0][0] + 1
+from_block = 121523 #lastScannedBlock[0][0] + 1
 target_block = w3.eth.get_block('latest')
 # Block chunk to be scanned:
 batchSize = 1000
@@ -74,9 +74,10 @@ while from_block < target_block.number:
             # print(i)
             if blocknumInit != depositEvents[i].blockNumber:
                 # TODO: Debug on depositTimeStamp
-                # print("debugging...")
-                # depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
-                # print(depositTimeStamp)
+                #print("debugging...")
+                #print(depositEvents[i].blockNumber)
+                depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
+                #print(depositTimeStamp)
 
                 # print(depositTimeStamp)
                 # print(depositEvents[i].blockNumber,
@@ -162,7 +163,7 @@ while from_block < target_block.number:
             # AttributeDict({'args': AttributeDict({'id': 1, 'expiryBlock': 177177, 'price': 0}), 'event': 'ExpiryExtended', 'logIndex': 0, 'transactionIndex': 0, 'transactionHash': HexBytes('0xa26eacb33ab18ad213a4d423a384138d9f8bca0ee4edc24f947d958820510d5b'), 'address': '0x82D937426F43e99DA6811F167eCFB0103cd07E6B', 'blockHash': HexBytes('0x64c7ef3520d953682444605a305c40b6f8c4bbd58217aed0db42ca5a3ff178c5'), 'blockNumber': 108366})
             # AttributeDict({'chainId': '0xc45', 'nonce': 67, 'hash': HexBytes('0xa26eacb33ab18ad213a4d423a384138d9f8bca0ee4edc24f947d958820510d5b'), 'blockHash': HexBytes('0x64c7ef3520d953682444605a305c40b6f8c4bbd58217aed0db42ca5a3ff178c5'), 'blockNumber': 108366, 'transactionIndex': 0, 'from': '0xA878795d2C93985444f1e2A077FA324d59C759b0', 'to': '0x82D937426F43e99DA6811F167eCFB0103cd07E6B', 'value': 0, 'type': '0x2', 'input': '0x1df8c923000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000003e8', 'gas': 15066110, 'maxFeePerGas': 250000000000, 'maxPriorityFeePerGas': 5000000000, 'accessList': [], 'v': 1, 'r': HexBytes('0x86ad00cd837d10acc58144b17f8c55bef6b3456cb4bd0ae19f0b7df36e6918a0'), 's': HexBytes('0x28d7f8188363294f317a20055122baff076b8379adf108dd261c6f52d87be569')})
             txHash = expiryExtendedEvent[i].transactionHash.hex()
-            txInputDecoded = w3.eth.get_transaction(txHash)
+            txInputDecoded = w3.eth.get_transaction_receipt(txHash)
             # print(expiryExtendedEvent[i])
             if blocknumInit != expiryExtendedEvent[i].blockNumber:
                 # Tx logs:
@@ -204,7 +205,7 @@ while from_block < target_block.number:
                 txInputDecoded = w3.eth.get_transaction_receipt(txHash)
                 #print("txInputDecoded: ",txInputDecoded)
                 logs = contract.events.HardwarePriceChanged().processReceipt(txInputDecoded)
-                print("logs: ",logs)
+                # print("logs: ",logs)
                 result = dict(logs[0].args)
                 tx_data = json.dumps(result, cls=HexJsonEncoder)
 
