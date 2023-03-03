@@ -6,6 +6,7 @@ import time
 import mysql.connector
 import json
 from hexbytes import HexBytes
+import warnings
 
 hyperspace_url = config('HYPERSPACE_URL')
 
@@ -55,6 +56,9 @@ class HexJsonEncoder(json.JSONEncoder):
         return super().default(obj)
 
 while from_block < target_block.number:
+    # silence harmless warnings
+    warnings.filterwarnings("ignore")
+
     toBlock = from_block + batchSize
     print(from_block,toBlock)
 
@@ -86,8 +90,9 @@ while from_block < target_block.number:
                 # depositEvents[i].transactionHash.hex())
 
                 txHash = depositEvents[i].transactionHash.hex()
-                txInputDecoded = w3.eth.getTransactionReceipt(txHash)
-                #print("txInputDecoded: ",txInputDecoded)
+                txInputDecoded = w3.eth.get_transaction_receipt(txHash)
+                print("txInputDecoded: ",txInputDecoded) # topics & removed are here!!
+
                 logs = contract.events.Deposit().processReceipt(txInputDecoded)
 
                 result = dict(logs[0].args)
@@ -127,7 +132,7 @@ while from_block < target_block.number:
 
                 # Tx logs:
                 txHash = spaceCreatedEvent[i].transactionHash.hex()
-                txInputDecoded = w3.eth.getTransactionReceipt(txHash)
+                txInputDecoded = w3.eth.get_transaction_receipt(txHash)
                 logs = contract.events.SpaceCreated().processReceipt(txInputDecoded)
                 result = dict(logs[0].args)
                 tx_data = json.dumps(result, cls=HexJsonEncoder)
