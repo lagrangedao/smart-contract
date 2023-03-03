@@ -199,11 +199,12 @@ while from_block < target_block.number:
 
         while i < hardwarePriceChangedEventSize:
             # print(i)
-            txHash = hardwarePriceChangedEvent[i].transactionHash.hex()
-            txInputDecoded = w3.eth.get_transaction(txHash)
-
             if blocknumInit != hardwarePriceChangedEvent[i].blockNumber:
+                txHash = hardwarePriceChangedEvent[i].transactionHash.hex()
+                txInputDecoded = w3.eth.get_transaction_receipt(txHash)
+                #print("txInputDecoded: ",txInputDecoded)
                 logs = contract.events.HardwarePriceChanged().processReceipt(txInputDecoded)
+                print("logs: ",logs)
                 result = dict(logs[0].args)
                 tx_data = json.dumps(result, cls=HexJsonEncoder)
 
