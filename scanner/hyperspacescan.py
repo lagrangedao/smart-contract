@@ -55,6 +55,14 @@ class HexJsonEncoder(json.JSONEncoder):
             return obj.hex()
         return super().default(obj)
 
+def sigToEventName(eventSig):
+    if eventSig == '0x8c5be1e5':
+        return "Approval(address,address,uint256)"
+    elif eventSig == '0xddf252ad':
+        return "Transfer(address,address,uint256)"
+    elif eventSig == '0xe1fffcc4':
+        return "Deposit(address,uint256)"
+
 while from_block < target_block.number:
     # silence harmless warnings
     warnings.filterwarnings("ignore")
@@ -68,6 +76,9 @@ while from_block < target_block.number:
     spaceCreatedEvent = contract.events.SpaceCreated.getLogs(fromBlock=from_block, toBlock=toBlock)
     expiryExtendedEvent = contract.events.ExpiryExtended.getLogs(fromBlock=from_block, toBlock=toBlock)
     hardwarePriceChangedEvent = contract.events.HardwarePriceChanged.getLogs(fromBlock=from_block, toBlock=toBlock)
+
+    # func = sigToEventName('0x8c5be1e5')
+    # print("func: ",func)
 
     if depositEvents != ():
         depositEventsSize = len(depositEvents)
@@ -83,38 +94,67 @@ while from_block < target_block.number:
                 depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
                 #print(depositTimeStamp)
 
+                # Insert into transaction table
                 txVal = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "', " + "1, " + "1" + ")"
                 sqlCommand = txSQL + txVal
 
                 try:
                     mycursor.execute(sqlCommand)
-                    # mycursor.execute(logCommand)
+                    mydb.commit()
                 except mydb.Error as e:
                     print(e)
 
                 # insert record in log table:
                 txHash = depositEvents[i].transactionHash.hex()
                 txInputReceipt = w3.eth.get_transaction_receipt(txHash)
-                logs = contract.events.Deposit().processReceipt(txInputReceipt)
+                txLogs = txInputReceipt.logs
+                print("txLogs: ",txLogs)
+                #logs = contract.events.Deposit().processReceipt(txInputReceipt)
                 # print("txInputReceipt size: ",len(txInputReceipt))
                 # print("txInputReceipt: ",txInputReceipt)
                 # print("logs: ",logs)
                 # print("---------")
-                # print("logs arr size: ",len(txInputReceipt.logs))
+                print("logs arr size: ",len(txInputReceipt.logs))
                 # print("logs array: ",txInputReceipt.logs)
-                # print("---------")
+                print("---------")
                 # print("topics: ",txInputReceipt.logs[i].topics)
                 # print("removed: ",txInputReceipt.logs[i].removed)
                 logsArrLen = len(txInputReceipt.logs)
                 
-                result = dict(logs[0].args)
-                tx_data = json.dumps(result, cls=HexJsonEncoder)
+                # result = dict(logs[0].args)
+                # print("result: ",result)
+                # tx_data = json.dumps(result, cls=HexJsonEncoder)
+                # print("tx_data: ",tx_data)
 
-                txLogVal = "('" + str(logs[0].address) + "', '" + str(depositEvents[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
-                logCommand = logSQL + txLogVal
+                # txLogVal = "('" + str(logs[0].address) + "', '" + str(depositEvents[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
+                # logCommand = logSQL + txLogVal
+
+                t=0
+                while t < logsArrLen:
+                    topics1 = txLogs[t].topics[0].hex()
+                    eventName = sigToEventName(topics1[0:10])
+
+                    depositEventList = []
+                    # event_logs:
+                    depositEventList.append(str(txLogs[t].address))
+                    depositEventList.append(eventName)
+                    # TODO: Data?
+                    depositEventList.append(str(txLogs[t].data))
+                    depositEventList.append(str(txLogs[t].topics))
+                    depositEventList.append(str(txLogs[t].logIndex))
+                    depositEventList.append(str(txLogs[t].removed))
+
+                    print("depositEventList: ",depositEventList)
+                    print("------")
+
                     
+                    t = t+1
+                    try:
+                        mycursor.execute(logSQL,depositEventList)
+                        mydb.commit()
+                    except mydb.Error as e:
+                        print(e)
 
-                mydb.commit()
                 print(depositEvents[i].blockNumber,mycursor.rowcount, "depositEvents record inserted.")
 
             blocknumInit = depositEvents[i].blockNumber
@@ -144,6 +184,7 @@ while from_block < target_block.number:
                 # print("logs: ",logs[0].transactionIndex)
                 # print("JSON str: ",tx_json)
 
+                # TODO: parameterize Txinput SQL:
                 txVal = "(" + str(spaceCreatedEvent[i].blockNumber) + ", '" + str(spaceCreatedEvent[i].event) + "', '" + str(spaceCreatedEvent[i].args.owner) + "', '" + str(spaceCreatedEvent[i].address) + "', " + str(spaceCreatedEvent[i].args.price/ 10 ** 18) + ", '" + str(spaceCreatedEvent[i].transactionHash.hex()) + "', '" + str(spaceCreatedTimeStamp) + "', " + "1, " + "1" + ")"
                 sqlCommand = txSQL + txVal
                 
@@ -151,6 +192,7 @@ while from_block < target_block.number:
                 spaceCreatedEventList = []
                 spaceCreatedEventList.append(str(logs[0].address))
                 spaceCreatedEventList.append(str(spaceCreatedEvent[i].event))
+                # TODO: Data?
                 spaceCreatedEventList.append(tx_data)
                 spaceCreatedEventList.append(str(txInputDecoded.logs[0].topics))
                 spaceCreatedEventList.append(str(logs[0].logIndex))
@@ -247,8 +289,8 @@ while from_block < target_block.number:
                 txVal = "(" + str(hardwarePriceChangedEvent[i].blockNumber) + ", '" + str(hardwarePriceChangedEvent[i].event) + "', '" + str(txInputDecoded['from']) + "', '" + str(hardwarePriceChangedEvent[i].address) + "', " + str(hardwarePriceChangedEvent[i].args.price/ 10 ** 18) + ", '" + str(hardwarePriceChangedEvent[i].transactionHash.hex()) + "', '" + str(hardwarePriceChangedTimeStamp) + "', " + "1, " + "1" + ")"
                 sqlCommand = txSQL + txVal
 
-                txLogVal = "('" + str(logs[0].address) + "', '" + str(hardwarePriceChangedEvent[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
-                logCommand = logSQL + txLogVal
+                # txLogVal = "('" + str(logs[0].address) + "', '" + str(hardwarePriceChangedEvent[i].event) + "', '" + tx_data + "', '" + str(logs[0].logIndex) + "', '" + "False" + "')"
+                # logCommand = logSQL + txLogVal
 
                 # event_logs:
                 hardwarePriceChangedList = []
