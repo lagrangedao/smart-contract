@@ -118,8 +118,8 @@ CREATE TABLE IF NOT EXISTS `lad_block`.`event_logs` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `address` VARCHAR(100) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
-  `topics` VARCHAR(255) NULL DEFAULT NULL,
-  `data` VARCHAR(255) NOT NULL,
+  `topics` VARCHAR(1000) NULL DEFAULT NULL,
+  `data` VARCHAR(1000) NOT NULL,
   `log_index` INT(11) NOT NULL,
   `removed` VARCHAR(5) NOT NULL,
   PRIMARY KEY (`id`))
