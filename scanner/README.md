@@ -31,17 +31,16 @@ python3 bsc_API_scanner.py
 ```
 HYPERSPACE_URL=https://api.hyperspace.node.glif.io/rpc/v1
 ```
+Or use this node if the glif node is down: `https://rpc.ankr.com/filecoin_testnet`
 3. Install MySQL connector by executing the following command:
 ```
 pip install mysql-connector-python
 ```
-4. Create a database on `localhost` with the following credentials and DB name:
-```
-user="root",
-password="Sql@12345",
-database='HYPERSPACE'
-```
-5. Run the script:
+4. Create a database on `localhost` and create tables by executing the `scanner/db/SQL_COMMANDS.sql` file.
+5. Configure the `.env` file with the database user name and password.
+6. The `contract` and `network` tables must have at least 1 valid entry before executing the script.
+7. Configure the `contract_id_val` & `coin_id_val` variables in `hyperspacescan.py` according to the values found in the tables,
+8. Run the script:
 
 ```
 python3 hyperspacescan.py
