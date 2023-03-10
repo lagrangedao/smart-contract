@@ -13,8 +13,8 @@ hyperspace_url = config('HYPERSPACE_URL')
 # MySQL DB:
 mydb = mysql.connector.connect(
   host="localhost",
-  user="root",
-  password="Sql@12345",
+  user=config('DB_USER'),
+  password=config('DB_PASSWORD'),
   database='lad_block'
 )
 mycursor = mydb.cursor()
