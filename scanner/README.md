@@ -23,15 +23,15 @@ python3 scan_polygon_payment.py
 python3 bsc_API_scanner.py
 ```
 
-# Steps to run Hyperspace scanning script:
+# Steps to run Hyperspace scanning script:  
 
-1. Configure the `.env` file by renaming `sample.env` to `.env`
-2. Add the Hyperspace node URL to `HYPERSPACE_URL=` as shown below:
+1. Configure the `.env` file by renaming `sample.env` to `.env`  
+2. Add the Hyperspace node URL to `HYPERSPACE_URL=` as shown below:  
 
 ```
 HYPERSPACE_URL=https://api.hyperspace.node.glif.io/rpc/v1
 ```
-Or use this node if the glif node is down: `https://rpc.ankr.com/filecoin_testnet`
+Or use this node if the glif node is down: `https://rpc.ankr.com/filecoin_testnet`  
 3. Install MySQL connector by executing the following command:
 ```
 pip install mysql-connector-python
