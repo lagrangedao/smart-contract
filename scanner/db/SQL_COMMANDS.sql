@@ -30,7 +30,7 @@ COLLATE = utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS `lad_block`.`transaction` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `block_number` INT(11) NOT NULL,
-  `event` VARCHAR(10) NOT NULL,
+  `event` VARCHAR(100) NOT NULL,
   `account_address` VARCHAR(100) NOT NULL,
   `recipient_address` VARCHAR(100) NOT NULL,
   `amount` BIGINT(20) NULL DEFAULT NULL,
@@ -114,6 +114,19 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
+
+CREATE TABLE IF NOT EXISTS `lad_block`.`event_logs` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `address` VARCHAR(100) NOT NULL,
+  `name` VARCHAR(100) NOT NULL,
+  `topics` VARCHAR(1000) NULL DEFAULT NULL,
+  `data` VARCHAR(1000) NOT NULL,
+  `log_index` INT(11) NOT NULL,
+  `removed` VARCHAR(5) NOT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

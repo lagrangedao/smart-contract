@@ -4,15 +4,18 @@ from web3.middleware import geth_poa_middleware
 from web3.contract import ContractEvent
 import time
 import mysql.connector
+import json
+from hexbytes import HexBytes
+import warnings
 
 hyperspace_url = config('HYPERSPACE_URL')
 
 # MySQL DB:
 mydb = mysql.connector.connect(
   host="localhost",
-  user="root",
-  password="Sql@12345",
-  database='HYPERSPACE'
+  user=config('DB_USER'),
+  password=config('DB_PASSWORD'),
+  database='lad_block'
 )
 mycursor = mydb.cursor()
 
@@ -23,30 +26,63 @@ w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 res = w3.isConnected()
 #print(w3.eth.chain_id)
 
-# SpacePayment contract address and ABI
+# Hyperspace SpacePayment contract address and ABI
 CONTRACT_ADDRESS = '0x82D937426F43e99DA6811F167eCFB0103cd07E6B'
-ABI = '[ { "inputs": [ { "internalType": "address", "name": "tokenAddress", "type": "address" } ], "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [ { "indexed": false, "internalType": "address", "name": "account", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" } ], "name": "Deposit", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": false, "internalType": "uint256", "name": "epochDuration", "type": "uint256" } ], "name": "EpochDurationChanged", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": false, "internalType": "uint256", "name": "id", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "expiryBlock", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "price", "type": "uint256" } ], "name": "ExpiryExtended", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": false, "internalType": "uint256", "name": "hardwareType", "type": "uint256" }, { "indexed": false, "internalType": "string", "name": "name", "type": "string" }, { "indexed": false, "internalType": "uint256", "name": "price", "type": "uint256" } ], "name": "HardwarePriceChanged", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" } ], "name": "OwnershipTransferred", "type": "event" }, { "anonymous": false, "inputs": [ { "indexed": false, "internalType": "uint256", "name": "id", "type": "uint256" }, { "indexed": false, "internalType": "address", "name": "owner", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "hardwareType", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "expiryBlock", "type": "uint256" }, { "indexed": false, "internalType": "uint256", "name": "price", "type": "uint256" } ], "name": "SpaceCreated", "type": "event" }, { "inputs": [ { "internalType": "address", "name": "account", "type": "address" } ], "name": "balanceOf", "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ], "stateMutability": "view", "type": "function" }, { "inputs": [ { "internalType": "uint256", "name": "hardwareType", "type": "uint256" }, { "internalType": "uint256", "name": "blocks", "type": "uint256" } ], "name": "buySpace", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [ { "internalType": "uint256", "name": "hardwareType", "type": "uint256" }, { "internalType": "string", "name": "newName", "type": "string" }, { "internalType": "uint256", "name": "newPrice", "type": "uint256" } ], "name": "changeHardware", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [ { "internalType": "uint256", "name": "amount", "type": "uint256" } ], "name": "deposit", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [ { "internalType": "uint256", "name": "spaceId", "type": "uint256" }, { "internalType": "uint256", "name": "blocks", "type": "uint256" } ], "name": "extendSpace", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [ { "internalType": "uint256", "name": "hardwareType", "type": "uint256" } ], "name": "hardwareInfo", "outputs": [ { "components": [ { "internalType": "string", "name": "name", "type": "string" }, { "internalType": "uint256", "name": "pricePerBlock", "type": "uint256" } ], "internalType": "struct SpacePayment.Hardware", "name": "", "type": "tuple" } ], "stateMutability": "view", "type": "function" }, { "inputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ], "name": "idToHardware", "outputs": [ { "internalType": "string", "name": "name", "type": "string" }, { "internalType": "uint256", "name": "pricePerBlock", "type": "uint256" } ], "stateMutability": "view", "type": "function" }, { "inputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ], "name": "idToSpace", "outputs": [ { "internalType": "address", "name": "owner", "type": "address" }, { "internalType": "uint256", "name": "hardwareType", "type": "uint256" }, { "internalType": "uint256", "name": "expiryBlock", "type": "uint256" } ], "stateMutability": "view", "type": "function" }, { "inputs": [ { "internalType": "uint256", "name": "spaceId", "type": "uint256" } ], "name": "isExpired", "outputs": [ { "internalType": "bool", "name": "", "type": "bool" } ], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "ladToken", "outputs": [ { "internalType": "contract LagrangeDAOToken", "name": "", "type": "address" } ], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "owner", "outputs": [ { "internalType": "address", "name": "", "type": "address" } ], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [ { "internalType": "uint256", "name": "spaceId", "type": "uint256" } ], "name": "spaceInfo", "outputs": [ { "components": [ { "internalType": "address", "name": "owner", "type": "address" }, { "internalType": "uint256", "name": "hardwareType", "type": "uint256" }, { "internalType": "uint256", "name": "expiryBlock", "type": "uint256" } ], "internalType": "struct SpacePayment.Space", "name": "", "type": "tuple" } ], "stateMutability": "view", "type": "function" }, { "inputs": [ { "internalType": "address", "name": "newOwner", "type": "address" } ], "name": "transferOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [ { "internalType": "uint256", "name": "amount", "type": "uint256" } ], "name": "withdraw", "outputs": [], "stateMutability": "nonpayable", "type": "function" } ]'
+space_abi_file = open('../contracts/abi/SpacePayment.json')
+ABI = json.load(space_abi_file)
 
 # validate SpacePayment contract address
 is_address_valid = w3.isAddress(CONTRACT_ADDRESS)
 #print(is_address_valid)
 
+lastScanBlockCommand = "select last_scan_block_number_payment from network WHERE id = 1"
+mycursor.execute(lastScanBlockCommand)
+lastScannedBlock = mycursor.fetchall()
+
 # Block on which the contract was deployed:
-from_block = 53304
+from_block = lastScannedBlock[0][0] + 1
 target_block = w3.eth.get_block('latest')
 # Block chunk to be scanned:
 batchSize = 1000
 
-sql = "INSERT INTO depositTransactions(blocknumber,event,accountAddress,recepientAddress,amount,TxHash,TxTimeStamp) VALUES "
+contract_id_val = 1
+coin_id_val = 1
 
-while from_block <  target_block.number:
+print("from_block: ",from_block)
+
+txSQL = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,created_at,contract_id,coin_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
+logSQL = "INSERT INTO event_logs(address,name,data,topics,log_index,removed) VALUES (%s, %s, %s, %s, %s, %s)"
+
+class HexJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, HexBytes):
+            return obj.hex()
+        return super().default(obj)
+
+def sigToEventName(eventSig):
+    if eventSig == '0x8c5be1e5':
+        return "Approval"
+    elif eventSig == '0xddf252ad':
+        return "Transfer"
+    elif eventSig == '0xe1fffcc4':
+        return "Deposit"
+
+while from_block < target_block.number:
+    # silence harmless warnings
+    warnings.filterwarnings("ignore")
+
     toBlock = from_block + batchSize
     print(from_block,toBlock)
 
     contract = w3.eth.contract(address=Web3.toChecksumAddress(CONTRACT_ADDRESS), abi=ABI)
 
     depositEvents = contract.events.Deposit.getLogs(fromBlock=from_block, toBlock=toBlock)
-    start_block = toBlock
+    spaceCreatedEvent = contract.events.SpaceCreated.getLogs(fromBlock=from_block, toBlock=toBlock)
+    expiryExtendedEvent = contract.events.ExpiryExtended.getLogs(fromBlock=from_block, toBlock=toBlock)
+    hardwarePriceChangedEvent = contract.events.HardwarePriceChanged.getLogs(fromBlock=from_block, toBlock=toBlock)
+
+    # func = sigToEventName('0x8c5be1e5')
+    # print("func: ",func)
 
     if depositEvents != ():
         depositEventsSize = len(depositEvents)
@@ -56,26 +92,256 @@ while from_block <  target_block.number:
         while i < depositEventsSize:
             # print(i)
             if blocknumInit != depositEvents[i].blockNumber:
-                depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
-                # print(depositTimeStamp)
-                # print(depositEvents[i].blockNumber,
-                # depositEvents[i].event,
-                # depositEvents[i].args.account,
-                # depositEvents[i].args.amount,
-                # depositEvents[i].transactionHash.hex())
+                try:
+                    depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
+                except:
+                    # Assign a zero value if the timestamp method fails on Hyperspace
+                    depositTimeStamp = 00000000
+                #print(depositTimeStamp)
 
-                val = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "')"
-                sqlCommand = sql + val
+                # Transaction logs
+                depositTxList = []
+                depositTxList.append(str(depositEvents[i].blockNumber))
+                depositTxList.append(str(depositEvents[i].event))
+                depositTxList.append(str(depositEvents[i].args.account))
+                depositTxList.append(str(depositEvents[i].address))
+                depositTxList.append(str(depositEvents[i].args.amount/ 10 ** 18))
+                depositTxList.append(str(depositEvents[i].transactionHash.hex()))
+                depositTxList.append(str(depositTimeStamp))
+                depositTxList.append(contract_id_val)
+                depositTxList.append(coin_id_val)
 
                 try:
-                    mycursor.execute(sqlCommand)
-                except:
-                    print("Please check the SQL command")
+                    mycursor.execute(txSQL,depositTxList)
+                    mydb.commit()
+                except mydb.Error as e:
+                    print(e)
 
-                mydb.commit()
-                print(mycursor.rowcount, "record inserted.")
+                # insert record in log table:
+                txHash = depositEvents[i].transactionHash.hex()
+                txInputReceipt = w3.eth.get_transaction_receipt(txHash)
+                depositTxLogs = txInputReceipt.logs
+                # print("depositTxLogs: ",depositTxLogs)
+                #logs = contract.events.Deposit().processReceipt(txInputReceipt)
+                # print("txInputReceipt size: ",len(txInputReceipt))
+                # print("txInputReceipt: ",txInputReceipt)
+                # print("logs: ",logs)
+                # print("---------")
+                # print("logs arr size: ",len(txInputReceipt.logs))
+                # print("logs array: ",txInputReceipt.logs)
+                # print("---------")
+                # print("topics: ",txInputReceipt.logs[i].topics)
+                # print("removed: ",txInputReceipt.logs[i].removed)
+                
+                # result = dict(logs[0].args)
+                # print("result: ",result)
+                # tx_data = json.dumps(result, cls=HexJsonEncoder)
+                # print("tx_data: ",tx_data)
+
+                logsArrLen = len(txInputReceipt.logs)
+                t=0
+                while t < logsArrLen:
+                    topics1 = depositTxLogs[t].topics[0].hex()
+                    eventName = sigToEventName(topics1[0:10])
+
+                    depositEventList = []
+                    # event_logs:
+                    depositEventList.append(str(depositTxLogs[t].address))
+                    depositEventList.append(eventName)
+                    depositEventList.append(str(depositTxLogs[t].data))
+                    depositEventList.append(str(depositTxLogs[t].topics))
+                    depositEventList.append(str(depositTxLogs[t].logIndex))
+                    depositEventList.append(str(depositTxLogs[t].removed))
+                    
+                    t = t+1
+                    try:
+                        mycursor.execute(logSQL,depositEventList)
+                        mydb.commit()
+                    except mydb.Error as e:
+                        print(e)
+
+                print(depositEvents[i].blockNumber,mycursor.rowcount, "depositEvents record inserted.")
 
             blocknumInit = depositEvents[i].blockNumber
+            i = i+1
+
+    if spaceCreatedEvent != ():
+        spaceCreatedEventSize = len(spaceCreatedEvent)
+        i = 0
+        blocknumInit = 0
+
+        while i < spaceCreatedEventSize:
+            # print(i)
+            
+            if blocknumInit != spaceCreatedEvent[i].blockNumber:
+                try:
+                    spaceCreatedTimeStamp = w3.eth.get_block(spaceCreatedEvent[i].blockNumber).timestamp
+                except:
+                    # Assign a zero value if the timestamp method fails on Hyperspace
+                    spaceCreatedTimeStamp = 00000000
+
+                # Tx logs:
+                txHash = spaceCreatedEvent[i].transactionHash.hex()
+                txInputDecoded = w3.eth.get_transaction_receipt(txHash)
+                spaceCreatedTxLogs = txInputDecoded.logs[0]
+                # result = dict(logs[0].args)
+                # tx_data = json.dumps(result, cls=HexJsonEncoder)
+                # print("logs: ",logs[0].transactionIndex)
+                # print("JSON str: ",tx_json)
+
+                # Transaction logs
+                spaceCreatedTxList = []
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].blockNumber))
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].event))
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].args.owner))
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].address))
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].args.price/ 10 ** 18))
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].transactionHash.hex()))
+                spaceCreatedTxList.append(str(spaceCreatedTimeStamp))
+                spaceCreatedTxList.append(contract_id_val)
+                spaceCreatedTxList.append(coin_id_val)
+                
+                # event_logs:
+                spaceCreatedEventList = []
+                spaceCreatedEventList.append(str(spaceCreatedTxLogs.address))
+                spaceCreatedEventList.append(str(spaceCreatedEvent[i].event))
+                spaceCreatedEventList.append(spaceCreatedTxLogs.data)
+                spaceCreatedEventList.append(str(spaceCreatedTxLogs.topics))
+                spaceCreatedEventList.append(str(spaceCreatedTxLogs.logIndex))
+                spaceCreatedEventList.append(str(spaceCreatedTxLogs.removed))
+
+                try:
+                    mycursor.execute(txSQL,spaceCreatedTxList)
+                    mycursor.execute(logSQL,spaceCreatedEventList)
+                except mydb.Error as e:
+                    print(e)
+
+                mydb.commit()
+                print(spaceCreatedEvent[i].blockNumber,mycursor.rowcount, "spaceCreatedEvent record inserted.")
+
+            blocknumInit = spaceCreatedEvent[i].blockNumber
+            i = i+1
+
+    if expiryExtendedEvent != ():
+        expiryExtendedEventSize = len(expiryExtendedEvent)
+        i = 0
+        blocknumInit = 0
+    
+        while i < expiryExtendedEventSize:
+            # print(i)
+            # print(expiryExtendedEvent[i])
+            if blocknumInit != expiryExtendedEvent[i].blockNumber:
+                # print("expiry_exted block: ",expiryExtendedEvent[i].blockNumber)
+                # print("Expiry extended event: ", expiryExtendedEvent[i])
+                try:
+                    expiryExtendedTimeStamp = w3.eth.get_block(expiryExtendedEvent[i].blockNumber).timestamp
+                    # print(expiryExtendedTimeStamp)
+                except:
+                    expiryExtendedTimeStamp = 00000000
+               
+                # Tx logs:
+                txHash = expiryExtendedEvent[i].transactionHash.hex()
+                txInputDecoded = w3.eth.getTransactionReceipt(txHash)
+                expiryExtendedTxLogs = txInputDecoded.logs[0]
+                # print("txInputDecoded: ",txInputDecoded)
+                # print("expiryExtendedTxLogs: ",expiryExtendedTxLogs)
+
+                # logs = contract.events.ExpiryExtended().processReceipt(txInputDecoded)
+                # result = dict(logs[0].args)
+                # tx_data = json.dumps(result, cls=HexJsonEncoder)
+
+                # Transaction logs
+                expiryExtendedTxList = []
+                expiryExtendedTxList.append(str(expiryExtendedEvent[i].blockNumber))
+                expiryExtendedTxList.append(str(expiryExtendedEvent[i].event))
+                expiryExtendedTxList.append(str(txInputDecoded['from']))
+                expiryExtendedTxList.append(str(expiryExtendedEvent[i].address))
+                expiryExtendedTxList.append(str(expiryExtendedEvent[i].args.price/ 10 ** 18))
+                expiryExtendedTxList.append(str(expiryExtendedEvent[i].transactionHash.hex()))
+                expiryExtendedTxList.append(str(expiryExtendedTimeStamp))
+                expiryExtendedTxList.append(contract_id_val)
+                expiryExtendedTxList.append(coin_id_val)
+
+                # event_logs:
+                expiryExtendedEventList = []
+                expiryExtendedEventList.append(str(expiryExtendedTxLogs.address))
+                expiryExtendedEventList.append(str(expiryExtendedEvent[i].event))
+                expiryExtendedEventList.append(expiryExtendedTxLogs.data)
+                expiryExtendedEventList.append(str(expiryExtendedTxLogs.topics))
+                expiryExtendedEventList.append(str(expiryExtendedTxLogs.logIndex))
+                expiryExtendedEventList.append(str(expiryExtendedTxLogs.removed))
+
+                try:
+                    mycursor.execute(txSQL,expiryExtendedTxList)
+                    mycursor.execute(logSQL,expiryExtendedEventList)
+                except mydb.Error as e:
+                    print(e)
+
+                mydb.commit()
+                print(expiryExtendedEvent[i].blockNumber,mycursor.rowcount, "expiryExtendedEvent record inserted.")
+
+            blocknumInit = expiryExtendedEvent[i].blockNumber
+            i = i+1
+
+    if hardwarePriceChangedEvent != ():
+        hardwarePriceChangedEventSize = len(hardwarePriceChangedEvent)
+        i = 0
+        blocknumInit = 0
+    
+
+        while i < hardwarePriceChangedEventSize:
+            # print(i)
+
+            if blocknumInit != hardwarePriceChangedEvent[i].blockNumber:
+                # hardwarePriceChangedTimeStamp = 00000000
+                try:
+                    hardwarePriceChangedTimeStamp = w3.eth.get_block(hardwarePriceChangedEvent[i].blockNumber).timestamp
+                except:
+                    hardwarePriceChangedTimeStamp = 00000000
+
+                #print("txInputDecoded: ",txInputDecoded)
+                # logs = contract.events.HardwarePriceChanged().processReceipt(txInputDecoded)
+                # print("logs: ",logs)
+                # result = dict(logs[0].args)
+                # tx_data = json.dumps(result, cls=HexJsonEncoder)
+                # print("logs arr size: ",len(txInputDecoded.logs))
+
+                # Tx logs:
+                txHash = hardwarePriceChangedEvent[i].transactionHash.hex()
+                txInputDecoded = w3.eth.getTransactionReceipt(txHash)
+                hardwarePriceChangedTxLogs = txInputDecoded.logs[0]
+
+                # Transaction logs
+                hardwarePriceChangedTxList = []
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedEvent[i].blockNumber))
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedEvent[i].event))
+                hardwarePriceChangedTxList.append(str(txInputDecoded['from']))
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedEvent[i].address))
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedEvent[i].args.price/ 10 ** 18))
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedEvent[i].transactionHash.hex()))
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedTimeStamp))
+                hardwarePriceChangedTxList.append(contract_id_val)
+                hardwarePriceChangedTxList.append(coin_id_val)
+
+                # event_logs:
+                hardwarePriceChangedList = []
+                hardwarePriceChangedList.append(str(hardwarePriceChangedTxLogs.address))
+                hardwarePriceChangedList.append(str(hardwarePriceChangedEvent[i].event))
+                hardwarePriceChangedList.append(hardwarePriceChangedTxLogs.data)
+                hardwarePriceChangedList.append(str(hardwarePriceChangedTxLogs.topics))
+                hardwarePriceChangedList.append(str(hardwarePriceChangedTxLogs.logIndex))
+                hardwarePriceChangedList.append(str(hardwarePriceChangedTxLogs.removed))
+
+                try:
+                    mycursor.execute(txSQL,hardwarePriceChangedTxList)
+                    mycursor.execute(logSQL,hardwarePriceChangedList)
+                except mydb.Error as e:
+                    print(e)
+
+                mydb.commit()
+                print(hardwarePriceChangedEvent[i].blockNumber,mycursor.rowcount, "hardwarePriceChangedEvent record inserted.")
+
+            blocknumInit = hardwarePriceChangedEvent[i].blockNumber
             i = i+1
 
     from_block = from_block + batchSize + 1
@@ -88,3 +354,11 @@ while from_block <  target_block.number:
 
     if(blockDiff < batchSize):
         batchSize = blockDiff
+
+# Update last_scan_block
+updateLastBlock = "UPDATE network SET last_scan_block_number_payment = (%s) WHERE id=1"
+toBlkList = []
+toBlkList.append(target_block.number)
+mycursor.execute(updateLastBlock,toBlkList)
+# print(toBlkList)
+mydb.commit()
