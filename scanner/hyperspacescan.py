@@ -35,8 +35,15 @@ ABI = json.load(space_abi_file)
 is_address_valid = w3.isAddress(CONTRACT_ADDRESS)
 #print(is_address_valid)
 
-lastScanBlockCommand = "select last_scan_block_number_payment from network WHERE id = 1"
-mycursor.execute(lastScanBlockCommand)
+# Need to configure:
+contract_id_val = 1
+coin_id_val = 1
+network_id = 1
+
+lastScanBlockCommand = "select last_scan_block_number_payment from network WHERE id = (%s)"
+networkIDList = []
+networkIDList.append(network_id)
+mycursor.execute(lastScanBlockCommand,networkIDList)
 lastScannedBlock = mycursor.fetchall()
 
 # Block on which the contract was deployed:
@@ -44,9 +51,6 @@ from_block = lastScannedBlock[0][0] + 1
 target_block = w3.eth.get_block('latest')
 # Block chunk to be scanned:
 batchSize = 1000
-
-contract_id_val = 1
-coin_id_val = 1
 
 print("from_block: ",from_block)
 
@@ -356,9 +360,10 @@ while from_block < target_block.number:
         batchSize = blockDiff
 
 # Update last_scan_block
-updateLastBlock = "UPDATE network SET last_scan_block_number_payment = (%s) WHERE id=1"
+updateLastBlock = "UPDATE network SET last_scan_block_number_payment = (%s) WHERE id=(%s)"
 toBlkList = []
 toBlkList.append(target_block.number)
+toBlkList.append(network_id)
 mycursor.execute(updateLastBlock,toBlkList)
 # print(toBlkList)
 mydb.commit()
