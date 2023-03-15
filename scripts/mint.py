@@ -58,7 +58,7 @@ recipient = input("Send to (address): ")
 quantity = input("Quantity (int): ")
 
 # # Fat-fingering check
-print(f"Confirm minting {quantity} NFT(s) of {ipfs_url} to {recipient}?")
+print(f"\nConfirm minting {quantity} NFT(s) of {ipfs_url} to {recipient}?")
 confirm = input("Ok [y/n]?")
 if not confirm.lower().startswith("y"):
     print("Aborted")
