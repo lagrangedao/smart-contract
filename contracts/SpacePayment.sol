@@ -32,7 +32,7 @@ contract SpacePayment is Ownable {
     event Deposit(address account, uint amount);
     event SpaceCreated(uint256 id, address owner, uint256 hardwareType, uint256 expiryBlock, uint price);
     event ExpiryExtended(uint256 id, uint256 expiryBlock, uint price);
-    event EpochDurationChanged(uint256 epochDuration);
+    // event EpochDurationChanged(uint256 epochDuration);
     event HardwarePriceChanged(uint256 hardwareType, string name, uint256 price);
 
     constructor(address tokenAddress) {

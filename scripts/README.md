@@ -1,6 +1,6 @@
-# Transfer Scripts
+# Lagrange Scripts
 
-This folder contains Python scripts to transfer ERC-20 tokens.
+This folder contains Python scripts to interact with LagrangeDAO contracts
 
 ## Set up
 
@@ -31,6 +31,8 @@ The current `token_contract_address` and `space_contract_address` are deployed o
 You will need some LAD tokens to run the script successfully.
 
 ## Running
+
+### Buy Space
 
 Run the script:
 
@@ -63,4 +65,30 @@ transaction hash: 0x5ab4ab50af8e8b6eae450e212beb7e4d151d0f3697640f8d280e7b11f591
 
 purchasing space...
 transaction hash: 0x21aa29a839d29a9ada0a331cfdd38eec5aabccd19b824a9da04b04966bd23514
+```
+
+### Mint NFT
+
+Run the script:
+
+```
+python mint.py
+```
+
+Example output
+
+```
+Connected to https://api.hyperspace.node.glif.io/rpc/v1, chain id is 3141. the latest block is 168,071
+
+Your address: 0xc17ae0520803E715D020C03D29D452520D6aEbf9
+
+NFT Metadata (IPFS URL): 'https://ipfs.io/ipfs/Qm.'
+Send to (address): 0xc17ae0520803E715D020C03D29D452520D6aEbf9
+Quantity (int): 1
+
+Confirm minting 1 NFT(s) of 'https://ipfs.io/ipfs/Qm.' to 0xc17ae0520803E715D020C03D29D452520D6aEbf9?
+Ok [y/n]?y
+
+Minting...
+Mint is completed. Tx Hash: https://hyperspace.filfox.info/en/message/0xfd536f9188d4c867039beee66ffa1e674b414f88067ae7c628efee0c35fcc361
 ```
