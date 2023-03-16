@@ -5,6 +5,7 @@
 """
 import os
 import json
+import sys
 
 from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
@@ -32,7 +33,7 @@ web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 block_number = web3.eth.block_number
 print(f"Connected to {rpc_endpoint}, chain id is {web3.eth.chain_id}. the latest block is {block_number:,}\n")
 
-dnft_address = "0x9DAD51914291919F8D4DD77442E9FDd742c22eA0"
+dnft_address = "0xD32E5567BbAFcb001f6B847f2d3129147D4c5640"
 dnft_abi_file = open('../contracts/abi/DataNFT.json')
 dnft_abi = json.load(dnft_abi_file)
 
@@ -42,7 +43,7 @@ private_key = os.getenv('private_key')
 print(f"Your address: {wallet_address}\n")
 
 assert web3.isChecksumAddress(wallet_address), f"Not a valid wallet address: {wallet_address}"
-assert web3.isChecksumAddress(dnft_address), f"Not a valid contract address: {space_contract_address}"
+assert web3.isChecksumAddress(dnft_address), f"Not a valid contract address: {dnft_address}"
 
 dnft_contract = web3.eth.contract(address=dnft_address, abi=dnft_abi)
 
@@ -55,10 +56,9 @@ tx_config = {
 ## SHOULD BE METADATA URL
 ipfs_url = input("NFT Metadata (IPFS URL): ")
 recipient = input("Send to (address): ")
-quantity = input("Quantity (int): ")
 
 # # Fat-fingering check
-print(f"\nConfirm minting {quantity} NFT(s) of {ipfs_url} to {recipient}?")
+print(f"\nConfirm minting NFT of {ipfs_url} to {recipient}?")
 confirm = input("Ok [y/n]?")
 if not confirm.lower().startswith("y"):
     print("Aborted")
@@ -67,7 +67,7 @@ if not confirm.lower().startswith("y"):
 print(f"\nMinting...")
 nonce = web3.eth.getTransactionCount(wallet_address)
 tx_config["nonce"] = nonce
-mint_tx = dnft_contract.functions.mint(recipient, int(quantity), ipfs_url, "").buildTransaction(tx_config)
+mint_tx = dnft_contract.functions.safeMint(recipient, ipfs_url).buildTransaction(tx_config)
 
 # SIGN TX
 signed_tx = web3.eth.account.signTransaction(mint_tx, private_key)
