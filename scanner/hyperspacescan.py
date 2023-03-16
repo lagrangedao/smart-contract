@@ -52,7 +52,7 @@ target_block = w3.eth.get_block('latest')
 # Block chunk to be scanned:
 batchSize = 1000
 
-print("from_block: ",from_block)
+# print("from_block: ",from_block)
 
 txSQL = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,created_at,contract_id,coin_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
 logSQL = "INSERT INTO event_logs(address,name,data,topics,log_index,removed) VALUES (%s, %s, %s, %s, %s, %s)"
