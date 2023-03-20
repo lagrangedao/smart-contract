@@ -5,14 +5,16 @@ from web3.contract import ContractEvent
 import time
 import mysql.connector
 import json
+from hexbytes import HexBytes
+import warnings
 
 bsc_url = config('BSC_TESTNET_URL')
 
 # MySQL DB:
 mydb = mysql.connector.connect(
   host="localhost",
-  user="root",
-  password="Sql@12345",
+  user=config('DB_USER'),
+  password=config('DB_PASSWORD'),
   database='lad_block'
 )
 mycursor = mydb.cursor()
@@ -32,24 +34,46 @@ ABI = json.load(space_abi_file)
 is_address_valid = w3.isAddress(CONTRACT_ADDRESS)
 #print(is_address_valid)
 
-lastScanBlockCommand = "select last_scan_block_number_payment from network WHERE id = 2"
-mycursor.execute(lastScanBlockCommand)
+# Need to configure:
+contract_id_val = 2
+coin_id_val = 1
+network_id = 2
+
+lastScanBlockCommand = "select last_scan_block_number_payment from network WHERE id = (%s)"
+networkIDList = []
+networkIDList.append(network_id)
+mycursor.execute(lastScanBlockCommand,networkIDList)
 lastScannedBlock = mycursor.fetchall()
-# print(lastScannedBlock[0][0])
 
 # Block on which the contract was deployed:
-from_block = lastScannedBlock[0][0] + 1 #27243037
+from_block = lastScannedBlock[0][0] + 1
 target_block = w3.eth.get_block('latest')
-
 # Block chunk to be scanned:
 batchSize = 1000
 
-txContractID = 2
-txCoinID = 1
+# print("from_block: ",from_block)
 
-sqlQuery = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,created_at,contract_id,coin_id) VALUES "
+txSQL = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,created_at,contract_id,coin_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
+logSQL = "INSERT INTO event_logs(address,name,data,topics,log_index,removed) VALUES (%s, %s, %s, %s, %s, %s)"
 
-while from_block <  target_block.number:
+class HexJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, HexBytes):
+            return obj.hex()
+        return super().default(obj)
+
+def sigToEventName(eventSig):
+    if eventSig == '0x8c5be1e5':
+        return "Approval"
+    elif eventSig == '0xddf252ad':
+        return "Transfer"
+    elif eventSig == '0xe1fffcc4':
+        return "Deposit"
+
+while from_block < target_block.number:
+    # silence harmless warnings
+    warnings.filterwarnings("ignore")
+
     toBlock = from_block + batchSize
     print(from_block,toBlock)
 
@@ -60,83 +84,256 @@ while from_block <  target_block.number:
     expiryExtendedEvent = contract.events.ExpiryExtended.getLogs(fromBlock=from_block, toBlock=toBlock)
     hardwarePriceChangedEvent = contract.events.HardwarePriceChanged.getLogs(fromBlock=from_block, toBlock=toBlock)
 
+    # func = sigToEventName('0x8c5be1e5')
+    # print("func: ",func)
+
     if depositEvents != ():
         depositEventsSize = len(depositEvents)
-        # print("depositEventsSize ",depositEventsSize)
+        i = 0
+        blocknumInit = 0
 
-        depositTimeStamp = w3.eth.get_block(depositEvents[0].blockNumber).timestamp
-    
-        # txBlockNumber = str(depositEvents[0].blockNumber)
-        # txEvent = str(depositEvents[0].event)
-        # accountAddr = str(depositEvents[0].args.account)
-        # contractAddr = str(depositEvents[0].address)
-        # txAmount = str(depositEvents[0].args.amount/ 10 ** 18)
-        # txHash = str(depositEvents[0].transactionHash.hex())
+        while i < depositEventsSize:
+            # print(i)
+            if blocknumInit != depositEvents[i].blockNumber:
+                depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
 
-        # sqlTestQuery = "INSERT INTO transaction(block_number,event,account_address,recipient_address,amount,tx_hash,created_at,contract_id,coin_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+                # Transaction logs
+                depositTxList = []
+                depositTxList.append(str(depositEvents[i].blockNumber))
+                depositTxList.append(str(depositEvents[i].event))
+                depositTxList.append(str(depositEvents[i].args.account))
+                depositTxList.append(str(depositEvents[i].address))
+                depositTxList.append(str(depositEvents[i].args.amount/ 10 ** 18))
+                depositTxList.append(str(depositEvents[i].transactionHash.hex()))
+                depositTxList.append(str(depositTimeStamp))
+                depositTxList.append(contract_id_val)
+                depositTxList.append(coin_id_val)
 
-        depositVal = "(" + str(depositEvents[0].blockNumber) + ", '" + str(depositEvents[0].event) + "', '" + str(depositEvents[0].args.account) + "', '" + str(depositEvents[0].address) + "', " + str(depositEvents[0].args.amount/ 10 ** 18) + ", '" + str(depositEvents[0].transactionHash.hex()) + "', '" + str(depositTimeStamp) + "', " + "2, " + "1" + ")"
-        # val2 = "(" + str(depositEvents[i].blockNumber) + ", '" + str(depositEvents[i].event) + "', '" + str(depositEvents[i].args.account) + "', '" + str(depositEvents[i].address) + "', " + str(depositEvents[i].args.amount/ 10 ** 18) + ", '" + str(depositEvents[i].transactionHash.hex()) + "', " + "1, " + "1" + ")"
-        sqlCommandDeposit = sqlQuery + depositVal
+                try:
+                    mycursor.execute(txSQL,depositTxList)
+                    mydb.commit()
+                except mydb.Error as e:
+                    print(e)
 
-        try:
-            mycursor.execute(sqlCommandDeposit)
-            mydb.commit()
-            print(depositEvents[0].blockNumber,mycursor.rowcount, "deposit record inserted.")
-        except mydb.Error as e:
-            print(e)
-            # print("Please check the deposit SQL command")
+                # insert record in log table:
+                txHash = depositEvents[i].transactionHash.hex()
+                txInputReceipt = w3.eth.get_transaction_receipt(txHash)
+                depositTxLogs = txInputReceipt.logs
+                # print("depositTxLogs: ",depositTxLogs)
+                #logs = contract.events.Deposit().processReceipt(txInputReceipt)
+                # print("txInputReceipt size: ",len(txInputReceipt))
+                # print("txInputReceipt: ",txInputReceipt)
+                # print("logs: ",logs)
+                # print("---------")
+                # print("logs arr size: ",len(txInputReceipt.logs))
+                # print("logs array: ",txInputReceipt.logs)
+                # print("---------")
+                # print("topics: ",txInputReceipt.logs[i].topics)
+                # print("removed: ",txInputReceipt.logs[i].removed)
+                
+                # result = dict(logs[0].args)
+                # print("result: ",result)
+                # tx_data = json.dumps(result, cls=HexJsonEncoder)
+                # print("tx_data: ",tx_data)
+
+                logsArrLen = len(txInputReceipt.logs)
+                t=0
+                while t < logsArrLen:
+                    topics1 = depositTxLogs[t].topics[0].hex()
+                    eventName = sigToEventName(topics1[0:10])
+
+                    depositEventList = []
+                    # event_logs:
+                    depositEventList.append(str(depositTxLogs[t].address))
+                    depositEventList.append(eventName)
+                    depositEventList.append(str(depositTxLogs[t].data))
+                    depositEventList.append(str(depositTxLogs[t].topics))
+                    depositEventList.append(str(depositTxLogs[t].logIndex))
+                    depositEventList.append(str(depositTxLogs[t].removed))
+                    
+                    t = t+1
+                    try:
+                        mycursor.execute(logSQL,depositEventList)
+                        mydb.commit()
+                    except mydb.Error as e:
+                        print(e)
+
+                print(depositEvents[i].blockNumber,mycursor.rowcount, "depositEvents record inserted.")
+
+            blocknumInit = depositEvents[i].blockNumber
+            i = i+1
 
     if spaceCreatedEvent != ():
-        # spaceCreatedEventSize = len(spaceCreatedEvent)
-        spaceCreatedEventTimeStamp = w3.eth.get_block(spaceCreatedEvent[0].blockNumber).timestamp
+        spaceCreatedEventSize = len(spaceCreatedEvent)
+        i = 0
+        blocknumInit = 0
 
-        spaceCreatedEventVal = "(" + str(spaceCreatedEvent[0].blockNumber) + ", '" + str(spaceCreatedEvent[0].event) + "', '" + str(spaceCreatedEvent[0].args.owner) + "', '" + str(spaceCreatedEvent[0].address) + "', " + str(spaceCreatedEvent[0].args.price) + ", '" + str(spaceCreatedEvent[0].transactionHash.hex()) + "', '" + str(spaceCreatedEventTimeStamp) + "', " + "2, " + "1" + ")"
-        sqlCommandSpaceCreated = sqlQuery + spaceCreatedEventVal
+        while i < spaceCreatedEventSize:
+            # print(i)
+            
+            if blocknumInit != spaceCreatedEvent[i].blockNumber:
+                spaceCreatedTimeStamp = w3.eth.get_block(spaceCreatedEvent[i].blockNumber).timestamp
 
-        try:
-            mycursor.execute(sqlCommandSpaceCreated)
-            mydb.commit()
-            print(spaceCreatedEvent[0].blockNumber,mycursor.rowcount, "spaceCreated record inserted.")
-        except mydb.Error as e:
-            print(e)
-            # print("Please check the spaceCreated SQL command")
-    
+                # Tx logs:
+                txHash = spaceCreatedEvent[i].transactionHash.hex()
+                txInputDecoded = w3.eth.get_transaction_receipt(txHash)
+                spaceCreatedTxLogs = txInputDecoded.logs[0]
+                # result = dict(logs[0].args)
+                # tx_data = json.dumps(result, cls=HexJsonEncoder)
+                # print("logs: ",logs[0].transactionIndex)
+                # print("JSON str: ",tx_json)
+
+                # Transaction logs
+                spaceCreatedTxList = []
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].blockNumber))
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].event))
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].args.owner))
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].address))
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].args.price/ 10 ** 18))
+                spaceCreatedTxList.append(str(spaceCreatedEvent[i].transactionHash.hex()))
+                spaceCreatedTxList.append(str(spaceCreatedTimeStamp))
+                spaceCreatedTxList.append(contract_id_val)
+                spaceCreatedTxList.append(coin_id_val)
+                
+                # event_logs:
+                spaceCreatedEventList = []
+                spaceCreatedEventList.append(str(spaceCreatedTxLogs.address))
+                spaceCreatedEventList.append(str(spaceCreatedEvent[i].event))
+                spaceCreatedEventList.append(spaceCreatedTxLogs.data)
+                spaceCreatedEventList.append(str(spaceCreatedTxLogs.topics))
+                spaceCreatedEventList.append(str(spaceCreatedTxLogs.logIndex))
+                spaceCreatedEventList.append(str(spaceCreatedTxLogs.removed))
+
+                try:
+                    mycursor.execute(txSQL,spaceCreatedTxList)
+                    mycursor.execute(logSQL,spaceCreatedEventList)
+                except mydb.Error as e:
+                    print(e)
+
+                mydb.commit()
+                print(spaceCreatedEvent[i].blockNumber,mycursor.rowcount, "spaceCreatedEvent record inserted.")
+
+            blocknumInit = spaceCreatedEvent[i].blockNumber
+            i = i+1
+
     if expiryExtendedEvent != ():
-        # expiryExtendedEventSize = len(expiryExtendedEvent)
-        expiryExtendedEventTimeStamp = w3.eth.get_block(expiryExtendedEvent[0].blockNumber).timestamp
+        expiryExtendedEventSize = len(expiryExtendedEvent)
+        i = 0
+        blocknumInit = 0
+    
+        while i < expiryExtendedEventSize:
+            # print(i)
+            # print(expiryExtendedEvent[i])
+            if blocknumInit != expiryExtendedEvent[i].blockNumber:
+                # print("expiry_exted block: ",expiryExtendedEvent[i].blockNumber)
+                # print("Expiry extended event: ", expiryExtendedEvent[i])
+                expiryExtendedTimeStamp = w3.eth.get_block(expiryExtendedEvent[i].blockNumber).timestamp
+               
+                # Tx logs:
+                txHash = expiryExtendedEvent[i].transactionHash.hex()
+                txInputDecoded = w3.eth.getTransactionReceipt(txHash)
+                expiryExtendedTxLogs = txInputDecoded.logs[0]
+                # print("txInputDecoded: ",txInputDecoded)
+                # print("expiryExtendedTxLogs: ",expiryExtendedTxLogs)
 
-        expiryExtendedEventVal = "(" + str(expiryExtendedEvent[0].blockNumber) + ", '" + str(expiryExtendedEvent[0].event) + "', '" + "NA" + "', '" + str(expiryExtendedEvent[0].address) + "', " + str(expiryExtendedEvent[0].args.price) + ", '" + str(expiryExtendedEvent[0].transactionHash.hex()) + "', '" + str(expiryExtendedEventTimeStamp) + "', " + "2, " + "1" + ")"
-        sqlCommandExpiryExtendedEventVal = sqlQuery + expiryExtendedEventVal
+                # logs = contract.events.ExpiryExtended().processReceipt(txInputDecoded)
+                # result = dict(logs[0].args)
+                # tx_data = json.dumps(result, cls=HexJsonEncoder)
 
-        try:
-            mycursor.execute(sqlCommandExpiryExtendedEventVal)
-            mydb.commit()
-            print(expiryExtendedEvent[0].blockNumber,mycursor.rowcount, "expiryExtended record inserted.")
-        except mydb.Error as e:
-            print(e)
-            # print("Please check the expiryExtended SQL command")
+                # Transaction logs
+                expiryExtendedTxList = []
+                expiryExtendedTxList.append(str(expiryExtendedEvent[i].blockNumber))
+                expiryExtendedTxList.append(str(expiryExtendedEvent[i].event))
+                expiryExtendedTxList.append(str(txInputDecoded['from']))
+                expiryExtendedTxList.append(str(expiryExtendedEvent[i].address))
+                expiryExtendedTxList.append(str(expiryExtendedEvent[i].args.price/ 10 ** 18))
+                expiryExtendedTxList.append(str(expiryExtendedEvent[i].transactionHash.hex()))
+                expiryExtendedTxList.append(str(expiryExtendedTimeStamp))
+                expiryExtendedTxList.append(contract_id_val)
+                expiryExtendedTxList.append(coin_id_val)
 
+                # event_logs:
+                expiryExtendedEventList = []
+                expiryExtendedEventList.append(str(expiryExtendedTxLogs.address))
+                expiryExtendedEventList.append(str(expiryExtendedEvent[i].event))
+                expiryExtendedEventList.append(expiryExtendedTxLogs.data)
+                expiryExtendedEventList.append(str(expiryExtendedTxLogs.topics))
+                expiryExtendedEventList.append(str(expiryExtendedTxLogs.logIndex))
+                expiryExtendedEventList.append(str(expiryExtendedTxLogs.removed))
+
+                try:
+                    mycursor.execute(txSQL,expiryExtendedTxList)
+                    mycursor.execute(logSQL,expiryExtendedEventList)
+                except mydb.Error as e:
+                    print(e)
+
+                mydb.commit()
+                print(expiryExtendedEvent[i].blockNumber,mycursor.rowcount, "expiryExtendedEvent record inserted.")
+
+            blocknumInit = expiryExtendedEvent[i].blockNumber
+            i = i+1
 
     if hardwarePriceChangedEvent != ():
-        # hardwarePriceChangedEventSize = len(hardwarePriceChangedEvent)
-        hardwarePriceChangedEventTimeStamp = w3.eth.get_block(hardwarePriceChangedEvent[0].blockNumber).timestamp
+        hardwarePriceChangedEventSize = len(hardwarePriceChangedEvent)
+        i = 0
+        blocknumInit = 0
+    
 
-        hardwarePriceChangedEventVal = "(" + str(hardwarePriceChangedEvent[0].blockNumber) + ", '" + str(hardwarePriceChangedEvent[0].event) + "', '" + "Contract owner" + "', '" + str(hardwarePriceChangedEvent[0].address) + "', " + str(hardwarePriceChangedEvent[0].args.price/ 10 ** 18) + ", '" + str(hardwarePriceChangedEvent[0].transactionHash.hex()) + "', '" + str(hardwarePriceChangedEventTimeStamp) + "', " + "2, " + "1" + ")"
-        sqlCommandhardwarePriceChangedEvent = sqlQuery + hardwarePriceChangedEventVal
+        while i < hardwarePriceChangedEventSize:
+            # print(i)
 
-        try:
-            mycursor.execute(sqlCommandhardwarePriceChangedEvent)
-            mydb.commit()
-            print(hardwarePriceChangedEvent[0].blockNumber,mycursor.rowcount, "hardwarePriceChanged record inserted.")
-        except mydb.Error as e:
-            print(e)
-            # print("Please check the hardwarePriceChanged SQL command")
+            if blocknumInit != hardwarePriceChangedEvent[i].blockNumber:
+                # hardwarePriceChangedTimeStamp = 00000000
+                hardwarePriceChangedTimeStamp = w3.eth.get_block(hardwarePriceChangedEvent[i].blockNumber).timestamp
+
+                #print("txInputDecoded: ",txInputDecoded)
+                # logs = contract.events.HardwarePriceChanged().processReceipt(txInputDecoded)
+                # print("logs: ",logs)
+                # result = dict(logs[0].args)
+                # tx_data = json.dumps(result, cls=HexJsonEncoder)
+                # print("logs arr size: ",len(txInputDecoded.logs))
+
+                # Tx logs:
+                txHash = hardwarePriceChangedEvent[i].transactionHash.hex()
+                txInputDecoded = w3.eth.getTransactionReceipt(txHash)
+                hardwarePriceChangedTxLogs = txInputDecoded.logs[0]
+
+                # Transaction logs
+                hardwarePriceChangedTxList = []
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedEvent[i].blockNumber))
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedEvent[i].event))
+                hardwarePriceChangedTxList.append(str(txInputDecoded['from']))
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedEvent[i].address))
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedEvent[i].args.price/ 10 ** 18))
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedEvent[i].transactionHash.hex()))
+                hardwarePriceChangedTxList.append(str(hardwarePriceChangedTimeStamp))
+                hardwarePriceChangedTxList.append(contract_id_val)
+                hardwarePriceChangedTxList.append(coin_id_val)
+
+                # event_logs:
+                hardwarePriceChangedList = []
+                hardwarePriceChangedList.append(str(hardwarePriceChangedTxLogs.address))
+                hardwarePriceChangedList.append(str(hardwarePriceChangedEvent[i].event))
+                hardwarePriceChangedList.append(hardwarePriceChangedTxLogs.data)
+                hardwarePriceChangedList.append(str(hardwarePriceChangedTxLogs.topics))
+                hardwarePriceChangedList.append(str(hardwarePriceChangedTxLogs.logIndex))
+                hardwarePriceChangedList.append(str(hardwarePriceChangedTxLogs.removed))
+
+                try:
+                    mycursor.execute(txSQL,hardwarePriceChangedTxList)
+                    mycursor.execute(logSQL,hardwarePriceChangedList)
+                except mydb.Error as e:
+                    print(e)
+
+                mydb.commit()
+                print(hardwarePriceChangedEvent[i].blockNumber,mycursor.rowcount, "hardwarePriceChangedEvent record inserted.")
+
+            blocknumInit = hardwarePriceChangedEvent[i].blockNumber
+            i = i+1
 
     from_block = from_block + batchSize + 1
     blockDiff = target_block.number - from_block
 
-    # For debugging:
     # print("target_block: ",target_block.number)
     # print("batchSize: ",batchSize)
     # print("from_block ",from_block)
@@ -146,9 +343,10 @@ while from_block <  target_block.number:
         batchSize = blockDiff
 
 # Update last_scan_block
-updateLastBlock = "UPDATE network SET last_scan_block_number_payment = (%s) WHERE id=2"
+updateLastBlock = "UPDATE network SET last_scan_block_number_payment = (%s) WHERE id=(%s)"
 toBlkList = []
 toBlkList.append(target_block.number)
+toBlkList.append(network_id)
 mycursor.execute(updateLastBlock,toBlkList)
 # print(toBlkList)
 mydb.commit()
