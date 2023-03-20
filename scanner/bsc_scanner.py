@@ -46,7 +46,7 @@ mycursor.execute(lastScanBlockCommand,networkIDList)
 lastScannedBlock = mycursor.fetchall()
 
 # Block on which the contract was deployed:
-from_block = 27267003 # lastScannedBlock[0][0] + 1
+from_block = lastScannedBlock[0][0] + 1
 target_block = w3.eth.get_block('latest')
 # Block chunk to be scanned:
 batchSize = 1000
