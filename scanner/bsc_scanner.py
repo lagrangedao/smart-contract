@@ -95,12 +95,7 @@ while from_block < target_block.number:
         while i < depositEventsSize:
             # print(i)
             if blocknumInit != depositEvents[i].blockNumber:
-                try:
-                    depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
-                except:
-                    # Assign a zero value if the timestamp method fails on Hyperspace
-                    depositTimeStamp = 00000000
-                #print(depositTimeStamp)
+                depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
 
                 # Transaction logs
                 depositTxList = []
@@ -177,11 +172,7 @@ while from_block < target_block.number:
             # print(i)
             
             if blocknumInit != spaceCreatedEvent[i].blockNumber:
-                try:
-                    spaceCreatedTimeStamp = w3.eth.get_block(spaceCreatedEvent[i].blockNumber).timestamp
-                except:
-                    # Assign a zero value if the timestamp method fails on Hyperspace
-                    spaceCreatedTimeStamp = 00000000
+                spaceCreatedTimeStamp = w3.eth.get_block(spaceCreatedEvent[i].blockNumber).timestamp
 
                 # Tx logs:
                 txHash = spaceCreatedEvent[i].transactionHash.hex()
@@ -236,11 +227,7 @@ while from_block < target_block.number:
             if blocknumInit != expiryExtendedEvent[i].blockNumber:
                 # print("expiry_exted block: ",expiryExtendedEvent[i].blockNumber)
                 # print("Expiry extended event: ", expiryExtendedEvent[i])
-                try:
-                    expiryExtendedTimeStamp = w3.eth.get_block(expiryExtendedEvent[i].blockNumber).timestamp
-                    # print(expiryExtendedTimeStamp)
-                except:
-                    expiryExtendedTimeStamp = 00000000
+                expiryExtendedTimeStamp = w3.eth.get_block(expiryExtendedEvent[i].blockNumber).timestamp
                
                 # Tx logs:
                 txHash = expiryExtendedEvent[i].transactionHash.hex()
@@ -297,10 +284,7 @@ while from_block < target_block.number:
 
             if blocknumInit != hardwarePriceChangedEvent[i].blockNumber:
                 # hardwarePriceChangedTimeStamp = 00000000
-                try:
-                    hardwarePriceChangedTimeStamp = w3.eth.get_block(hardwarePriceChangedEvent[i].blockNumber).timestamp
-                except:
-                    hardwarePriceChangedTimeStamp = 00000000
+                hardwarePriceChangedTimeStamp = w3.eth.get_block(hardwarePriceChangedEvent[i].blockNumber).timestamp
 
                 #print("txInputDecoded: ",txInputDecoded)
                 # logs = contract.events.HardwarePriceChanged().processReceipt(txInputDecoded)
