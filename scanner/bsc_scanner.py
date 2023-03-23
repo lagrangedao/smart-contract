@@ -8,7 +8,7 @@ import json
 from hexbytes import HexBytes
 import warnings
 
-hyperspace_url = config('HYPERSPACE_URL')
+bsc_url = config('BSC_TESTNET_URL')
 
 # MySQL DB:
 mydb = mysql.connector.connect(
@@ -20,14 +20,13 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor()
 
 # HTTPProvider:
-w3 = Web3(Web3.HTTPProvider(hyperspace_url))
+w3 = Web3(Web3.HTTPProvider(bsc_url))
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
 res = w3.isConnected()
-#print(w3.eth.chain_id)
 
-# Hyperspace SpacePayment contract address and ABI
-CONTRACT_ADDRESS = '0x82D937426F43e99DA6811F167eCFB0103cd07E6B'
+# SpacePayment contract address and ABI
+CONTRACT_ADDRESS = '0x5DF166d2875c82f6f3B172e8eeBAbB87b627014c'
 space_abi_file = open('../contracts/abi/SpacePayment.json')
 ABI = json.load(space_abi_file)
 
@@ -36,9 +35,9 @@ is_address_valid = w3.isAddress(CONTRACT_ADDRESS)
 #print(is_address_valid)
 
 # Need to configure:
-contract_id_val = 1
+contract_id_val = 2
 coin_id_val = 1
-network_id = 1
+network_id = 2
 
 lastScanBlockCommand = "select last_scan_block_number_payment from network WHERE id = (%s)"
 networkIDList = []
@@ -96,12 +95,7 @@ while from_block < target_block.number:
         while i < depositEventsSize:
             # print(i)
             if blocknumInit != depositEvents[i].blockNumber:
-                try:
-                    depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
-                except:
-                    # Assign a zero value if the timestamp method fails on Hyperspace
-                    depositTimeStamp = 00000000
-                #print(depositTimeStamp)
+                depositTimeStamp = w3.eth.get_block(depositEvents[i].blockNumber).timestamp
 
                 # Transaction logs
                 depositTxList = []
@@ -178,11 +172,7 @@ while from_block < target_block.number:
             # print(i)
             
             if blocknumInit != spaceCreatedEvent[i].blockNumber:
-                try:
-                    spaceCreatedTimeStamp = w3.eth.get_block(spaceCreatedEvent[i].blockNumber).timestamp
-                except:
-                    # Assign a zero value if the timestamp method fails on Hyperspace
-                    spaceCreatedTimeStamp = 00000000
+                spaceCreatedTimeStamp = w3.eth.get_block(spaceCreatedEvent[i].blockNumber).timestamp
 
                 # Tx logs:
                 txHash = spaceCreatedEvent[i].transactionHash.hex()
@@ -237,11 +227,7 @@ while from_block < target_block.number:
             if blocknumInit != expiryExtendedEvent[i].blockNumber:
                 # print("expiry_exted block: ",expiryExtendedEvent[i].blockNumber)
                 # print("Expiry extended event: ", expiryExtendedEvent[i])
-                try:
-                    expiryExtendedTimeStamp = w3.eth.get_block(expiryExtendedEvent[i].blockNumber).timestamp
-                    # print(expiryExtendedTimeStamp)
-                except:
-                    expiryExtendedTimeStamp = 00000000
+                expiryExtendedTimeStamp = w3.eth.get_block(expiryExtendedEvent[i].blockNumber).timestamp
                
                 # Tx logs:
                 txHash = expiryExtendedEvent[i].transactionHash.hex()
@@ -298,10 +284,7 @@ while from_block < target_block.number:
 
             if blocknumInit != hardwarePriceChangedEvent[i].blockNumber:
                 # hardwarePriceChangedTimeStamp = 00000000
-                try:
-                    hardwarePriceChangedTimeStamp = w3.eth.get_block(hardwarePriceChangedEvent[i].blockNumber).timestamp
-                except:
-                    hardwarePriceChangedTimeStamp = 00000000
+                hardwarePriceChangedTimeStamp = w3.eth.get_block(hardwarePriceChangedEvent[i].blockNumber).timestamp
 
                 #print("txInputDecoded: ",txInputDecoded)
                 # logs = contract.events.HardwarePriceChanged().processReceipt(txInputDecoded)
