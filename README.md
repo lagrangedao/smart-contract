@@ -12,7 +12,7 @@
 | ------------ | ------------------------------------------ |
 | LADToken     | 0xCdB765D539637a4A6B434ea43C27eE0C05804B33 |
 | SpacePayment | 0x82D937426F43e99DA6811F167eCFB0103cd07E6B |
-| DataNFT      | 0x9DAD51914291919F8D4DD77442E9FDd742c22eA0 |
+| DataNFT      | 0xD32E5567BbAFcb001f6B847f2d3129147D4c5640 |
 
 ### Binance Testnet
 
