@@ -55,6 +55,7 @@ tx_config = {
 
 ## SHOULD BE METADATA URL
 ipfs_url = input("NFT Metadata (IPFS URL): ")
+dataset_id = input("Dataset ID: ")
 recipient = input("Send to (address): ")
 
 # # Fat-fingering check
@@ -67,7 +68,7 @@ if not confirm.lower().startswith("y"):
 print(f"\nMinting...")
 nonce = web3.eth.getTransactionCount(wallet_address)
 tx_config["nonce"] = nonce
-mint_tx = dnft_contract.functions.safeMint(recipient, ipfs_url).buildTransaction(tx_config)
+mint_tx = dnft_contract.functions.safeMint(recipient, int(dataset_id), ipfs_url).buildTransaction(tx_config)
 
 # SIGN TX
 signed_tx = web3.eth.account.signTransaction(mint_tx, private_key)
