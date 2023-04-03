@@ -1,7 +1,7 @@
 task('mint', 'Mints DataNFT')
   .addParam('contract', 'Address of the dataNFT contract to call')
   .addParam('uri', 'dataNFT metadata url')
-  .addOptionalParam('minter', 'minter address', '')
+  .addParam('minter', 'minter address')
   .addOptionalParam(
     'gaslimit',
     'Maximum amount of gas that can be used to call fulfillRequest in the client contract',
@@ -34,7 +34,7 @@ task('mint', 'Mints DataNFT')
       throw Error('Gas limit must be less than or equal to 300,000')
     }
 
-    const minter = taskArgs.minter || (await ethers.getSigner())
+    const minter = taskArgs.minter
 
     // Attach to the required contracts
     const dataNFTFactory = await ethers.getContractFactory(
@@ -43,8 +43,8 @@ task('mint', 'Mints DataNFT')
     const dataNFTContract = dataNFTFactory.attach(contractAddr)
 
     // Initiate the on-chain request after all listeners are initialized
-    const requestTx = await dataNFTContract.estimateGas.mint(
-      [minter.address, nftURI],
+    const requestTx = await dataNFTContract.mint(
+      [minter, nftURI],
       gasLimit,
       overrides,
     )
