@@ -7,7 +7,7 @@ const overrides = {
 async function main() {
   const minter = await ethers.getSigner()
 
-  console.log('deployer: ', minter.address)
+  console.log('minter: ', minter.address)
 
   const nftFactory = await ethers.getContractFactory('LagrangeChainlinkData')
   const nftContractAddress = '0xe16E7BD6692Dbf67942d62E8991Ddd573ed49C32'
