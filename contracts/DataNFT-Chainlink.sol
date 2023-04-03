@@ -60,13 +60,13 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
     // args[1] metadata uri
     // TODO: args is string array because sendRequests takes args array
     // TODO: mint should take (cid), create a array of cid and msg.sender
-    function mint(string[] calldata args) public returns (bytes32) {
+    function mint(string[] calldata args, uint32 gasLimit) public returns (bytes32) {
 
         // sends the chainlink request to call API, returns reqID
         Functions.Request memory req;
         req.initializeRequestForInlineJavaScript(source);
         req.addArgs(args);
-        bytes32 assignedReqID = sendRequest(req, subscriptionId, 100000);
+        bytes32 assignedReqID = sendRequest(req, subscriptionId, gasLimit);
         latestRequestId = assignedReqID;
 
         // stores the req info in the mapping (we need to access this info to mint later)
