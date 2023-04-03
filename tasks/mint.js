@@ -42,6 +42,13 @@ task('mint', 'Mints DataNFT')
     )
     const dataNFTContract = dataNFTFactory.attach(contractAddr)
 
+    const gasEstimate = await dataNFTContract.estimateGas.mint(
+      [minter, nftURI],
+      gasLimit,
+      overrides,
+    )
+
+    console.log('minting... (estimated gas: ' + gasEstimate + ')')
     // Initiate the on-chain request after all listeners are initialized
     const requestTx = await dataNFTContract.mint(
       [minter, nftURI],
