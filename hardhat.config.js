@@ -1,5 +1,6 @@
 /** @type import('hardhat/config').HardhatUserConfig */
 require('@nomiclabs/hardhat-waffle')
+require('@nomiclabs/hardhat-etherscan')
 require('dotenv').config()
 require('./tasks/mint')
 
@@ -49,6 +50,11 @@ module.exports = {
     bsc: {
       url: 'https://data-seed-prebsc-1-s2.binance.org:8545',
       accounts: [process.env.private_key],
+    },
+  },
+  etherscan: {
+    apiKey: {
+      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
     },
   },
 }

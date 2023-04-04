@@ -10,7 +10,7 @@ async function main() {
   console.log('minter: ', minter.address)
 
   const nftFactory = await ethers.getContractFactory('LagrangeChainlinkData')
-  const nftContractAddress = '0xe16E7BD6692Dbf67942d62E8991Ddd573ed49C32'
+  const nftContractAddress = '0x964f2e0362F7F935A02Fa2ea7e861aE53F47450D'
   const nftContract = nftFactory.attach(nftContractAddress)
 
   const args = [
@@ -24,7 +24,6 @@ async function main() {
   const tx = await nftContract.mint(args, gasLimit, overrides)
   await tx.wait()
 
-  console.log('complete mint.')
   console.log(tx)
 }
 

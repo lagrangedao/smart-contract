@@ -107,3 +107,5 @@ dist
 # Smart contract build files:
 artifacts/
 cache/
+
+scripts/deploy.js
