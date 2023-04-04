@@ -12,9 +12,8 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
-    uint64 private subscriptionId;
+    uint64 private subscriptionId; // need to fund this subscription with LINK tokens
     string public source; // js code to call GET request
-
 
     struct RequestData {
         address minter;
@@ -45,13 +44,18 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
         return false;
     }
 
-    function stringToAddress(string memory str) public pure returns (address) {
-        bytes memory strBytes = bytes(str);
-        bytes memory addrBytes = new bytes(20);
+    function addressToString(address _address) public pure returns (string memory) {
+        bytes20 _bytes = bytes20(_address);
+        bytes16 _hexAlphabet = "0123456789abcdef";
+        bytes memory _stringBytes = new bytes(42);
+        _stringBytes[0] = '0';
+        _stringBytes[1] = 'x';
         for (uint i = 0; i < 20; i++) {
-            addrBytes[i] = strBytes[i];
+            uint _byte = uint8(_bytes[i]);
+            _stringBytes[2+i*2] = _hexAlphabet[_byte >> 4];
+            _stringBytes[3+i*2] = _hexAlphabet[_byte & 0x0f];
         }
-        return abi.decode(addrBytes, (address));
+        return string(_stringBytes);
     }
 
     // sends chainlink request
@@ -60,7 +64,10 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
     // args[1] metadata uri
     // TODO: args is string array because sendRequests takes args array
     // TODO: mint should take (cid), create a array of cid and msg.sender
-    function mint(string[] calldata args, uint32 gasLimit) public returns (bytes32) {
+    function mint(string memory uri, uint32 gasLimit) public returns (bytes32) {
+        string[] memory args = new string[](2);
+        args[0] = addressToString(msg.sender);
+        args[1] = uri;
 
         // sends the chainlink request to call API, returns reqID
         Functions.Request memory req;
@@ -70,12 +77,12 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
         latestRequestId = assignedReqID;
 
         // stores the req info in the mapping (we need to access this info to mint later)
-        requestData[assignedReqID] = RequestData(stringToAddress(args[0]), args[1]);
+        requestData[assignedReqID] = RequestData(msg.sender, uri);
 
         return assignedReqID;
     }
 
-     function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
+    function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
         latestResponse = response;
         latestError = err;
 

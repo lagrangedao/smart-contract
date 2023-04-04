@@ -29,5 +29,5 @@ if (data.Response === 'Error') {
 const owner = data['result'][0]['contractCreator']
 console.log(`${contractAddress} owner: ${owner}`)
 
-let isOwner = owner == checkingAddress ? 1 : 0
+let isOwner = owner.toLowerCase() === checkingAddress.toLowerCase() ? 1 : 0
 return Functions.encodeUint256(isOwner)

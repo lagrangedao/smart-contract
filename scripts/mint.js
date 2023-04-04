@@ -10,18 +10,13 @@ async function main() {
   console.log('minter: ', minter.address)
 
   const nftFactory = await ethers.getContractFactory('LagrangeChainlinkData')
-  const nftContractAddress = '0x964f2e0362F7F935A02Fa2ea7e861aE53F47450D'
+  const nftContractAddress = '0x6c1f02f31CC933f8bf27f20B1Fde70563027e997'
   const nftContract = nftFactory.attach(nftContractAddress)
-
-  const args = [
-    '0x95ba4cf87d6723ad9c0db21737d862be80e93911',
-    '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-  ]
 
   const gasLimit = 100000
 
   // await USDCInstance.connect(deployer).mint(addressList[0], fiveMillion);
-  const tx = await nftContract.mint(args, gasLimit, overrides)
+  const tx = await nftContract.mint(nftContractAddress, gasLimit, overrides)
   await tx.wait()
 
   console.log(tx)
