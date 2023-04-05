@@ -1,8 +1,11 @@
 const { ethers } = require('hardhat')
 
 const overrides = {
-  gasLimit: 9999999,
+  gasLimit: 9999999, // gas lmit for sendRequest
 }
+const URI =
+  'https://bc77513213.calibration-swan-acl.filswan.com/ipfs/Qmb58B2GHyhYSsq3mH7hp9WxhnPf9ohAuK1SsFPLMiGMu8'
+const GAS_LIMIT = 300000 // gas limit for fulfillRequest
 
 async function main() {
   const minter = await ethers.getSigner()
@@ -10,13 +13,11 @@ async function main() {
   console.log('minter: ', minter.address)
 
   const nftFactory = await ethers.getContractFactory('LagrangeChainlinkData')
-  const nftContractAddress = '0x6c1f02f31CC933f8bf27f20B1Fde70563027e997'
+  const nftContractAddress = '0x2315804B67010B6AB003Bef541b22D19cC074f41'
   const nftContract = nftFactory.attach(nftContractAddress)
 
-  const gasLimit = 100000
-
   // await USDCInstance.connect(deployer).mint(addressList[0], fiveMillion);
-  const tx = await nftContract.mint(nftContractAddress, gasLimit, overrides)
+  const tx = await nftContract.mint(URI, GAS_LIMIT, overrides)
   await tx.wait()
 
   console.log(tx)

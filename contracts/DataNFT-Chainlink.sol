@@ -18,6 +18,7 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
     struct RequestData {
         address minter;
         string uri;
+        bool fulfilled;
     }
 
     mapping(bytes32 => RequestData) public requestData;
@@ -77,7 +78,7 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
         latestRequestId = assignedReqID;
 
         // stores the req info in the mapping (we need to access this info to mint later)
-        requestData[assignedReqID] = RequestData(msg.sender, uri);
+        requestData[assignedReqID] = RequestData(msg.sender, uri, false);
 
         return assignedReqID;
     }
@@ -94,6 +95,8 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
             _safeMint(requestData[requestId].minter, tokenId);
             _setTokenURI(tokenId, requestData[requestId].uri);
         }
+
+        requestData[requestId].fulfilled = true;
 
         emit OCRResponse(requestId, response, err);
     }
@@ -120,6 +123,10 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
     {
         //require(uriAccess[msg.sender][tokenId], "caller does not have access");
         return super.tokenURI(tokenId);
+    }
+
+    function totalSupply() public view returns(uint) {
+        return _tokenIdCounter.current();
     }
 
   /**
