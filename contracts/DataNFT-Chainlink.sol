@@ -14,6 +14,7 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
 
     uint64 private subscriptionId; // need to fund this subscription with LINK tokens
     string public source; // js code to call GET request
+    address public oracleAddress;
 
     struct RequestData {
         address minter;
@@ -33,6 +34,7 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
     constructor(address oracle, uint64 _subscriptionId, string memory _source) ERC721("Lagrange Data", "LDNFT") FunctionsClient(oracle) {
         subscriptionId = _subscriptionId;
         source = _source;
+        oracleAddress = oracle;
     }
 
     function bytesToBool(bytes memory b) public pure returns (bool) {
@@ -135,6 +137,7 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
    * @param oracle New oracle address
    */
     function updateOracleAddress(address oracle) public onlyOwner {
+        oracleAddress = oracle;
         setOracle(oracle);
     }
 }
