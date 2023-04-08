@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 // TODO: test scripts
 contract DataNFT is ERC1155, ERC1155Supply, ERC1155URIStorage, Ownable {
-using Counters for Counters.Counter;
+    using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
     string public name;
@@ -17,15 +17,21 @@ using Counters for Counters.Counter;
     string public contractURI;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(string memory collectionName, string memory contractURI_) ERC1155("") {
+    constructor(
+        string memory collectionName,
+        string memory contractURI_
+    ) ERC1155("") {
         name = collectionName;
         contractURI = contractURI_;
     }
 
     // mints a new token
-    function mint(address account, uint256 amount, string memory newUri, bytes memory data)
-        public
-    {
+    function mint(
+        address account,
+        uint256 amount,
+        string memory newUri,
+        bytes memory data
+    ) public {
         _tokenIdCounter.increment();
         uint256 tokenId = _tokenIdCounter.current();
 
@@ -34,7 +40,15 @@ using Counters for Counters.Counter;
     }
 
     // overrides
-    function uri(uint256 tokenId) public view virtual override(ERC1155, ERC1155URIStorage) returns (string memory) {
+    function uri(
+        uint256 tokenId
+    )
+        public
+        view
+        virtual
+        override(ERC1155, ERC1155URIStorage)
+        returns (string memory)
+    {
         return ERC1155URIStorage.uri(tokenId);
     }
 
@@ -45,8 +59,15 @@ using Counters for Counters.Counter;
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    )internal virtual override(ERC1155, ERC1155Supply) {
-        ERC1155Supply._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    ) internal virtual override(ERC1155, ERC1155Supply) {
+        ERC1155Supply._beforeTokenTransfer(
+            operator,
+            from,
+            to,
+            ids,
+            amounts,
+            data
+        );
     }
 
     // get the current id count of tokens

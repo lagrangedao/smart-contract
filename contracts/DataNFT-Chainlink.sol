@@ -5,9 +5,14 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./dev/functions/FunctionsClient.sol";
+import "@chainlink/contracts/src/v0.8/dev/functions/FunctionsClient.sol";
 
-contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Ownable {
+contract LagrangeChainlinkData is
+    ERC721,
+    ERC721URIStorage,
+    FunctionsClient,
+    Ownable
+{
     using Functions for Functions.Request;
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
@@ -23,7 +28,7 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
     }
 
     mapping(bytes32 => RequestData) public requestData;
-    
+
     bytes32 public latestRequestId;
     bytes public latestResponse;
     bytes public latestError;
@@ -31,7 +36,11 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
     event OCRResponse(bytes32 indexed requestId, bytes result, bytes err);
     event URIUpdate(uint tokenId, string uri);
 
-    constructor(address oracle, uint64 _subscriptionId, string memory _source) ERC721("Lagrange Data", "LDNFT") FunctionsClient(oracle) {
+    constructor(
+        address oracle,
+        uint64 _subscriptionId,
+        string memory _source
+    ) ERC721("Lagrange Data", "LDNFT") FunctionsClient(oracle) {
         subscriptionId = _subscriptionId;
         source = _source;
         oracleAddress = oracle;
@@ -47,16 +56,18 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
         return false;
     }
 
-    function addressToString(address _address) public pure returns (string memory) {
+    function addressToString(
+        address _address
+    ) public pure returns (string memory) {
         bytes20 _bytes = bytes20(_address);
         bytes16 _hexAlphabet = "0123456789abcdef";
         bytes memory _stringBytes = new bytes(42);
-        _stringBytes[0] = '0';
-        _stringBytes[1] = 'x';
+        _stringBytes[0] = "0";
+        _stringBytes[1] = "x";
         for (uint i = 0; i < 20; i++) {
             uint _byte = uint8(_bytes[i]);
-            _stringBytes[2+i*2] = _hexAlphabet[_byte >> 4];
-            _stringBytes[3+i*2] = _hexAlphabet[_byte & 0x0f];
+            _stringBytes[2 + i * 2] = _hexAlphabet[_byte >> 4];
+            _stringBytes[3 + i * 2] = _hexAlphabet[_byte & 0x0f];
         }
         return string(_stringBytes);
     }
@@ -85,7 +96,11 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
         return assignedReqID;
     }
 
-    function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
+    function fulfillRequest(
+        bytes32 requestId,
+        bytes memory response,
+        bytes memory err
+    ) internal override {
         latestResponse = response;
         latestError = err;
 
@@ -102,11 +117,12 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
 
         emit OCRResponse(requestId, response, err);
     }
-    
 
     // The following functions are overrides required by Solidity.
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    function _burn(
+        uint256 tokenId
+    ) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);
     }
 
@@ -117,25 +133,22 @@ contract LagrangeChainlinkData is ERC721, ERC721URIStorage, FunctionsClient, Own
         emit URIUpdate(tokenId, uri);
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
+    function tokenURI(
+        uint256 tokenId
+    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
         //require(uriAccess[msg.sender][tokenId], "caller does not have access");
         return super.tokenURI(tokenId);
     }
 
-    function totalSupply() public view returns(uint) {
+    function totalSupply() public view returns (uint) {
         return _tokenIdCounter.current();
     }
 
-  /**
-   * @notice Allows the Functions oracle address to be updated
-   *
-   * @param oracle New oracle address
-   */
+    /**
+     * @notice Allows the Functions oracle address to be updated
+     *
+     * @param oracle New oracle address
+     */
     function updateOracleAddress(address oracle) public onlyOwner {
         oracleAddress = oracle;
         setOracle(oracle);

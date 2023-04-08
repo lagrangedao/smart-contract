@@ -14,8 +14,6 @@ contract LagrangeDataNFT is ERC721, ERC721URIStorage, Ownable {
     mapping(uint256 => uint256) public datasetToToken;
     mapping(uint256 => uint256) public tokenToDataset;
 
-
-
     constructor() ERC721("Lagrange Data", "LDNFT") {}
 
     // TODO: check datasetID is valid
@@ -29,12 +27,14 @@ contract LagrangeDataNFT is ERC721, ERC721URIStorage, Ownable {
 
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
-       // uriAccess[to][tokenId] = true;
+        // uriAccess[to][tokenId] = true;
     }
 
     // The following functions are overrides required by Solidity.
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    function _burn(
+        uint256 tokenId
+    ) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);
     }
 
@@ -43,12 +43,9 @@ contract LagrangeDataNFT is ERC721, ERC721URIStorage, Ownable {
         _setTokenURI(tokenId, uri);
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
+    function tokenURI(
+        uint256 tokenId
+    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
         //require(uriAccess[msg.sender][tokenId], "caller does not have access");
         return super.tokenURI(tokenId);
     }
