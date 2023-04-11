@@ -101,6 +101,7 @@ contract LagrangeChainlinkData is
         bytes memory response,
         bytes memory err
     ) internal override {
+        require(response.length > 0 && err.length > 0);
         latestResponse = response;
         latestError = err;
 
