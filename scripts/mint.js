@@ -4,7 +4,7 @@ const overrides = {
   gasLimit: 9999999, // gas lmit for sendRequest
 }
 const URI =
-  'https://bc77513213.calibration-swan-acl.filswan.com/ipfs/Qmb58B2GHyhYSsq3mH7hp9WxhnPf9ohAuK1SsFPLMiGMu8'
+  'https://2d9999d121.calibration-swan-acl.filswan.com/ipfs/QmZEPZos8pExSSqfZwi4RKrLHUGBgQ5KsHMP3poyPMBomA'
 const GAS_LIMIT = 300000 // gas limit for fulfillRequest
 
 async function main() {
