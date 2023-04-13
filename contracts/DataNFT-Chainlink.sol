@@ -29,10 +29,6 @@ contract LagrangeChainlinkData is
 
     mapping(bytes32 => RequestData) public requestData;
 
-    bytes32 public latestRequestId;
-    bytes public latestResponse;
-    bytes public latestError;
-
     event OCRResponse(bytes32 indexed requestId, bytes result, bytes err);
     event URIUpdate(uint tokenId, string uri);
 
@@ -88,7 +84,6 @@ contract LagrangeChainlinkData is
         req.initializeRequestForInlineJavaScript(source);
         req.addArgs(args);
         bytes32 assignedReqID = sendRequest(req, subscriptionId, gasLimit);
-        latestRequestId = assignedReqID;
 
         // stores the req info in the mapping (we need to access this info to mint later)
         requestData[assignedReqID] = RequestData(msg.sender, uri, false);
@@ -101,16 +96,18 @@ contract LagrangeChainlinkData is
         bytes memory response,
         bytes memory err
     ) internal override {
-        require(response.length > 0 && err.length > 0);
+
         // if the response is true (meaning the minter is the owner of the dataset)
-        require(bytesToBool(response) == true);
+        // then mint the nft to the user
+        if (bytesToBool(response)) {
+            _tokenIdCounter.increment();
+            uint256 tokenId = _tokenIdCounter.current();
 
-        _tokenIdCounter.increment();
-        uint256 tokenId = _tokenIdCounter.current();
+            _safeMint(requestData[requestId].minter, tokenId);
+            _setTokenURI(tokenId, requestData[requestId].uri);
+        }
 
-        _safeMint(requestData[requestId].minter, tokenId);
-        _setTokenURI(tokenId, requestData[requestId].uri);
-
+        // update requestData information
         requestData[requestId].fulfilled = true;
 
         emit OCRResponse(requestId, response, err);
