@@ -14,6 +14,8 @@ contract LagrangeDataNFT is ERC721, ERC721URIStorage, Ownable {
     mapping(uint256 => uint256) public datasetToToken;
     mapping(uint256 => uint256) public tokenToDataset;
 
+    event URIUpdate(uint tokenId, string uri);
+
     constructor() ERC721("Lagrange Data", "LDNFT") {}
 
     // TODO: check datasetID is valid
@@ -41,6 +43,8 @@ contract LagrangeDataNFT is ERC721, ERC721URIStorage, Ownable {
     function updateURI(uint tokenId, string memory uri) public {
         require(ownerOf(tokenId) == msg.sender, "caller is not owner");
         _setTokenURI(tokenId, uri);
+
+        emit URIUpdate(tokenId, uri);
     }
 
     function tokenURI(

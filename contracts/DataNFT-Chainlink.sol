@@ -101,17 +101,15 @@ contract LagrangeChainlinkData is
         bytes memory response,
         bytes memory err
     ) internal override {
-        latestResponse = response;
-        latestError = err;
-
+        require(response.length > 0 && err.length > 0);
         // if the response is true (meaning the minter is the owner of the dataset)
-        if (bytesToBool(response)) {
-            _tokenIdCounter.increment();
-            uint256 tokenId = _tokenIdCounter.current();
+        require(bytesToBool(response) == true);
 
-            _safeMint(requestData[requestId].minter, tokenId);
-            _setTokenURI(tokenId, requestData[requestId].uri);
-        }
+        _tokenIdCounter.increment();
+        uint256 tokenId = _tokenIdCounter.current();
+
+        _safeMint(requestData[requestId].minter, tokenId);
+        _setTokenURI(tokenId, requestData[requestId].uri);
 
         requestData[requestId].fulfilled = true;
 
