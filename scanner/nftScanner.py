@@ -1,14 +1,14 @@
 from web3 import Web3
 from decouple import config
 from web3.middleware import geth_poa_middleware
-#from web3.contract import ContractEvent
+from web3.contract import ContractEvent
 import time
 import mysql.connector
 import json
 from hexbytes import HexBytes
 import warnings
 
-polygon_url = config('POLYGON_URL')
+polygon_url = "https://polygon-mumbai.g.alchemy.com/v2/JpRokS66sMaDD680W2NWwqhLuqDC1f7l"
 
 # MySQL DB:
 # mydb = mysql.connector.connect(
@@ -23,8 +23,8 @@ polygon_url = config('POLYGON_URL')
 w3 = Web3(Web3.HTTPProvider(polygon_url))
 w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-res = w3.is_connected()
-print("res: ",res)
+# res = w3.isConnected()
+# print("res: ",res)
 
 # Hyperspace SpacePayment contract address and ABI
 CONTRACT_ADDRESS = '0x2315804B67010B6AB003Bef541b22D19cC074f41'
@@ -37,7 +37,7 @@ ABI = json.load(nft_abi_file)
 
 # Block on which the contract was deployed:
 from_block = 34290743
-target_block = w3.eth.get_block('latest')
+target_block = w3.eth.get_block('latest') #34294743
 # Block chunk to be scanned:
 batchSize = 1000
 
@@ -48,7 +48,22 @@ while from_block < target_block.number:
     toBlock = from_block + batchSize
     print(from_block,toBlock)
 
-    contract = w3.eth.contract(address=Web3.utils.toChecksumAddress(CONTRACT_ADDRESS), abi=ABI)
+    contract = w3.eth.contract(address=Web3.toChecksumAddress(CONTRACT_ADDRESS), abi=ABI)
 
-    transferEvents = contract.events.safeTransferFrom.getLogs(fromBlock=from_block, toBlock=toBlock)
+    transferEvents = contract.events.Transfer.getLogs(fromBlock=from_block, toBlock=toBlock)
     print("transferEvents: ",transferEvents)
+
+    # eventOwnership = ContractEvent('OwnershipTransferred', abi=ABI)
+    # eventLog=event.processLog(log)
+    # print("event: ",eventLog)
+
+    from_block = from_block + batchSize + 1
+    blockDiff = target_block.number - from_block
+
+    # print("target_block: ",target_block.number)
+    # print("batchSize: ",batchSize)
+    # print("from_block ",from_block)
+    # print("blockDiff: ",blockDiff)
+
+    if(blockDiff < batchSize):
+        batchSize = blockDiff
