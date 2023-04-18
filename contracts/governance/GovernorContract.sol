@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
 
-contract MyGovernor is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
+contract GovernorContract is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
     constructor(
         IVotes _token, 
         TimelockController _timelock, 
@@ -16,7 +16,7 @@ contract MyGovernor is Governor, GovernorSettings, GovernorCountingSimple, Gover
         uint _votingPeriod,
         uint _quorum
     )
-        Governor("MyGovernor")
+        Governor("GovernorContract")
         GovernorSettings(_votingDelay /* 1 block */, _votingPeriod /* 1 week */, 0)
         GovernorVotes(_token)
         GovernorVotesQuorumFraction(_quorum)
