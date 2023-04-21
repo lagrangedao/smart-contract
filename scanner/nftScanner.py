@@ -52,6 +52,7 @@ target_block = w3.eth.get_block('latest') #34294743
 batchSize = 1000
 
 updateOwnerCommand='UPDATE nft_ownership SET transfer_event_block = (%s), owner_address = (%s) WHERE nft_address = (%s) AND nft_ID=(%s)'
+isNFTexistsCommand='SELECT * from nft_ownership WHERE nft_address = (%s) AND nft_ID=(%s)'
 
 while from_block < target_block.number:
     # silence harmless warnings
@@ -84,30 +85,41 @@ while from_block < target_block.number:
 
                 tokenID = cfTransferEvents[i].args.tokenId
 
-                cfUpdateParams=[]
-                cfUpdateParams.append(cfTransferEvents[i].blockNumber)
-                cfUpdateParams.append(cfTransferEvents[i].args.to)
-                cfUpdateParams.append(CF_CONTRACT_ADDRESS)
-                cfUpdateParams.append(tokenID)
+                nftCheckParams=[]
+                nftCheckParams.append(CF_CONTRACT_ADDRESS)
+                nftCheckParams.append(tokenID)
+                mycursor.execute(isNFTexistsCommand,nftCheckParams)
+                nftExistsCheck = mycursor.fetchall()
+                # print("nftExistsCheck: ", nftExistsCheck!=False)
 
-                # print("cfUpdateParams: ",cfUpdateParams)
+                if nftExistsCheck!=False :
+
+                    cfUpdateParams=[]
+                    cfUpdateParams.append(cfTransferEvents[i].blockNumber)
+                    cfUpdateParams.append(cfTransferEvents[i].args.to)
+                    cfUpdateParams.append(CF_CONTRACT_ADDRESS)
+                    cfUpdateParams.append(tokenID)
+
+                    # print("cfUpdateParams: ",cfUpdateParams)
                 
-                mycursor.execute(updateOwnerCommand,cfUpdateParams)
-                mydb.commit()
-                print("Updated owner for NFT Address:",CF_CONTRACT_ADDRESS)
+                    mycursor.execute(updateOwnerCommand,cfUpdateParams)
+                    mydb.commit()
+                    print("Updated owner for NFT Address:",CF_CONTRACT_ADDRESS)
 
-                # Get the previous owner's address
-                # ownerAddressCommand="select owner_address from nft_ownership WHERE nft_address = (%s) "
-                # mycursor.execute(ownerAddressCommand,cf_AddrDict)
-                # ownerAddr = mycursor.fetchall()
-                # print("NFT owner: ",ownerAddr[0][0])
+                     # Get the previous owner's address
+                     # ownerAddressCommand="select owner_address from nft_ownership WHERE nft_address = (%s) "
+                     # mycursor.execute(ownerAddressCommand,cf_AddrDict)
+                     # ownerAddr = mycursor.fetchall()
+                     # print("NFT owner: ",ownerAddr[0][0])
 
-                # print(cfTransferEvents[i].blockNumber)
-                # print(cfTransferEvents[i].event)
-                # print(cfTransferEvents[i].args["from"])
-                # print(cfTransferEvents[i].args.to)
-                # print(cfTransferEvents[i].args.tokenId)
-                # print(cfTransferEvents[i].address)
+                     # print(cfTransferEvents[i].blockNumber)
+                     # print(cfTransferEvents[i].event)
+                     # print(cfTransferEvents[i].args["from"])
+                     # print(cfTransferEvents[i].args.to)
+                     # print(cfTransferEvents[i].args.tokenId)
+                     # print(cfTransferEvents[i].address)
+                else:
+                    print("Following NFT address does not exist in the DB:",CF_CONTRACT_ADDRESS)
             i=i+1
 
     if soTransferEvents != ():
@@ -121,17 +133,27 @@ while from_block < target_block.number:
 
                 tokenID = soTransferEvents[i].args.tokenId
 
-                soUpdateParams=[]
-                soUpdateParams.append(soTransferEvents[i].blockNumber)
-                soUpdateParams.append(soTransferEvents[i].args.to)
-                soUpdateParams.append(SO_CONTRACT_ADDRESS)
-                soUpdateParams.append(tokenID)
+                soNFTCheckParams=[]
+                soNFTCheckParams.append(SO_CONTRACT_ADDRESS)
+                soNFTCheckParams.append(tokenID)
+                mycursor.execute(isNFTexistsCommand,soNFTCheckParams)
+                soNFTExistsCheck = mycursor.fetchall()
 
-                # print("soUpdateParams: ",soUpdateParams)
+                if soNFTExistsCheck!=False:
+
+                    soUpdateParams=[]
+                    soUpdateParams.append(soTransferEvents[i].blockNumber)
+                    soUpdateParams.append(soTransferEvents[i].args.to)
+                    soUpdateParams.append(SO_CONTRACT_ADDRESS)
+                    soUpdateParams.append(tokenID)
+
+                    # print("soUpdateParams: ",soUpdateParams)
                 
-                mycursor.execute(updateOwnerCommand,soUpdateParams)
-                mydb.commit()
-                print("Updated owner for NFT Address:",SO_CONTRACT_ADDRESS)
+                    mycursor.execute(updateOwnerCommand,soUpdateParams)
+                    mydb.commit()
+                    print("Updated owner for NFT Address:",SO_CONTRACT_ADDRESS)
+                else:
+                    print("Following NFT address does not exist in the DB:",SO_CONTRACT_ADDRESS)
 
             i=i+1
 
