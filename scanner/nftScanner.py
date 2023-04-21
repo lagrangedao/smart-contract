@@ -51,7 +51,7 @@ target_block = w3.eth.get_block('latest') #34294743
 # Block chunk to be scanned:
 batchSize = 1000
 
-updateOwnerCommand='UPDATE nft_ownership SET transfer_block = (%s), owner_address = (%s) WHERE nft_address = (%s) AND nft_ID=(%s)'
+updateOwnerCommand='UPDATE nft_ownership SET transfer_event_block = (%s), owner_address = (%s) WHERE nft_address = (%s) AND nft_ID=(%s)'
 
 while from_block < target_block.number:
     # silence harmless warnings
@@ -127,27 +127,13 @@ while from_block < target_block.number:
                 soUpdateParams.append(SO_CONTRACT_ADDRESS)
                 soUpdateParams.append(tokenID)
 
-                print("soUpdateParams: ",soUpdateParams)
+                # print("soUpdateParams: ",soUpdateParams)
                 
                 mycursor.execute(updateOwnerCommand,soUpdateParams)
                 mydb.commit()
                 print("Updated owner for NFT Address:",SO_CONTRACT_ADDRESS)
 
-                # Get the previous owner's address
-                # ownerAddressCommand="select owner_address from nft_ownership WHERE nft_address = (%s) "
-                # mycursor.execute(ownerAddressCommand,cf_AddrDict)
-                # ownerAddr = mycursor.fetchall()
-                # print("NFT owner: ",ownerAddr[0][0])
-
-                # print(cfTransferEvents[i].blockNumber)
-                # print(cfTransferEvents[i].event)
-                # print(cfTransferEvents[i].args["from"])
-                # print(cfTransferEvents[i].args.to)
-                # print(cfTransferEvents[i].args.tokenId)
-                # print(cfTransferEvents[i].address)
             i=i+1
-
-
 
     from_block = from_block + batchSize + 1
     blockDiff = target_block.number - from_block
