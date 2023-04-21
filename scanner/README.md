@@ -48,7 +48,7 @@ python3 hyperspacescan.py
 
 # Steps to run the NFT scanning script:  
 
-1. Checkout to the `rishabh/nft-scanner` branch and run `npm i`.
+1. Checkout to the `rishabh/nft-scanner` branch.
 2. Configure the `.env` file by renaming `.env.template` to `.env` 
 3. Add the following parameters to it and configure them according to your DB parameters:
 ```
