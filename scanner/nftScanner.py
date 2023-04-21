@@ -11,13 +11,17 @@ import warnings
 polygon_url = "https://polygon-mumbai.g.alchemy.com/v2/JpRokS66sMaDD680W2NWwqhLuqDC1f7l"
 
 # MySQL DB:
-mydb = mysql.connector.connect(
-  host="localhost",
-  user=config('DB_USER'),
-  password=config('DB_PASSWORD'),
-  database='nft_data'
-)
-mycursor = mydb.cursor()
+try:
+    mydb = mysql.connector.connect(
+        host="localhost",
+        user=config('DB_USER'),
+        password=config('DB_PASSWORD'),
+        database='nft_data'
+    )
+    mycursor = mydb.cursor()
+    print("MySQL connection successful")
+except mysql.connector.Error as err:
+    print(f"An error occurred while connecting to MySQL: {err}")
 
 # HTTPProvider:
 w3 = Web3(Web3.HTTPProvider(polygon_url))
@@ -123,7 +127,7 @@ while from_block < target_block.number:
                      # print(cfTransferEvents[i].args.tokenId)
                      # print(cfTransferEvents[i].address)
                 else:
-                    print("Following NFT address does not exist in the DB:",CF_CONTRACT_ADDRESS)
+                    print(f"Following NFT address does not exist in the DB:{CF_CONTRACT_ADDRESS}")
             i=i+1
 
     if soTransferEvents:
@@ -158,10 +162,10 @@ while from_block < target_block.number:
                         mydb.commit()
                         print(f"Updated owner for NFT Address: {SO_CONTRACT_ADDRESS}")
                     except e:
-                        print(f"An error occurred while updating owner for NFT Address {CF_CONTRACT_ADDRESS}: {e}")
+                        print(f"An error occurred while updating owner for NFT Address {SO_CONTRACT_ADDRESS}: {e}")
 
                 else:
-                    print("Following NFT address does not exist in the DB:",SO_CONTRACT_ADDRESS)
+                    print(f"Following NFT address does not exist in the DB: {SO_CONTRACT_ADDRESS}")
 
             i=i+1
 
