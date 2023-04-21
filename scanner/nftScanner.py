@@ -107,7 +107,7 @@ while from_block < target_block.number:
                         mydb.commit()
                         print("Updated owner for NFT Address:",CF_CONTRACT_ADDRESS)
                     except e:
-                        print(e)
+                        print(f"An error occurred while updating owner for NFT Address {CF_CONTRACT_ADDRESS}: {e}")
 
                      # Get the previous owner's address
                      # ownerAddressCommand="select owner_address from nft_ownership WHERE nft_address = (%s) "
@@ -156,7 +156,7 @@ while from_block < target_block.number:
                         mydb.commit()
                         print("Updated owner for NFT Address:",SO_CONTRACT_ADDRESS)
                     except e:
-                        print(e)
+                        print(f"An error occurred while updating owner for NFT Address {CF_CONTRACT_ADDRESS}: {e}")
 
                 else:
                     print("Following NFT address does not exist in the DB:",SO_CONTRACT_ADDRESS)
