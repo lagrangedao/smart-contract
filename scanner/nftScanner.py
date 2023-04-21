@@ -74,7 +74,7 @@ while from_block < target_block.number:
     # eventLog=event.processLog(log)
     # print("event: ",eventLog)
 
-    if cfTransferEvents !=():
+    if cfTransferEvents:
         cfEventSize=len(cfTransferEvents)
         # print("cfEventSize: ", cfEventSize)
         i=0
@@ -105,7 +105,7 @@ while from_block < target_block.number:
                     try:
                         mycursor.execute(updateOwnerCommand,cfUpdateParams)
                         mydb.commit()
-                        print("Updated owner for NFT Address:",CF_CONTRACT_ADDRESS)
+                        print(f"Updated owner for NFT Address: {CF_CONTRACT_ADDRESS}")
                     except e:
                         print(f"An error occurred while updating owner for NFT Address {CF_CONTRACT_ADDRESS}: {e}")
 
@@ -125,7 +125,7 @@ while from_block < target_block.number:
                     print("Following NFT address does not exist in the DB:",CF_CONTRACT_ADDRESS)
             i=i+1
 
-    if soTransferEvents != ():
+    if soTransferEvents:
         soEventSize=len(soTransferEvents)
         # print("soEventSize: ",soEventSize)
         i=0
@@ -154,7 +154,7 @@ while from_block < target_block.number:
                     try:
                         mycursor.execute(updateOwnerCommand,soUpdateParams)
                         mydb.commit()
-                        print("Updated owner for NFT Address:",SO_CONTRACT_ADDRESS)
+                        print(f"Updated owner for NFT Address: {SO_CONTRACT_ADDRESS}")
                     except e:
                         print(f"An error occurred while updating owner for NFT Address {CF_CONTRACT_ADDRESS}: {e}")
 
