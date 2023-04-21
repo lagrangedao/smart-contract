@@ -33,3 +33,6 @@ COLLATE = utf8mb4_0900_ai_ci;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+insert into nft_ownership(transfer_event_block,nft_address,nft_ID,owner_address) VALUES (34492518,'0xD81288579c13e26F621840B66aE16af1460ebB5a',2,'0xA878795d2C93985444f1e2A077FA324d59C759b0');
+insert into nft_ownership(transfer_event_block,nft_address,nft_ID,owner_address) VALUES (34492518,'0x923AfAdE5d2c600b8650334af60D6403642c1bce',2,'0xc17ae0520803E715D020C03D29D452520D6aEbf9');
