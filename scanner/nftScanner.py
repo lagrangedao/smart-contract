@@ -103,6 +103,7 @@ while from_block < target_block.number:
 
                     # print("cfUpdateParams: ",cfUpdateParams)
                     try:
+                        # Update the NFT owner in the DB 
                         mycursor.execute(updateOwnerCommand,cfUpdateParams)
                         mydb.commit()
                         print(f"Updated owner for NFT Address: {CF_CONTRACT_ADDRESS}")
@@ -152,6 +153,7 @@ while from_block < target_block.number:
 
                     # print("soUpdateParams: ",soUpdateParams)
                     try:
+                        # Update the NFT owner in the DB
                         mycursor.execute(updateOwnerCommand,soUpdateParams)
                         mydb.commit()
                         print(f"Updated owner for NFT Address: {SO_CONTRACT_ADDRESS}")
