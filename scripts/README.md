@@ -69,26 +69,37 @@ transaction hash: 0x21aa29a839d29a9ada0a331cfdd38eec5aabccd19b824a9da04b04966bd2
 
 ### Mint NFT
 
+Note: The current contract is deployed to the Polygon Mumbai network.
+
 Run the script:
 
 ```
 python mint.py
 ```
 
+Before running, you will need a NFT to mint, upload a JSON file to IPFS containing an owner address property:
+
+```
+{
+    ...,
+    "owner": "0x...",
+    ...
+}
+```
+
 Example output
 
 ```
-Connected to https://api.hyperspace.node.glif.io/rpc/v1, chain id is 3141. the latest block is 168,071
+Connected to https://polygon-mumbai.g.alchemy.com/v2/JpRokS66sMaDD680W2NWwqhLuqDC1f7l, chain id is 80001. the latest block is 34,783,446
 
 Your address: 0xc17ae0520803E715D020C03D29D452520D6aEbf9
 
-NFT Metadata (IPFS URL): 'https://ipfs.io/ipfs/Qm.'
-Send to (address): 0xc17ae0520803E715D020C03D29D452520D6aEbf9
-Quantity (int): 1
+NFT Metadata (IPFS URL): https://2d9999d121.calibration-swan-acl.filswan.com/ipfs/QmZEPZos8pExSSqfZwi4RKrLHUGBgQ5KsHMP3poyPMBomA
 
-Confirm minting 1 NFT(s) of 'https://ipfs.io/ipfs/Qm.' to 0xc17ae0520803E715D020C03D29D452520D6aEbf9?
+Confirm minting NFT of https://2d9999d121.calibration-swan-acl.filswan.com/ipfs/QmZEPZos8pExSSqfZwi4RKrLHUGBgQ5KsHMP3poyPMBomA?
 Ok [y/n]?y
 
 Minting...
-Mint is completed. Tx Hash: https://hyperspace.filfox.info/en/message/0xfd536f9188d4c867039beee66ffa1e674b414f88067ae7c628efee0c35fcc361
+Mint is completed. Transaction Hash: 0x042186563c2d5e22aa39b35c1218874001753d8b7f049f8e4b0c93f85ca3aff1
+View on Block Explorer: https://mumbai.polygonscan.com/tx/0x042186563c2d5e22aa39b35c1218874001753d8b7f049f8e4b0c93f85ca3aff1
 ```
