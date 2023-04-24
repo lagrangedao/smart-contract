@@ -7,6 +7,7 @@ import mysql.connector
 import json
 from hexbytes import HexBytes
 import warnings
+import logging
 
 polygon_url = "https://polygon-mumbai.g.alchemy.com/v2/JpRokS66sMaDD680W2NWwqhLuqDC1f7l"
 
@@ -37,7 +38,7 @@ class NFTScanner:
             warnings.filterwarnings("ignore")
 
             to_block = self.from_block + self.batch_size
-            print(self.from_block,to_block)
+            logging.info(self.from_block,to_block)
 
             cf_contract = self.w3.eth.contract(address=Web3.toChecksumAddress(self.cf_contract_address), abi=self.cf_abi)
             so_contract = self.w3.eth.contract(address=Web3.toChecksumAddress(self.so_contract_address), abi=self.so_abi)
@@ -70,11 +71,11 @@ class NFTScanner:
                             try:
                                 self.mycursor.execute(self.update_owner_command, cf_update_params)
                                 self.mydb.commit()
-                                print(f"Updated owner for NFT Address: {self.cf_contract_address}")
+                                logging.info(f"Updated owner for NFT Address: {self.cf_contract_address}")
                             except e:
-                                print(f"An error occurred while updating owner for NFT Address {CF_CONTRACT_ADDRESS}: {e}")
+                                logging.info(f"An error occurred while updating owner for NFT Address {CF_CONTRACT_ADDRESS}: {e}")
                         else:
-                            print(f"Following NFT address does not exist in the DB: {CF_CONTRACT_ADDRESS}")
+                            logging.info(f"Following NFT address does not exist in the DB: {CF_CONTRACT_ADDRESS}")
 
                     i=i+1
 
@@ -103,26 +104,24 @@ class NFTScanner:
                             try:
                                 self.mycursor.execute(self.update_owner_command, so_update_params)
                                 self.mydb.commit()
-                                print(f"Updated owner for NFT Address: {self.so_contract_address}")
+                                logging.info(f"Updated owner for NFT Address: {self.so_contract_address}")
                             except e:
-                                print(f"An error occurred while updating owner for NFT Address {SO_CONTRACT_ADDRESS}: {e}")
+                                logging.info(f"An error occurred while updating owner for NFT Address {SO_CONTRACT_ADDRESS}: {e}")
                         else:
-                            print(f"Following NFT address does not exist in the DB: {SO_CONTRACT_ADDRESS}")
+                            logging.info(f"Following NFT address does not exist in the DB: {SO_CONTRACT_ADDRESS}")
 
                     i=i+1
 
             self.from_block = self.from_block + self.batch_size + 1
             blockDiff = target_block - self.from_block
 
-            # print("target_block: ",target_block.number)
-            # print("batchSize: ",batchSize)
-            # print("from_block ",from_block)
-            # print("blockDiff: ",blockDiff)
-
             if(blockDiff < self.batch_size):
                 batchSize = blockDiff
 
+def main():
+    scanner_0bj = NFTScanner('0xD81288579c13e26F621840B66aE16af1460ebB5a','0x923AfAdE5d2c600b8650334af60D6403642c1bce',34492518)
+    target_block = scanner_0bj.w3.eth.get_block('latest')
+    scanner_0bj.start_NFT_scan(target_block.number)
 
-scanner_0bj = NFTScanner('0xD81288579c13e26F621840B66aE16af1460ebB5a','0x923AfAdE5d2c600b8650334af60D6403642c1bce',34492518)
-target_block = scanner_0bj.w3.eth.get_block('latest')
-scanner_0bj.start_NFT_scan(target_block.number)
+if __name__ == '__main__':
+    main()
