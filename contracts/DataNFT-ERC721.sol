@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -14,7 +14,7 @@ contract LagrangeDataNFT is ERC721, ERC721URIStorage, Ownable {
     mapping(uint256 => uint256) public datasetToToken;
     mapping(uint256 => uint256) public tokenToDataset;
 
-
+    event URIUpdate(uint tokenId, string uri);
 
     constructor() ERC721("Lagrange Data", "LDNFT") {}
 
@@ -29,26 +29,27 @@ contract LagrangeDataNFT is ERC721, ERC721URIStorage, Ownable {
 
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
-       // uriAccess[to][tokenId] = true;
+        // uriAccess[to][tokenId] = true;
     }
 
     // The following functions are overrides required by Solidity.
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    function _burn(
+        uint256 tokenId
+    ) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);
     }
 
     function updateURI(uint tokenId, string memory uri) public {
         require(ownerOf(tokenId) == msg.sender, "caller is not owner");
         _setTokenURI(tokenId, uri);
+
+        emit URIUpdate(tokenId, uri);
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
+    function tokenURI(
+        uint256 tokenId
+    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
         //require(uriAccess[msg.sender][tokenId], "caller does not have access");
         return super.tokenURI(tokenId);
     }
