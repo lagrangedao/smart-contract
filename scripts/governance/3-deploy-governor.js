@@ -4,8 +4,8 @@ async function main() {
   const deployer = await ethers.getSigner()
   console.log('deployer: ', deployer.address)
 
-  const TOKEN_ADDRESS = '0x44E147b52A0492A7dD9774575adA61ad95750993'
-  const TIMELOCK_ADDRESS = '0x964f2e0362F7F935A02Fa2ea7e861aE53F47450D'
+  const TOKEN_ADDRESS = '0x6e47e89bFA98c912A293C9b4FE8d6415Ac86CE12'
+  const TIMELOCK_ADDRESS = '0x65b81EE8beBA62eC1A047F9d77736fa03b8c4e82'
   const VOTING_DELAY = 1
   const VOTING_PERIOD = 5
   const QUORUM_PERCENTAGE = 4

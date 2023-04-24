@@ -10,6 +10,10 @@ async function main() {
 
   console.log('address: ' + contract.address)
   await contract.deployed()
+
+  console.log('delegating deployer...')
+  let tx = await contract.delegate(deployer.address)
+  await tx.wait()
 }
 
 main()
