@@ -9,7 +9,7 @@ from hexbytes import HexBytes
 import warnings
 import logging
 
-polygon_url = "https://polygon-mumbai.g.alchemy.com/v2/JpRokS66sMaDD680W2NWwqhLuqDC1f7l"
+polygon_url = config('POLYGON_URL')
 
 class NFTScanner:
     def __init__(self, cf_contract_address, so_contract_address, from_block):
@@ -119,7 +119,13 @@ class NFTScanner:
                 batchSize = blockDiff
 
 def main():
-    scanner_0bj = NFTScanner('0xD81288579c13e26F621840B66aE16af1460ebB5a','0x923AfAdE5d2c600b8650334af60D6403642c1bce',34492518)
+    # Configurable parameters:
+    cf_contract_addr='0xD81288579c13e26F621840B66aE16af1460ebB5a'
+    so_contract_addr='0x923AfAdE5d2c600b8650334af60D6403642c1bce'
+    start_block=34492518
+
+    # Start scanner:
+    scanner_0bj = NFTScanner(cf_contract_addr,so_contract_addr,start_block)
     target_block = scanner_0bj.w3.eth.get_block('latest')
     scanner_0bj.start_NFT_scan(target_block.number)
 
