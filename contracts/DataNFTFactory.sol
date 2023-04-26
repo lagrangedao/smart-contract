@@ -21,15 +21,19 @@ contract DataNFTFactory is ChainlinkClient {
 
     struct RequestData {
         address owner;
-        uint datasetId;
+        // uint datasetId;
         string uri;
+        string name;
+        string symbol;
+        address contractAddress;
         bool fulfilled;
-        bool verified;
     }
     mapping(bytes32 => RequestData) public requestData;
-    mapping(uint => address) public dataIdToNftAddress;
+    // mapping(uint => address) public dataIdToNftAddress;
+    mapping(string => address) public uriToNftAddress;
 
-    event OracleResult(bytes32 indexed requestId, address uriOwner);
+    event OracleResult(bytes32 indexed requestId, bool isOwner);
+    event DeployNFT(string uri, address contractAddress);
 
     constructor(
         address linkTokenAddress,
@@ -46,9 +50,20 @@ contract DataNFTFactory is ChainlinkClient {
     /**
      * @dev for now, pass in uri, checks owner,
      * TODO: pass dataset id, check api to verify owner
-     * @dev The deployed contract stores Metadata, ownership, sub-license information, permissions.
+     * @dev The deployed contract stores Metadata, ownership, sub-license 
+     * information, permissions.
+     * @notice Users call this function to request Chainlink Oracle to 
+     * deploy your dataNFT contract. The oracle will verify the sender is the 
+     * owner of the dataset
+     * @return requestId - analogous to placing an order and getting an order#
+     * users can refer to requestData[requestId] to "track" progress
      */
-    function requestDataNFT(uint datasetId, string memory uri) public returns (bytes32 requestId) {
+    function requestDataNFT(
+            // uint datasetId, 
+            string memory uri, 
+            string memory name, 
+            string memory symbol
+        ) public returns (bytes32 requestId) {
         Chainlink.Request memory req = buildChainlinkRequest(
             jobId,
             address(this),
@@ -60,38 +75,48 @@ contract DataNFTFactory is ChainlinkClient {
 
 
         bytes32 assignedReqID = sendChainlinkRequest(req, fee);
-        requestData[assignedReqID] = RequestData(msg.sender, datasetId, uri, false, false);
+        requestData[assignedReqID] = RequestData(
+                msg.sender, 
+                // datasetId, 
+                uri, 
+                name, 
+                symbol, 
+                address(0), 
+                false
+            );
 
         return assignedReqID;
     }
 
+    /**
+     * @notice this function should only be called by the oracle
+     * if the requester was the owner of the dataset, it will deploy DataNFT
+     * and emit an event containing the contract address
+     * @dev currently verifying ownership via owner parameter in the passed uri
+     */
     function fulfill(
         bytes32 requestId,
         bytes memory uriOwnerBytes
     ) public recordChainlinkFulfillment(requestId) {
+        require(msg.sender == oracleAddress, "only called by oracle");
+
+        requestData[requestId].fulfilled = true; // the oracle processed the request (regardless of result)
         address uriOwner = bytesToAddress(uriOwnerBytes);
 
         if (uriOwner == requestData[requestId].owner) {
-            requestData[requestId].verified = true;
+            RequestData storage data = requestData[requestId];
+            DataNFT dataset = new DataNFT(data.name, data.symbol);
+            data.contractAddress = address(dataset);
+            uriToNftAddress[data.uri] = address(dataset);
+            emit DeployNFT(data.uri, data.contractAddress);
         }
 
-        requestData[requestId].fulfilled = true;
-        emit OracleResult(requestId, uriOwner);
+        emit OracleResult(requestId, uriOwner == requestData[requestId].owner);
     }
 
     function bytesToAddress(bytes memory b) private pure returns (address addr) {
         assembly {
         addr := mload(add(b,20))
         }
-    }
-
-    function createDataNFT(bytes32 requestId, string memory name, string memory symbol) public returns (address) {
-        RequestData storage data = requestData[requestId];
-        require(data.fulfilled == true && data.verified == true, "verify dataset ownership first");
-        require(data.owner == msg.sender, "you are not the owner of the dataset");
-
-        DataNFT dataset = new DataNFT(name, symbol);
-        dataIdToNftAddress[data.datasetId] = address(dataset);
-        return address(dataset);
     }
 }
