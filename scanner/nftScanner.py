@@ -9,16 +9,33 @@ from hexbytes import HexBytes
 import warnings
 import logging
 
-polygon_url = "https://polygon-mumbai.g.alchemy.com/v2/JpRokS66sMaDD680W2NWwqhLuqDC1f7l"
+# set up logging to file
+# logging.basicConfig(level=logging.INFO,
+#                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+#                     datefmt='%m-%d %H:%M',
+#                     filename='NFTscan.log')
+# # define a Handler which writes INFO messages or higher to the sys.stderr
+# console = logging.StreamHandler()
+# console.setLevel(logging.INFO)
+# # add the handler to the root logger
+# logging.getLogger('').addHandler(console)
+
+polygon_url = config('POLYGON_URL')
 
 class NFTScanner:
     def __init__(self, cf_contract_address, so_contract_address, from_block):
+        # Data NFT with Chainlink functions contract address
         self.cf_contract_address = cf_contract_address
+        # Data NFT with single oracle contract address
         self.so_contract_address = so_contract_address
+        # Data NFT with Chainlink functions contract ABI
         self.cf_abi_file_path = '../contracts/abi/LagrangeChainlinkData.json'
+        # Data NFT with single oracle contract ABI
         self.so_abi_file_path = '../contracts/abi/LagrangeChainlinkDataConsumer.json'
         self.from_block = from_block
         self.batch_size = 1000
+
+        # DB connection
         self.mydb = mysql.connector.connect(
             host="localhost",
             user=config('DB_USER'),
@@ -30,7 +47,10 @@ class NFTScanner:
         self.cf_abi = json.load(open(self.cf_abi_file_path))
         self.so_abi = json.load(open(self.so_abi_file_path))
         self.mycursor = self.mydb.cursor()
+
+        # Update owner command
         self.update_owner_command = 'UPDATE nft_ownership SET transfer_event_block = (%s), owner_address = (%s) WHERE nft_address = (%s) AND nft_ID=(%s)'
+        # Is NFT exists check
         self.is_nft_exists_command = 'SELECT * from nft_ownership WHERE nft_address = (%s) AND nft_ID=(%s)'
 
     def start_NFT_scan(self, target_block):
@@ -46,6 +66,7 @@ class NFTScanner:
             cf_transfer_events = cf_contract.events.Transfer.getLogs(fromBlock=self.from_block, toBlock=to_block)
             so_transfer_events = so_contract.events.Transfer.getLogs(fromBlock=self.from_block, toBlock=to_block)
 
+            # Scan for contract with Chainlink functions events
             if cf_transfer_events:
                 cf_event_size = len(cf_transfer_events)
                 i = 0
@@ -79,6 +100,7 @@ class NFTScanner:
 
                     i=i+1
 
+            # Scan for contract with single oracle events
             if so_transfer_events:
                 so_event_size = len(so_transfer_events)
                 i = 0
@@ -119,7 +141,13 @@ class NFTScanner:
                 batchSize = blockDiff
 
 def main():
-    scanner_0bj = NFTScanner('0xD81288579c13e26F621840B66aE16af1460ebB5a','0x923AfAdE5d2c600b8650334af60D6403642c1bce',34492518)
+    # Configurable parameters:
+    cf_contract_addr='0xD81288579c13e26F621840B66aE16af1460ebB5a'
+    so_contract_addr='0x923AfAdE5d2c600b8650334af60D6403642c1bce'
+    start_block=34492518
+
+    # Start scanner:
+    scanner_0bj = NFTScanner(cf_contract_addr,so_contract_addr,start_block)
     target_block = scanner_0bj.w3.eth.get_block('latest')
     scanner_0bj.start_NFT_scan(target_block.number)
 
