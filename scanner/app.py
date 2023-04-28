@@ -6,6 +6,9 @@ import mysql.connector
 import requests
 import os
 from dotenv import load_dotenv
+from threading import Thread
+
+from nftScanner import main
 
 # load environment variables from .env file
 load_dotenv() 
@@ -39,7 +42,10 @@ def start_scan():
     # thread = Thread(target=scanner.start_NFT_scan, args=[target_block])
     # thread.start()
 
-    subprocess.Popen(['python', 'nftScanner.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #subprocess.Popen(['python', 'nftScanner.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    thread = Thread(target=main)
+    thread.start()
 
     return 'Scan process started'
 
