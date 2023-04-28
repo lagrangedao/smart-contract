@@ -3,6 +3,7 @@ pragma solidity ^0.8.7;
 
 import "./DataNFT.sol";
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title DataNFTFactory
@@ -12,7 +13,7 @@ import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
  * ERC721 Tokens within each contract represent versioning
  * ERC721 Tokens can accept certain ERC20 tokens as datatokens
  */
-contract DataNFTFactory is ChainlinkClient {
+contract DataNFTFactory is ChainlinkClient, Ownable {
     using Chainlink for Chainlink.Request;
 
     bytes32 private jobId;
@@ -23,9 +24,7 @@ contract DataNFTFactory is ChainlinkClient {
         address owner;
         // uint datasetId;
         string uri;
-        string name;
-        string symbol;
-        address contractAddress;
+        bool deployable;
         bool fulfilled;
     }
     mapping(bytes32 => RequestData) public requestData;
@@ -55,14 +54,15 @@ contract DataNFTFactory is ChainlinkClient {
      * @notice Users call this function to request Chainlink Oracle to 
      * deploy your dataNFT contract. The oracle will verify the sender is the 
      * owner of the dataset
+     * @notice this function will not deploy the contract, it will set 
+     * RequestData.deployable to true, so the user needs to call 
+     * CreateDataNFT to deploy. This is to avoid out of gas error from oracle.
      * @return requestId - analogous to placing an order and getting an order#
      * users can refer to requestData[requestId] to "track" progress
      */
     function requestDataNFT(
             // uint datasetId, 
-            string memory uri, 
-            string memory name, 
-            string memory symbol
+            string memory uri
         ) public returns (bytes32 requestId) {
         Chainlink.Request memory req = buildChainlinkRequest(
             jobId,
@@ -79,9 +79,7 @@ contract DataNFTFactory is ChainlinkClient {
                 msg.sender, 
                 // datasetId, 
                 uri, 
-                name, 
-                symbol, 
-                address(0), 
+                false,
                 false
             );
 
@@ -99,24 +97,31 @@ contract DataNFTFactory is ChainlinkClient {
         bytes memory uriOwnerBytes
     ) public recordChainlinkFulfillment(requestId) {
         require(msg.sender == oracleAddress, "only called by oracle");
-
-        requestData[requestId].fulfilled = true; // the oracle processed the request (regardless of result)
         address uriOwner = bytesToAddress(uriOwnerBytes);
 
-        if (uriOwner == requestData[requestId].owner) {
-            RequestData storage data = requestData[requestId];
-            DataNFT dataset = new DataNFT(data.name, data.symbol);
-            data.contractAddress = address(dataset);
-            uriToNftAddress[data.uri] = address(dataset);
-            emit DeployNFT(data.uri, data.contractAddress);
-        }
+        requestData[requestId].deployable = uriOwner == requestData[requestId].owner;
+        requestData[requestId].fulfilled = true; // the oracle processed the request (regardless of result)
 
-        emit OracleResult(requestId, uriOwner == requestData[requestId].owner);
+        emit OracleResult(requestId, requestData[requestId].deployable);
+    }
+
+    function createDataNFT( bytes32 requestId, string memory name, string memory symbol) public {
+            DataNFT dataset = new DataNFT(name, symbol);
+            uriToNftAddress[requestData[requestId].uri] = address(dataset);
+            emit DeployNFT(requestData[requestId].uri, address(dataset));
     }
 
     function bytesToAddress(bytes memory b) private pure returns (address addr) {
         assembly {
         addr := mload(add(b,20))
         }
+    }
+
+    function withdrawLink() public onlyOwner {
+        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+        require(
+            link.transfer(msg.sender, link.balanceOf(address(this))),
+            "Unable to transfer"
+        );
     }
 }

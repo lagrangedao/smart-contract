@@ -76,7 +76,7 @@ contract DataNFT is
     function tokenURI(
         uint256 tokenId
     ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        //require(uriAccess[msg.sender][tokenId], "caller does not have access");
+        require(ownerOf(tokenId) == msg.sender);
         return super.tokenURI(tokenId);
     }
 
