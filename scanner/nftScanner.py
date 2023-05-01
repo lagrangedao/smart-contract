@@ -10,20 +10,20 @@ import warnings
 import logging
 
 # set up logging to file
-# logging.basicConfig(level=logging.INFO,
-#                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-#                     datefmt='%m-%d %H:%M',
-#                     filename='NFTscan.log')
-# # define a Handler which writes INFO messages or higher to the sys.stderr
-# console = logging.StreamHandler()
-# console.setLevel(logging.INFO)
-# # add the handler to the root logger
-# logging.getLogger('').addHandler(console)
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='NFTscan.log')
+# define a Handler which writes INFO messages or higher to the sys.stderr
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+# add the handler to the root logger
+logging.getLogger('').addHandler(console)
 
 polygon_url = config('POLYGON_URL')
 
 class NFTScanner:
-    def __init__(self, cf_contract_address, so_contract_address, from_block):
+    def __init__(self, cf_contract_address, so_contract_address):
         # Data NFT with Chainlink functions contract address
         self.cf_contract_address = cf_contract_address
         # Data NFT with single oracle contract address
@@ -32,8 +32,6 @@ class NFTScanner:
         self.cf_abi_file_path = '../contracts/abi/LagrangeChainlinkData.json'
         # Data NFT with single oracle contract ABI
         self.so_abi_file_path = '../contracts/abi/LagrangeChainlinkDataConsumer.json'
-        self.from_block = from_block
-        self.batch_size = 1000
 
         # DB connection
         self.mydb = mysql.connector.connect(
@@ -48,6 +46,15 @@ class NFTScanner:
         self.so_abi = json.load(open(self.so_abi_file_path))
         self.mycursor = self.mydb.cursor()
 
+        getLastScanBlockCommand= 'select last_scan_block from nft_ownership'
+        self.mycursor.execute(getLastScanBlockCommand)
+        lastScannedBlock = self.mycursor.fetchall()
+
+        self.from_block = lastScannedBlock[0][0] + 1
+        self.batch_size = 1000
+
+        # print("lastScannedBlock: ",lastScannedBlock[0][0])
+
         # Update owner command
         self.update_owner_command = 'UPDATE nft_ownership SET transfer_event_block = (%s), owner_address = (%s) WHERE nft_address = (%s) AND nft_ID=(%s)'
         # Is NFT exists check
@@ -58,7 +65,7 @@ class NFTScanner:
             warnings.filterwarnings("ignore")
 
             to_block = self.from_block + self.batch_size
-            logging.info(self.from_block,to_block)
+            # logging.info(f"scanning from {self.from_block} to {target_block}")
 
             cf_contract = self.w3.eth.contract(address=Web3.toChecksumAddress(self.cf_contract_address), abi=self.cf_abi)
             so_contract = self.w3.eth.contract(address=Web3.toChecksumAddress(self.so_contract_address), abi=self.so_abi)
@@ -92,7 +99,8 @@ class NFTScanner:
                             try:
                                 self.mycursor.execute(self.update_owner_command, cf_update_params)
                                 self.mydb.commit()
-                                logging.info(f"Updated owner for NFT Address: {self.cf_contract_address}")
+                                # TODO: remove this afterwards
+                                logging.info(f"Updated owner for NFT Address: {self.cf_contract_address} at {cf_transfer_events[i].blockNumber}")
                             except e:
                                 logging.info(f"An error occurred while updating owner for NFT Address {CF_CONTRACT_ADDRESS}: {e}")
                         else:
@@ -126,7 +134,7 @@ class NFTScanner:
                             try:
                                 self.mycursor.execute(self.update_owner_command, so_update_params)
                                 self.mydb.commit()
-                                logging.info(f"Updated owner for NFT Address: {self.so_contract_address}")
+                                logging.info(f"Updated owner for NFT Address: {self.so_contract_address} at {so_transfer_events[i].blockNumber}")
                             except e:
                                 logging.info(f"An error occurred while updating owner for NFT Address {SO_CONTRACT_ADDRESS}: {e}")
                         else:
@@ -140,14 +148,20 @@ class NFTScanner:
             if(blockDiff < self.batch_size):
                 batchSize = blockDiff
 
+        # Update last scanned block
+        updateLastBlockCMD = 'UPDATE nft_ownership SET last_scan_block = (%s)'
+        self.mycursor.execute(updateLastBlockCMD,[target_block])
+        self.mydb.commit()
+
 def main():
     # Configurable parameters:
     cf_contract_addr='0xD81288579c13e26F621840B66aE16af1460ebB5a'
     so_contract_addr='0x923AfAdE5d2c600b8650334af60D6403642c1bce'
-    start_block=34492518
+
+    start_block=34656913
 
     # Start scanner:
-    scanner_0bj = NFTScanner(cf_contract_addr,so_contract_addr,start_block)
+    scanner_0bj = NFTScanner(cf_contract_addr,so_contract_addr)
     target_block = scanner_0bj.w3.eth.get_block('latest')
     scanner_0bj.start_NFT_scan(target_block.number)
 
