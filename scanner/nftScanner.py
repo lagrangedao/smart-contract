@@ -50,7 +50,7 @@ class NFTScanner:
         self.mycursor.execute(getLastScanBlockCommand)
         lastScannedBlock = self.mycursor.fetchall()
 
-        self.from_block = lastScannedBlock[0][0] + 1
+        self.from_block = lastScannedBlock[0][0] + 1 # 34333512
         self.batch_size = 1000
 
         # print("lastScannedBlock: ",lastScannedBlock[0][0])
@@ -59,6 +59,8 @@ class NFTScanner:
         self.update_owner_command = 'UPDATE nft_ownership SET transfer_event_block = (%s), owner_address = (%s) WHERE nft_address = (%s) AND nft_ID=(%s)'
         # Is NFT exists check
         self.is_nft_exists_command = 'SELECT * from nft_ownership WHERE nft_address = (%s) AND nft_ID=(%s)'
+        # Insert new NFT command:
+        self.insert_NFT_command = 'INSERT INTO nft_ownership (last_scan_block,transfer_event_block,owner_address,nft_address,nft_ID) VALUES (%s,%s,%s,%s,%s)'
 
     def start_NFT_scan(self, target_block):
         while self.from_block < target_block:
@@ -72,13 +74,15 @@ class NFTScanner:
 
             cf_transfer_events = cf_contract.events.Transfer.getLogs(fromBlock=self.from_block, toBlock=to_block)
             so_transfer_events = so_contract.events.Transfer.getLogs(fromBlock=self.from_block, toBlock=to_block)
-
+            
             # Scan for contract with Chainlink functions events
             if cf_transfer_events:
                 cf_event_size = len(cf_transfer_events)
                 i = 0
 
                 while i < cf_event_size:
+                    token_id = cf_transfer_events[i].args.tokenId
+
                     if cf_transfer_events[i].args["from"] != '0x0000000000000000000000000000000000000000':
 
                         token_id = cf_transfer_events[i].args.tokenId
@@ -103,8 +107,33 @@ class NFTScanner:
                                 logging.info(f"Updated owner for NFT Address: {self.cf_contract_address} at {cf_transfer_events[i].blockNumber}")
                             except e:
                                 logging.info(f"An error occurred while updating owner for NFT Address {CF_CONTRACT_ADDRESS}: {e}")
-                        else:
-                            logging.info(f"Following NFT address does not exist in the DB: {CF_CONTRACT_ADDRESS}")
+                        # else:
+                        #     logging.info(f"Following NFT address does not exist in the DB: {CF_CONTRACT_ADDRESS}")
+
+                    elif cf_transfer_events[i].args["from"] == '0x0000000000000000000000000000000000000000':
+                        # if "from" address = address(0) => new NFT has been minted
+                        # check if new minted NFT exists in the DB
+
+                        new_minted_nft_check_params = (self.cf_contract_address, token_id)
+                        self.mycursor.execute(self.is_nft_exists_command, new_minted_nft_check_params)
+                        minted_nft_exists_check = self.mycursor.fetchall()
+
+                        if not minted_nft_exists_check:
+                            # Insert the newly minted NFT into DB:
+                            cf_insert_params = [
+                                target_block,
+                                cf_transfer_events[i].blockNumber,
+                                cf_transfer_events[i].args.to,
+                                self.cf_contract_address,
+                                token_id
+                            ]
+                            
+                            try:
+                                self.mycursor.execute(self.insert_NFT_command, cf_insert_params)
+                                self.mydb.commit()
+                                logging.info(f"Inserted NFT details for: {self.cf_contract_address} at {cf_transfer_events[i].blockNumber}")
+                            except e:
+                                logging.info(f"An error occurred while insering details for NFT Address {CF_CONTRACT_ADDRESS}: {e}")  
 
                     i=i+1
 
@@ -114,9 +143,9 @@ class NFTScanner:
                 i = 0
 
                 while i < so_event_size:
-                    if so_transfer_events[i].args["from"] != '0x0000000000000000000000000000000000000000':
+                    token_id = so_transfer_events[i].args.tokenId
 
-                        token_id = so_transfer_events[i].args.tokenId
+                    if so_transfer_events[i].args["from"] != '0x0000000000000000000000000000000000000000':
 
                         nft_check_params = (self.so_contract_address, token_id)
 
@@ -134,11 +163,36 @@ class NFTScanner:
                             try:
                                 self.mycursor.execute(self.update_owner_command, so_update_params)
                                 self.mydb.commit()
-                                logging.info(f"Updated owner for NFT Address: {self.so_contract_address} at {so_transfer_events[i].blockNumber}")
+                                logging.info(f"Updated NFT details for: {self.so_contract_address} at {so_transfer_events[i].blockNumber}")
                             except e:
-                                logging.info(f"An error occurred while updating owner for NFT Address {SO_CONTRACT_ADDRESS}: {e}")
-                        else:
-                            logging.info(f"Following NFT address does not exist in the DB: {SO_CONTRACT_ADDRESS}")
+                                logging.info(f"An error occurred while updating NFT details for address {SO_CONTRACT_ADDRESS}: {e}")
+                        # else:
+                        #     logging.info(f"Following NFT address does not exist in the DB: {SO_CONTRACT_ADDRESS}")
+
+                    elif so_transfer_events[i].args["from"] == '0x0000000000000000000000000000000000000000':
+                        # if "from" address = address(0) => new NFT has been minted
+                        # check if new minted NFT exists in the DB
+
+                        new_minted_nft_check_params = (self.so_contract_address, token_id)
+                        self.mycursor.execute(self.is_nft_exists_command, new_minted_nft_check_params)
+                        minted_nft_exists_check = self.mycursor.fetchall()
+
+                        if not minted_nft_exists_check:
+                            # Insert the newly minted NFT into DB:
+                            so_insert_params = [
+                                target_block,
+                                so_transfer_events[i].blockNumber,
+                                so_transfer_events[i].args.to,
+                                self.so_contract_address,
+                                token_id
+                            ]
+                            
+                            try:
+                                self.mycursor.execute(self.insert_NFT_command, so_insert_params)
+                                self.mydb.commit()
+                                logging.info(f"Inserted NFT details for: {self.so_contract_address} at {so_transfer_events[i].blockNumber}")
+                            except e:
+                                logging.info(f"An error occurred while inserting NFT details for address {SO_CONTRACT_ADDRESS}: {e}")                        
 
                     i=i+1
 
@@ -158,7 +212,7 @@ def main():
     cf_contract_addr='0xD81288579c13e26F621840B66aE16af1460ebB5a'
     so_contract_addr='0x923AfAdE5d2c600b8650334af60D6403642c1bce'
 
-    start_block=34656913
+    start_block=34783450
 
     # Start scanner:
     scanner_0bj = NFTScanner(cf_contract_addr,so_contract_addr)
