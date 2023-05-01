@@ -5,8 +5,9 @@ import subprocess
 import mysql.connector
 import requests
 import os
+import time
 from dotenv import load_dotenv
-from threading import Thread
+import threading
 
 from nftScanner import main
 
@@ -15,39 +16,15 @@ load_dotenv()
 
 app = Flask(__name__)
 
-def scheduled_task():
-    print(f"Scheduled task executed at {datetime.now()}")
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(func=scheduled_task, trigger="interval", seconds=10)
-scheduler.start()
+def execute_scanning_script():
+    print(f"Scanning task executed at {datetime.now()}")
+    while True:
+        subprocess.Popen(['python', 'nftScanner.py']).wait()
+        time.sleep(5)  # Delay for 10 seconds
 
 @app.route('/')
 def hello():
     return jsonify(message='Hello from Flask scheduler service!')
-    
-# Define endpoint to start scan process
-@app.route('/start_scan', methods=['GET','POST'])
-def start_scan():
-    # Get parameters from request body
-    # cf_contract_address = request.json['cf_contract_address']
-    # so_contract_address = request.json['so_contract_address']
-    # from_block = request.json['from_block']
-    # target_block = request.json['target_block']
-
-    # # Create NFTScanner instance
-    # scanner = NFTScanner(cf_contract_address, so_contract_address, from_block)
-
-    # # Start scan process in a new thread
-    # thread = Thread(target=scanner.start_NFT_scan, args=[target_block])
-    # thread.start()
-
-    #subprocess.Popen(['python', 'nftScanner.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    thread = Thread(target=main)
-    thread.start()
-
-    return 'Scan process started'
 
 # Define endpoint to query NFT ownership record
 @app.route('/get_nft_ownership', methods=['GET','POST'])
@@ -82,4 +59,6 @@ def get_nft_ownership():
         return 'NFT ownership record not found'
 
 if __name__ == '__main__':
+    t = threading.Thread(target=execute_scanning_script)
+    t.start()
     app.run(host='0.0.0.0', port=5000)
