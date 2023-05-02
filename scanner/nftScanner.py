@@ -50,7 +50,11 @@ class NFTScanner:
         self.mycursor.execute(getLastScanBlockCommand)
         lastScannedBlock = self.mycursor.fetchall()
 
-        self.from_block = lastScannedBlock[0][0] + 1 # 34333512
+        if lastScannedBlock:
+            self.from_block = lastScannedBlock[0][0] + 1
+        else:
+            self.from_block = 34333512
+
         self.batch_size = 1000
 
         # print("lastScannedBlock: ",lastScannedBlock[0][0])
