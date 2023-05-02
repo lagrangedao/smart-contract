@@ -50,7 +50,7 @@ class NFTScanner:
         self.mycursor.execute(getLastScanBlockCommand)
         lastScannedBlock = self.mycursor.fetchall()
 
-        self.from_block = 34333512 #lastScannedBlock[0][0] + 1 # 34333512
+        self.from_block = lastScannedBlock[0][0] + 1 # 34333512
         self.batch_size = 1000
 
         # print("lastScannedBlock: ",lastScannedBlock[0][0])
@@ -211,8 +211,6 @@ def main():
     # Configurable parameters:
     cf_contract_addr='0xD81288579c13e26F621840B66aE16af1460ebB5a'
     so_contract_addr='0x923AfAdE5d2c600b8650334af60D6403642c1bce'
-
-    start_block=34783450
 
     # Start scanner:
     scanner_0bj = NFTScanner(cf_contract_addr,so_contract_addr)

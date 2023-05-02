@@ -8,37 +8,28 @@ import os
 import time
 from dotenv import load_dotenv
 import threading
-
 from nftScanner import main
+import logging
 
 # load environment variables from .env file
-load_dotenv() 
+load_dotenv()
+
+db_host = os.environ.get('DB_HOST')
+db_user = os.environ.get('DB_USER')
+db_password = os.environ.get('DB_PASSWORD')
+db_name = os.environ.get('DB_NAME')
+
+# Query database for NFT ownership record
 
 app = Flask(__name__)
 
 def execute_scanning_script():
-    print(f"Scanning task executed at {datetime.now()}")
+    logging.info(f"Scanning task executed at {datetime.now()}")
     while True:
         subprocess.Popen(['python', 'nftScanner.py']).wait()
-        time.sleep(5)  # Delay for 10 seconds
+        time.sleep(3)  # Delay for 3 seconds
 
-@app.route('/')
-def hello():
-    return jsonify(message='Hello from Flask scheduler service!')
-
-# Define endpoint to query NFT ownership record
-@app.route('/get_nft_ownership', methods=['GET','POST'])
-def get_nft_ownership():
-    # Get parameters from request query string
-    nft_address = request.args.get('nft_address')
-    nft_id = request.args.get('nft_id')
-
-    # load environment variables
-    db_host = os.environ.get('DB_HOST')
-    db_user = os.environ.get('DB_USER')
-    db_password = os.environ.get('DB_PASSWORD')
-    db_name = os.environ.get('DB_NAME')
-
+def query_database(nft_address, nft_id):
     # Query database for NFT ownership record
     mydb = mysql.connector.connect(
             host=db_host,
@@ -51,10 +42,21 @@ def get_nft_ownership():
     params = (nft_address, nft_id)
     mycursor.execute(query, params)
     result = mycursor.fetchone()
+    # mydb.close()
+    return result
+
+# Define endpoint to query NFT ownership record
+@app.route('/get_nft_details', methods=['GET'])
+def get_nft_details():
+    # Get parameters from request query string
+    nft_address = request.args.get('nft_address')
+    nft_id = request.args.get('nft_id')
+
+    result = query_database(nft_address,nft_id)
 
     # Return result as JSON
     if result:
-        return {'transfer_event_block': result[0], 'nft_address': result[1], 'nft_id': result[2], 'owner_address': result[3]}
+        return {'transfer_event_block': result[1], 'nft_address': result[2], 'nft_id': result[3], 'owner_address': result[4]}
     else:
         return 'NFT ownership record not found'
 
