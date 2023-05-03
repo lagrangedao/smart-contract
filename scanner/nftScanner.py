@@ -52,6 +52,7 @@ class NFTScanner:
         if lastScannedBlock:
             self.from_block = lastScannedBlock[0][0] + 1
         else:
+            # Block at which the contracts were deployed
             self.from_block = 34333512
 
         self.batch_size = 1000

@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 import subprocess
 import mysql.connector
 import requests
@@ -23,6 +25,20 @@ db_name = os.environ.get('DB_NAME')
 
 app = Flask(__name__)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{db_user}:{db_password}@{db_host}/{db_name}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+# Define the NFTOwnership model
+class NFTOwnership(db.Model):
+    __tablename__ = 'nft_ownership'
+    id = db.Column(db.Integer, primary_key=True)
+    last_scan_block = db.Column(db.Integer)
+    transfer_event_block = db.Column(db.Integer)
+    nft_address = db.Column(db.String(255))
+    nft_id = db.Column(db.Integer)
+    owner_address = db.Column(db.String(255))
+
 def execute_scanning_script():
     logging.info(f"Scanning task executed at {datetime.now()}")
     while True:
@@ -31,21 +47,10 @@ def execute_scanning_script():
 
 def query_database(nft_address, nft_id):
     # Query database for NFT ownership record
-    mydb = mysql.connector.connect(
-            host=db_host,
-            user=db_user,
-            password=db_password,
-            database=db_name
-        )
-    mycursor = mydb.cursor()
-    query = 'SELECT * FROM nft_ownership WHERE nft_address = %s AND nft_ID = %s'
-    params = (nft_address, nft_id)
-    mycursor.execute(query, params)
-    result = mycursor.fetchone()
-    # mydb.close()
+    result = NFTOwnership.query.filter_by(nft_address=nft_address, nft_id=nft_id).first()
+
     return result
 
-# Define endpoint to query NFT ownership record
 @app.route('/get_nft_details', methods=['GET'])
 def get_nft_details():
     # Get parameters from request query string
@@ -56,9 +61,10 @@ def get_nft_details():
 
     # Return result as JSON
     if result:
-        return {'transfer_event_block': result[1], 'nft_address': result[2], 'nft_id': result[3], 'owner_address': result[4]}
+        return {'transfer_event_block': result.transfer_event_block, 'nft_address': result.nft_address, 'nft_id': result.nft_id, 'owner_address': result.owner_address}
     else:
-        return 'NFT ownership record not found'
+        return 'NFT record not found'
+   
 
 if __name__ == '__main__':
     t = threading.Thread(target=execute_scanning_script)

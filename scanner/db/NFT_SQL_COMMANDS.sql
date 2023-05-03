@@ -21,6 +21,7 @@ USE `nft_data` ;
 -- Table `nft_data`.`nft_ownership`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nft_data`.`nft_ownership` (
+  `id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `last_scan_block` INT NOT NULL,
   `transfer_event_block` INT(50) NOT NULL,
   `nft_address` VARCHAR(200) NOT NULL,
