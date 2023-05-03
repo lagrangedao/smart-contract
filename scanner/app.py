@@ -21,17 +21,20 @@ db_user = os.environ.get('DB_USER')
 db_password = os.environ.get('DB_PASSWORD')
 db_name = os.environ.get('DB_NAME')
 
-# Query database for NFT ownership record
-
 app = Flask(__name__)
 
+# setup SQL Alchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{db_user}:{db_password}@{db_host}/{db_name}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+t = threading.Thread(target=execute_scanning_script)
+t.start()
+
 # Define the NFTOwnership model
 class NFTOwnership(db.Model):
     __tablename__ = 'nft_ownership'
+    
     id = db.Column(db.Integer, primary_key=True)
     last_scan_block = db.Column(db.Integer)
     transfer_event_block = db.Column(db.Integer)
@@ -42,8 +45,13 @@ class NFTOwnership(db.Model):
 def execute_scanning_script():
     logging.info(f"Scanning task executed at {datetime.now()}")
     while True:
-        subprocess.Popen(['python', 'nftScanner.py']).wait()
-        time.sleep(3)  # Delay for 3 seconds
+        try:
+            main()
+        except Exception as e:
+            logging.error(e)
+        
+        # Delay for 3 seconds
+        time.sleep(3)
 
 def query_database(nft_address, nft_id):
     # Query database for NFT ownership record
@@ -67,6 +75,4 @@ def get_nft_details():
    
 
 if __name__ == '__main__':
-    t = threading.Thread(target=execute_scanning_script)
-    t.start()
     app.run(host='0.0.0.0', port=5000)
