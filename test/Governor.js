@@ -48,6 +48,9 @@ describe('Governor Contract', function () {
     const transferTx = await box.transferOwnership(timeLock.address)
     await transferTx.wait()
 
+    const delegateTx = await token.delegate(owner.address)
+    await delegateTx.wait()
+
     const proposerRole = await timeLock.PROPOSER_ROLE()
     const executorRole = await timeLock.EXECUTOR_ROLE()
     const adminRole = await timeLock.TIMELOCK_ADMIN_ROLE()
@@ -88,7 +91,7 @@ describe('Governor Contract', function () {
 
   describe('Proposals', async () => {
     it('Should create proposal', async function () {
-      const { box, governor } = await loadFixture(deployFixture)
+      const { box, governor, owner } = await loadFixture(deployFixture)
 
       const encodedFunctionCall = box.interface.encodeFunctionData('store', [
         1234,
@@ -101,20 +104,216 @@ describe('Governor Contract', function () {
         'Proposal: Store 1234 in Box',
       )
       const proposalReceipt = await proposeTx.wait(1)
-      const proposalId = proposalReceipt.events[0].args.proposalId
-      console.log('Proposal ID: ', proposalId)
+      const proposal = proposalReceipt.events[0].args
 
-      const proposalState = await governor.state(proposalId)
-      const proposalSnapShot = await governor.proposalSnapshot(proposalId)
-      const proposalDeadline = await governor.proposalDeadline(proposalId)
+      expect(proposal.proposer).to.equal(owner.address)
+      expect(proposal.targets[0]).to.equal(box.address)
+      expect(proposal.calldatas[0]).to.equal(encodedFunctionCall)
 
-      // the Proposal State is an enum data type, defined in the IGovernor contract.
+      expect(await governor.state(proposal.proposalId)).to.equal(0)
+      await mine(2)
+      expect(await governor.state(proposal.proposalId)).to.equal(1)
+    })
+
+    it('Should vote on proposal', async () => {
+      const { token, box, governor, owner } = await loadFixture(deployFixture)
+
+      const encodedFunctionCall = box.interface.encodeFunctionData('store', [
+        1234,
+      ])
+
+      const proposeTx = await governor.propose(
+        [box.address],
+        [0],
+        [encodedFunctionCall],
+        'Proposal: Store 1234 in Box',
+      )
+      const proposalReceipt = await proposeTx.wait(1)
+      const proposal = proposalReceipt.events[0].args
+
+      await mine(2)
       // 0:Pending, 1:Active, 2:Canceled, 3:Defeated, 4:Succeeded, 5:Queued, 6:Expired, 7:Executed
-      console.log(`Current Proposal State: ${proposalState}`)
-      // What block # the proposal was snapshot
-      console.log(`Current Proposal Snapshot: ${proposalSnapShot}`)
-      // The block number the proposal voting expires
-      console.log(`Current Proposal Deadline: ${proposalDeadline}`)
+      expect(await governor.state(proposal.proposalId)).to.equal(1)
+
+      // 0 = Against, 1 = For, 2 = Abstain for this example
+      const voteTx = await governor.castVote(proposal.proposalId, 1)
+      await voteTx.wait(1)
+
+      const votes = await governor.proposalVotes(proposal.proposalId)
+
+      expect(
+        await governor.hasVoted(proposal.proposalId, owner.address),
+      ).to.equal(true)
+      expect(await token.balanceOf(owner.address)).to.be.equal(votes.forVotes)
+    })
+
+    it('Should queue and execute proposal', async () => {
+      const { box, governor, owner } = await loadFixture(deployFixture)
+
+      const encodedFunctionCall = box.interface.encodeFunctionData('store', [
+        1234,
+      ])
+      const description = 'Proposal: Store 1234 in Box'
+      const descriptionHash = ethers.utils.keccak256(
+        ethers.utils.toUtf8Bytes(description),
+      )
+
+      const proposeTx = await governor.propose(
+        [box.address],
+        [0],
+        [encodedFunctionCall],
+        description,
+      )
+      const proposalReceipt = await proposeTx.wait(1)
+      const proposal = proposalReceipt.events[0].args
+
+      await mine(2)
+      // 0:Pending, 1:Active, 2:Canceled, 3:Defeated, 4:Succeeded, 5:Queued, 6:Expired, 7:Executed
+      expect(await governor.state(proposal.proposalId)).to.equal(1)
+
+      // 0 = Against, 1 = For, 2 = Abstain for this example
+      const voteTx = await governor.castVote(proposal.proposalId, 1)
+      await voteTx.wait(1)
+
+      await mine(51000) // wait for voting period to end
+
+      const queueTx = await governor.queue(
+        [box.address],
+        [0],
+        [encodedFunctionCall],
+        descriptionHash,
+      )
+      await queueTx.wait(1)
+
+      await mine(4000) // wait for timelock min delay
+
+      expect(await box.retrieve()).to.equal(0)
+
+      // this will fail on a testnet because you need to wait for the MIN_DELAY!
+      const executeTx = await governor.execute(
+        [box.address],
+        [0],
+        [encodedFunctionCall],
+        descriptionHash,
+      )
+      await executeTx.wait(1)
+
+      expect(await box.retrieve()).to.equal(1234)
+    })
+
+    it('Should not be able to execute before quorum and threshold', async () => {
+      const { box, governor, addr1 } = await loadFixture(deployFixture)
+
+      const encodedFunctionCall = box.interface.encodeFunctionData('store', [
+        1234,
+      ])
+      const description = 'Proposal: Store 1234 in Box'
+      const descriptionHash = ethers.utils.keccak256(
+        ethers.utils.toUtf8Bytes(description),
+      )
+
+      const proposeTx = await governor.propose(
+        [box.address],
+        [0],
+        [encodedFunctionCall],
+        description,
+      )
+      const proposalReceipt = await proposeTx.wait(1)
+      const proposal = proposalReceipt.events[0].args
+
+      await mine(2)
+      // 0:Pending, 1:Active, 2:Canceled, 3:Defeated, 4:Succeeded, 5:Queued, 6:Expired, 7:Executed
+      expect(await governor.state(proposal.proposalId)).to.equal(1)
+
+      // 0 = Against, 1 = For, 2 = Abstain for this example
+      const voteTx = await governor
+        .connect(addr1)
+        .castVote(proposal.proposalId, 1)
+      await voteTx.wait(1)
+
+      await expect(
+        governor.queue(
+          [box.address],
+          [0],
+          [encodedFunctionCall],
+          descriptionHash,
+        ),
+      ).to.be.reverted
+    })
+
+    it('Should not be able to vote after voting period ends', async () => {
+      const { box, governor } = await loadFixture(deployFixture)
+
+      const encodedFunctionCall = box.interface.encodeFunctionData('store', [
+        1234,
+      ])
+      const description = 'Proposal: Store 1234 in Box'
+
+      const proposeTx = await governor.propose(
+        [box.address],
+        [0],
+        [encodedFunctionCall],
+        description,
+      )
+      const proposalReceipt = await proposeTx.wait(1)
+      const proposal = proposalReceipt.events[0].args
+
+      await mine(51000) // wait for voting period to end
+
+      // 0 = Against, 1 = For, 2 = Abstain for this example
+      await expect(governor.castVote(proposal.proposalId, 1)).to.be.reverted
+    })
+
+    it('Should not be able to create proposal without enough voting power', async () => {
+      const { box, governor, addr1 } = await loadFixture(deployFixture)
+
+      const encodedFunctionCall = governor.interface.encodeFunctionData(
+        'setProposalThreshold',
+        [1234],
+      )
+      const description = 'Proposal: Change Proposal Threshold'
+      const descriptionHash = ethers.utils.keccak256(
+        ethers.utils.toUtf8Bytes(description),
+      )
+
+      const proposeTx = await governor
+        .connect(addr1)
+        .propose([governor.address], [0], [encodedFunctionCall], description)
+      const proposalReceipt = await proposeTx.wait(1)
+      const proposalId = proposalReceipt.events[0].args.proposalId
+
+      await mine(2)
+      const voteTx = await governor.castVote(proposalId, 1)
+      await voteTx.wait(1)
+
+      await mine(51000) // wait for voting period to end
+
+      const queueTx = await governor.queue(
+        [governor.address],
+        [0],
+        [encodedFunctionCall],
+        descriptionHash,
+      )
+      await queueTx.wait(1)
+
+      await mine(4000) // wait for timelock min delay
+
+      const executeTx = await governor.execute(
+        [governor.address],
+        [0],
+        [encodedFunctionCall],
+        descriptionHash,
+      )
+      await executeTx.wait(1)
+
+      expect(await governor.proposalThreshold()).to.equal(1234)
+
+      // addr 1 has 0 voting power, below new threshold, so should revert
+      await expect(
+        governor
+          .connect(addr1)
+          .propose([box.address], [0], [encodedFunctionCall], description),
+      ).to.be.reverted
     })
   })
 })
