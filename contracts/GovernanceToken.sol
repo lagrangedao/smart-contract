@@ -5,9 +5,9 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract GovernanceToken is ERC20, ERC20Permit, ERC20Votes {
-    uint public MAX_SUPPLY = 10_000_000_000 ether;
+    uint public MAX_SUPPLY = 1_000_000_000 ether;
 
-    constructor() ERC20("Governance Token", "GOV") ERC20Permit("Governance Token") {
+    constructor() ERC20("LaSwan", "LAS") ERC20Permit("LaSwan") {
         _mint(msg.sender, MAX_SUPPLY);
     }
     
