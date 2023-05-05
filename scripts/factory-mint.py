@@ -27,6 +27,7 @@ print(f"Your address: {wallet_address}\n")
 assert web3.isChecksumAddress(wallet_address), f"Not a valid wallet address: {wallet_address}"
 assert web3.isChecksumAddress(factory_contract_address), f"Not a valid contract address: {factory_contract_address}"
 
+# smart contract instance
 factory_contract = web3.eth.contract(address=factory_contract_address, abi=factory_contract_abi)
 
 # call requestDataNFT function
@@ -37,20 +38,25 @@ nft_uri = 'https://2d9999d121.calibration-swan-acl.filswan.com/ipfs/QmZEPZos8pEx
 # print(f'Request ID: {request_id}')
 
 tx_config = {
+    'chainId': web3.eth.chain_id,
     'from': wallet_address,
-    'gas': 500000,
-    'maxFeePerGas': web3.toWei('300', 'gwei'),
-    'maxPriorityFeePerGas': web3.toWei('25', 'gwei'),
+    # 'gas': 410224,
+    # 'maxFeePerGas': web3.toWei('100', 'gwei'),
+    # 'maxPriorityFeePerGas': web3.toWei('25', 'gwei'),
 }
 
 nonce = web3.eth.get_transaction_count(wallet_address)
 tx_config["nonce"] = nonce
+
 request_dataNFT_tx = factory_contract.functions.requestDataNFT(nft_uri).build_transaction(tx_config)
 
 # SIGN TX
 signed_tx = web3.eth.account.sign_transaction(request_dataNFT_tx, private_key)
 tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
 receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
-hash = web3.to_hex(tx_hash)
+hash = web3.toHex(tx_hash)
 
 print("hash: ",hash)
+
+request_id = receipt['logs'][0]['data']
+print("request_id: ",request_id)
