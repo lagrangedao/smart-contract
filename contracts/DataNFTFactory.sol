@@ -31,6 +31,9 @@ contract DataNFTFactory is FunctionsClient, Ownable {
 
     mapping(bytes32 => RequestData) public requestData;
 
+    event OCRResponse(bytes32 indexed requestId, bytes result, bytes err);
+    event DeployNFT(bytes32 requestId, address contractAddress);
+
     constructor(
         address oracle,
         uint64 _subscriptionId,
@@ -78,13 +81,33 @@ contract DataNFTFactory is FunctionsClient, Ownable {
         bytes memory response,
         bytes memory err
     ) internal override {
+        address uriOwner = bytesToAddress(response);
+        if (uriOwner == requestData[requestId].requestor) {
+            requestData[requestId].claimable = true;
+        }
 
+         // update requestData information
+        requestData[requestId].fulfilled = true;
+
+        emit OCRResponse(requestId, response, err);
+    }
+
+    function bytesToAddress(bytes memory b) private pure returns (address addr) {
+        assembly {
+        addr := mload(add(b,20))
+        }
     }
 
     /**
      * @dev TODO, not sure if I should use requestID or metadataURL
      */
-    function claimDataNFT() public {}
+    function claimDataNFT(bytes32 requestId) public {
+        require(requestData[requestId].fulfilled);
+        require(requestData[requestId].claimable);
+
+        DataNFT dataset = new DataNFT(requestData[requestId].name, requestData[requestId].symbol);
+        emit DeployNFT(requestId, address(dataset));
+    }
 
 
     /**

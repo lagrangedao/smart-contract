@@ -1,5 +1,4 @@
-const senderAddress = args[0]
-const uri = args[1]
+const uri = args[0]
 
 // make HTTP request to get IPFS metadata
 const req = Functions.makeHttpRequest({
@@ -25,5 +24,4 @@ if (!owner) {
   throw new Error(`Metadata does not contain owner property.`)
 }
 
-let isOwner = owner.toLowerCase() === senderAddress.toLowerCase() ? 1 : 0
-return Functions.encodeUint256(isOwner)
+return Functions.encodeString(isOwner)
