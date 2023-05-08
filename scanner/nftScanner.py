@@ -56,7 +56,12 @@ class NFTScanner:
         self.cf_abi = json.load(open(self.cf_abi_file_path))
         self.so_abi = json.load(open(self.so_abi_file_path))
         
-        lastScannedBlock = self.session.query(NFTData.last_scan_block).first()
+        try:
+            lastScannedBlock = self.session.query(NFTData.last_scan_block).first()
+        except Exception as e:
+            logging.error("Error fetching the last_scan_block: ",e)
+        finally:
+            self.session.close()
         # print("lastScannedBlock: ",lastScannedBlock[0])
 
         if lastScannedBlock:
@@ -69,6 +74,12 @@ class NFTScanner:
 
     # Function to update the ownership of the NFT or insert a newly minted NFT
     def update_or_insert_nft(self, blockNumber, to, contract_address, token_id):
+        try:
+            Session = sessionmaker(bind=self.engine)
+            self.session = Session()
+        except Exception as e:
+            logging.error("Error creating a new session: ",e)
+
         try:
             nft_ownership = self.session.query(NFTData).filter_by(nft_address=contract_address, nft_ID=token_id).first()
 
@@ -92,6 +103,8 @@ class NFTScanner:
         except Exception as e:
             logging.error("Error updating NFT ownership: ", e)
             return False
+        finally:
+            self.session.close()
 
     def start_NFT_scan(self, target_block):
         while self.from_block < target_block:
@@ -117,18 +130,24 @@ class NFTScanner:
                     if cf_transfer_events[i].args["from"] != '0x0000000000000000000000000000000000000000':
                         # When a `transfer` event occurs
                         token_id = cf_transfer_events[i].args.tokenId
-
-                        self.update_or_insert_nft(cf_transfer_events[i].blockNumber,
-                        cf_transfer_events[i].args.to,
-                        self.cf_contract_address,
-                        token_id)
+                        
+                        try:
+                            self.update_or_insert_nft(cf_transfer_events[i].blockNumber,
+                            cf_transfer_events[i].args.to,
+                            self.cf_contract_address,
+                            token_id)
+                        except Exception as e:
+                            logging.error("Error updating the NFT details: ",e)
 
                     elif cf_transfer_events[i].args["from"] == '0x0000000000000000000000000000000000000000':
                         # When a new NFT is minted
-                        self.update_or_insert_nft(cf_transfer_events[i].blockNumber,
-                        cf_transfer_events[i].args.to,
-                        self.cf_contract_address,
-                        token_id)
+                        try:
+                            self.update_or_insert_nft(cf_transfer_events[i].blockNumber,
+                            cf_transfer_events[i].args.to,
+                            self.cf_contract_address,
+                            token_id)
+                        except Exception as e:
+                            logging.error("Error inserting the NFT details: ",e)
 
                     i=i+1
 
@@ -142,17 +161,23 @@ class NFTScanner:
 
                     if so_transfer_events[i].args["from"] != '0x0000000000000000000000000000000000000000':
                         # When a `transfer` event occurs
-                        self.update_or_insert_nft(so_transfer_events[i].blockNumber,
-                        so_transfer_events[i].args.to,
-                        self.so_contract_address,
-                        token_id)
+                        try:
+                            self.update_or_insert_nft(so_transfer_events[i].blockNumber,
+                            so_transfer_events[i].args.to,
+                            self.so_contract_address,
+                            token_id)
+                        except Exception as e:
+                            logging.error("Error updating the NFT details: ",e)
 
                     elif so_transfer_events[i].args["from"] == '0x0000000000000000000000000000000000000000':
                         # When a new NFT is minted
-                        self.update_or_insert_nft(so_transfer_events[i].blockNumber,
-                        so_transfer_events[i].args.to,
-                        self.so_contract_address,
-                        token_id)                      
+                        try:
+                            self.update_or_insert_nft(so_transfer_events[i].blockNumber,
+                            so_transfer_events[i].args.to,
+                            self.so_contract_address,
+                            token_id)
+                        except Exception as e:
+                            logging.error("Error inserting the NFT details: ",e)                
 
                     i=i+1
 
@@ -163,8 +188,13 @@ class NFTScanner:
                 batchSize = blockDiff
 
         # Update last scanned block
-        self.session.query(NFTData).update({'last_scan_block': target_block})
-        self.session.commit()
+        try:
+            self.session.query(NFTData).update({'last_scan_block': target_block})
+            self.session.commit()
+        except Exception as e:
+            logging.error("Error updating the last_scan_block: ",e)
+        finally:
+            self.session.close()
 
 def main():
     # Configurable parameters:
