@@ -28,9 +28,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{db_user}:{db_password}@{db_ho
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-t = threading.Thread(target=execute_scanning_script)
-t.start()
-
 # Define the NFTOwnership model
 class NFTOwnership(db.Model):
     __tablename__ = 'nft_ownership'
@@ -55,7 +52,10 @@ def execute_scanning_script():
 
 def query_database(nft_address, nft_id):
     # Query database for NFT ownership record
-    result = NFTOwnership.query.filter_by(nft_address=nft_address, nft_id=nft_id).first()
+    try:
+        result = NFTOwnership.query.filter_by(nft_address=nft_address, nft_id=nft_id).first()
+    except Exception as e:
+        logging.error("Error fetching NFT details: ",e)
 
     return result
 
@@ -75,4 +75,6 @@ def get_nft_details():
    
 
 if __name__ == '__main__':
+    t = threading.Thread(target=execute_scanning_script)
+    t.start()
     app.run(host='0.0.0.0', port=5000)

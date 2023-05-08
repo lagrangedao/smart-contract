@@ -51,19 +51,22 @@ python3 hyperspacescan.py
 
 # Steps to run the NFT scanning script:
 
-1. Checkout to the `rishabh/nft-scanner` branch.
-2. Configure the `.env` file by renaming `.env.template` to `.env`
-3. Add the following parameters to it and configure them according to your DB parameters:
+1. Configure the `.env` file by renaming `.env.template` to `.env`
+2. Add the following parameters to it and configure them according to your DB parameters:
 
 ```
 DB_HOST=
 DB_USER=
 DB_PASSWORD=
 DB_NAME=
+CF_CONTRACT_ADDRESS=
+SO_CONTRACT_ADDRESS=
 ```
 
-4. Create the `nft_ownership` table in your DB by running the script found in `scanner/db/NFT_SQL_COMMANDS.sql`
-5. Now run the NFT scanning script by running the following command:
+Here, `CF_CONTRACT_ADDRESS` and `SO_CONTRACT_ADDRESS` refer to chainlink functions contract address and single oracle contract address respectively i.e. the 2 different data NFT smart contract implementations that are deployed.
+
+3. Create the `nft_ownership` table in your DB by running the script found in `scanner/db/NFT_SQL_COMMANDS.sql`
+4. Now run the NFT scanning script by running the following command:
 
 ```
 python3 nftScanner.py
