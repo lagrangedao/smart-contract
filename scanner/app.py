@@ -52,7 +52,10 @@ def execute_scanning_script():
 
 def query_database(nft_address, nft_id):
     # Query database for NFT ownership record
-    result = NFTOwnership.query.filter_by(nft_address=nft_address, nft_id=nft_id).first()
+    try:
+        result = NFTOwnership.query.filter_by(nft_address=nft_address, nft_id=nft_id).first()
+    except Exception as e:
+        logging.error("Error fetching NFT details: ",e)
 
     return result
 
