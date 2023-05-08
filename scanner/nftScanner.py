@@ -198,13 +198,19 @@ class NFTScanner:
 
 def main():
     # Configurable parameters:
-    cf_contract_addr='0xD81288579c13e26F621840B66aE16af1460ebB5a'
-    so_contract_addr='0x923AfAdE5d2c600b8650334af60D6403642c1bce'
+    try:
+        cf_contract_addr=config('CF_CONTRACT_ADDRESS')
+        so_contract_addr=config('SO_CONTRACT_ADDRESS')
+    except Exception as e:
+        logging.error("Please check address configuration: ",e)
 
     # Start scanner:
-    scanner_0bj = NFTScanner(cf_contract_addr,so_contract_addr)
-    target_block = scanner_0bj.w3.eth.get_block('latest')
-    scanner_0bj.start_NFT_scan(target_block.number)
+    try:
+        scanner_0bj = NFTScanner(cf_contract_addr,so_contract_addr)
+        target_block = scanner_0bj.w3.eth.get_block('latest')
+        scanner_0bj.start_NFT_scan(target_block.number)
+    except Exception as e:
+        logging.error("Error while starting the scan script: ", e)
 
 if __name__ == '__main__':
     main()
