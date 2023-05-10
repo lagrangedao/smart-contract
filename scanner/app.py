@@ -28,17 +28,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{db_user}:{db_password}@{db_ho
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Define the NFTOwnership model
-class NFTOwnership(db.Model):
-    __tablename__ = 'nft_ownership'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    last_scan_block = db.Column(db.Integer)
-    transfer_event_block = db.Column(db.Integer)
-    nft_address = db.Column(db.String(255))
-    nft_id = db.Column(db.Integer)
-    owner_address = db.Column(db.String(255))
-
 def execute_scanning_script():
     logging.info(f"Scanning task executed at {datetime.now()}")
     while True:
@@ -50,10 +39,14 @@ def execute_scanning_script():
         # Delay for 3 seconds
         time.sleep(3)
 
+t = threading.Thread(target=execute_scanning_script)
+t.start()
+
 def query_database(nft_address, nft_id):
+    from model.nft_data import NFTData
     # Query database for NFT ownership record
     try:
-        result = NFTOwnership.query.filter_by(nft_address=nft_address, nft_id=nft_id).first()
+        result = NFTData.query.filter_by(nft_address=nft_address, nft_id=nft_id).first()
     except Exception as e:
         logging.error("Error fetching NFT details: ",e)
 
@@ -75,6 +68,4 @@ def get_nft_details():
    
 
 if __name__ == '__main__':
-    t = threading.Thread(target=execute_scanning_script)
-    t.start()
     app.run(host='0.0.0.0', port=5000)
