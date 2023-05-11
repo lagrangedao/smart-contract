@@ -27,15 +27,15 @@ polygon_url = config('POLYGON_URL')
 Base = declarative_base()
 
 class NFTData(Base):
-    __tablename__ = 'nft_data'
+    __tablename__ = 'nft_ownership'
     id = Column(Integer, primary_key=True)
     transfer_event_block = Column(Integer)
     owner_address = Column(String)
     nft_address = Column(String)
     nft_ID = Column(Integer)
 
-class NFT_Contract_details(Base):
-    __tablename__ = 'nft_contract_details'
+class NFTContractDetails(Base):
+    __tablename__='nft_contract_details'
     id = Column(Integer, primary_key=True)
     last_scan_block = Column(Integer)
     NFT_contract_address = Column(String)
@@ -63,7 +63,7 @@ class NFTScanner:
         self.so_abi = json.load(open(self.so_abi_file_path))
         
         try:
-            lastScannedBlock = self.session.query(NFT_Contract_details.last_scan_block).first()
+            lastScannedBlock = self.session.query(NFTContractDetails.last_scan_block).first()
         except Exception as e:
             logging.error("Error fetching the last_scan_block: ",e)
         finally:
@@ -194,7 +194,9 @@ class NFTScanner:
 
         # Update last scanned block
         try:
-            self.session.query(NFT_Contract_details).update({'last_scan_block': target_block})
+            Session = sessionmaker(bind=self.engine)
+            self.session = Session()
+            self.session.query(NFTContractDetails).update({'last_scan_block': target_block})
             self.session.commit()
         except Exception as e:
             logging.error("Error updating the last_scan_block: ",e)
