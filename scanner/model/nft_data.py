@@ -1,11 +1,18 @@
-from app import db
+from sqlalchemy import Column, Integer, String
+from model import db
 
-# Define the NFTData model
 class NFTData(db.Model):
     __tablename__ = 'nft_ownership'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    transfer_event_block = db.Column(db.Integer)
-    nft_address = db.Column(db.String(255))
-    nft_id = db.Column(db.Integer)
-    owner_address = db.Column(db.String(255))
+
+    id = Column(Integer, primary_key=True)
+    transfer_event_block = Column(Integer)
+    nft_address = Column(String)
+    nft_ID = Column(Integer)
+    owner_address = Column(String)
+
+class NFTContractDetails(db.Model):
+    __tablename__='nft_contract_details'
+    id = Column(Integer, primary_key=True)
+    last_scan_block = Column(Integer)
+    NFT_contract_address = Column(String)
+    owner_address = Column(String)

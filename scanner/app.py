@@ -3,6 +3,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
+from model import db
+from model.nft_data import NFTData
 
 import subprocess
 import mysql.connector
@@ -28,7 +30,9 @@ app = Flask(__name__)
 # setup SQL Alchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{db_user}:{db_password}@{db_host}/{db_name}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+
+# Initialize the SQLAlchemy extension
+db.init_app(app)
 
 def execute_scanning_script():
     logging.info(f"Scanning task executed at {datetime.now()}")
@@ -45,7 +49,6 @@ t = threading.Thread(target=execute_scanning_script)
 t.start()
 
 def query_database(nft_address, nft_id):
-    from model.nft_data import NFTData
     # Query database for NFT ownership record
     try:
         result = NFTData.query.filter_by(nft_address=nft_address, nft_id=nft_id).first()
