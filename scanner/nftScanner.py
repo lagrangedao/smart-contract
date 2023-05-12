@@ -28,23 +28,6 @@ logging.getLogger('').addHandler(console)
 config=toml.load('config.toml')
 polygon_url = config['POLYGON_URL']
 
-# Base = declarative_base()
-
-# class NFTData(Base):
-#     __tablename__ = 'nft_ownership'
-#     id = Column(Integer, primary_key=True)
-#     transfer_event_block = Column(Integer)
-#     owner_address = Column(String)
-#     nft_address = Column(String)
-#     nft_ID = Column(Integer)
-
-# class NFTContractDetails(Base):
-#     __tablename__='nft_contract_details'
-#     id = Column(Integer, primary_key=True)
-#     last_scan_block = Column(Integer)
-#     NFT_contract_address = Column(String)
-#     owner_address = Column(String)
-
 class NFTScanner:
     def __init__(self, cf_contract_address, so_contract_address):
         # Data NFT with Chainlink functions contract address
