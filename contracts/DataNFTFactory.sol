@@ -54,8 +54,9 @@ contract DataNFTFactory is FunctionsClient, Ownable {
      * @notice sends a request to Chainlink to verify the metadata, allowing the user to claim
      */
     function requestDataNFT(string memory metadataUri) public returns (bytes32) {
-        string[] memory args = new string[](1);
+        string[] memory args = new string[](2);
         args[0] = metadataUri;
+        args[1] = addressToString(msg.sender);
 
         // sends the chainlink request to call API, returns reqID
         Functions.Request memory req;
@@ -81,8 +82,7 @@ contract DataNFTFactory is FunctionsClient, Ownable {
         bytes memory response,
         bytes memory err
     ) internal override {
-        address uriOwner = bytesToAddress(response);
-        if (uriOwner == requestData[requestId].requestor) {
+        if (bytesToBool(response)) {
             requestData[requestId].claimable = true;
         }
 
@@ -92,11 +92,6 @@ contract DataNFTFactory is FunctionsClient, Ownable {
         emit OCRResponse(requestId, response, err);
     }
 
-    function bytesToAddress(bytes memory b) private pure returns (address addr) {
-        assembly {
-        addr := mload(add(b,20))
-        }
-    }
 
     /**
      * @dev TODO, not sure if I should use requestID or metadataURL
@@ -109,6 +104,38 @@ contract DataNFTFactory is FunctionsClient, Ownable {
         emit DeployNFT(requestId, address(dataset));
     }
 
+
+    function bytesToAddress(bytes memory b) private pure returns (address addr) {
+        assembly {
+        addr := mload(add(b,20))
+        }
+    }
+
+    function bytesToBool(bytes memory b) public pure returns (bool) {
+        if (b.length != 32) {
+            return false;
+        }
+        if (b[31] == 0x01) {
+            return true;
+        }
+        return false;
+    }
+
+    function addressToString(
+        address _address
+    ) public pure returns (string memory) {
+        bytes20 _bytes = bytes20(_address);
+        bytes16 _hexAlphabet = "0123456789abcdef";
+        bytes memory _stringBytes = new bytes(42);
+        _stringBytes[0] = "0";
+        _stringBytes[1] = "x";
+        for (uint i = 0; i < 20; i++) {
+            uint _byte = uint8(_bytes[i]);
+            _stringBytes[2 + i * 2] = _hexAlphabet[_byte >> 4];
+            _stringBytes[3 + i * 2] = _hexAlphabet[_byte & 0x0f];
+        }
+        return string(_stringBytes);
+    }
 
     /**
      * @notice Allows the Functions oracle address to be updated
