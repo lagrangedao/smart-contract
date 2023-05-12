@@ -71,6 +71,6 @@ Here, `CF_CONTRACT_ADDRESS` and `SO_CONTRACT_ADDRESS` refer to chainlink functio
 ```
 python3 nftScanner.py
 ```
-5. The Flask app can also be run now by executing the following command: python3 `app.py`
+5. The Flask app can also be run now by executing the following command: `python3 app.py`
 
 Note: Some dependencies/pip packages were giving some errors and in case you face the same, I would recommend setting up a python virtual environment by following this article: https://programwithus.com/learn/python/pip-virtualenv-mac and running the steps described above.
