@@ -1,0 +1,15 @@
+wallet_address = 
+private_key = 
+rpc_endpoint = 
+SQLALCHEMY_DATABASE_URI = 
+DOMAIN = 
+
+DB_HOST = 
+DB_USER = 
+DB_PASSWORD = 
+DB_NAME = 
+
+POLYGON_URL = 
+
+CF_CONTRACT_ADDRESS = 
+SO_CONTRACT_ADDRESS = 
