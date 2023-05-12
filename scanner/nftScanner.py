@@ -1,16 +1,17 @@
 from web3 import Web3
-from decouple import config
 from web3.middleware import geth_poa_middleware
 from web3.contract import ContractEvent
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from hexbytes import HexBytes
+
 import time
 import mysql.connector
 import json
-from hexbytes import HexBytes
 import warnings
 import logging
+import toml
 
 # set up logging to file
 logging.basicConfig(level=logging.INFO,
@@ -22,7 +23,8 @@ console.setLevel(logging.INFO)
 # add the handler to the root logger
 logging.getLogger('').addHandler(console)
 
-polygon_url = config('POLYGON_URL')
+config=toml.load('config.toml')
+polygon_url = config['POLYGON_URL']
 
 Base = declarative_base()
 
@@ -53,7 +55,7 @@ class NFTScanner:
         self.so_abi_file_path = '../contracts/abi/LagrangeChainlinkDataConsumer.json'
 
         # DB connection
-        self.engine = create_engine('mysql+mysqlconnector://' + config('DB_USER') + ':' + config('DB_PASSWORD') + '@localhost/nft_data')
+        self.engine = create_engine('mysql+mysqlconnector://' + config['DB_USER'] + ':' + config['DB_PASSWORD'] + '@localhost/nft_data')
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
 
@@ -206,8 +208,8 @@ class NFTScanner:
 def main():
     # Configurable parameters:
     try:
-        cf_contract_addr=config('CF_CONTRACT_ADDRESS')
-        so_contract_addr=config('SO_CONTRACT_ADDRESS')
+        cf_contract_addr=config['CF_CONTRACT_ADDRESS']
+        so_contract_addr=config['SO_CONTRACT_ADDRESS']
     except Exception as e:
         logging.error("Please check address configuration: ",e)
 

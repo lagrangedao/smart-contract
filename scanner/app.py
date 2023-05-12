@@ -3,23 +3,25 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
+
 import subprocess
 import mysql.connector
 import requests
 import os
 import time
-from dotenv import load_dotenv
+
 import threading
 from nftScanner import main
 import logging
+import toml
 
 # load environment variables from .env file
-load_dotenv()
+config=toml.load('config.toml')
 
-db_host = os.environ.get('DB_HOST')
-db_user = os.environ.get('DB_USER')
-db_password = os.environ.get('DB_PASSWORD')
-db_name = os.environ.get('DB_NAME')
+db_host = config['DB_HOST']
+db_user = config['DB_USER']
+db_password = config['DB_PASSWORD']
+db_name = config['DB_NAME']
 
 app = Flask(__name__)
 
