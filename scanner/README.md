@@ -51,7 +51,7 @@ python3 hyperspacescan.py
 
 # Steps to run the NFT scanning script:
 
-1. Configure the `.env` file by renaming `.env.template` to `.env`
+1. Configure the `.toml` file by renaming `config.toml.example` to `config.toml`
 2. Add the following parameters to it and configure them according to your DB parameters:
 
 ```
@@ -65,7 +65,7 @@ SO_CONTRACT_ADDRESS=
 
 Here, `CF_CONTRACT_ADDRESS` and `SO_CONTRACT_ADDRESS` refer to chainlink functions contract address and single oracle contract address respectively i.e. the 2 different data NFT smart contract implementations that are deployed.
 
-3. Create the `nft_ownership` table in your DB by running the script found in `scanner/db/NFT_SQL_COMMANDS.sql`
+3. Create the `nft_ownership` and `nft_contract_details` tables in your DB by running the script found in `scanner/db/NFT_SQL_COMMANDS.sql`
 4. Now run the NFT scanning script by running the following command:
 
 ```
