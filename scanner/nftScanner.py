@@ -1,29 +1,35 @@
 from web3 import Web3
-from decouple import config
 from web3.middleware import geth_poa_middleware
 from web3.contract import ContractEvent
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from hexbytes import HexBytes
+from model.nft_data import NFTData,NFTContractDetails
+from model import db
+
 import time
 import mysql.connector
 import json
-from hexbytes import HexBytes
 import warnings
 import logging
+import toml
 
 # set up logging to file
-# logging.basicConfig(level=logging.INFO,
-#                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-#                     datefmt='%m-%d %H:%M',
-#                     filename='NFTscan.log')
-# # define a Handler which writes INFO messages or higher to the sys.stderr
-# console = logging.StreamHandler()
-# console.setLevel(logging.INFO)
-# # add the handler to the root logger
-# logging.getLogger('').addHandler(console)
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M')
+# define a Handler which writes INFO messages or higher to the sys.stderr
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+# add the handler to the root logger
+logging.getLogger('').addHandler(console)
 
-polygon_url = config('POLYGON_URL')
+config=toml.load('config.toml')
+polygon_url = config['POLYGON_URL']
 
 class NFTScanner:
-    def __init__(self, cf_contract_address, so_contract_address, from_block):
+    def __init__(self, cf_contract_address, so_contract_address):
         # Data NFT with Chainlink functions contract address
         self.cf_contract_address = cf_contract_address
         # Data NFT with single oracle contract address
@@ -32,71 +38,108 @@ class NFTScanner:
         self.cf_abi_file_path = '../contracts/abi/LagrangeChainlinkData.json'
         # Data NFT with single oracle contract ABI
         self.so_abi_file_path = '../contracts/abi/LagrangeChainlinkDataConsumer.json'
-        self.from_block = from_block
-        self.batch_size = 1000
 
         # DB connection
-        self.mydb = mysql.connector.connect(
-            host="localhost",
-            user=config('DB_USER'),
-            password=config('DB_PASSWORD'),
-            database='nft_data'
-        )
+        self.engine = create_engine('mysql+mysqlconnector://' + config['DB_USER'] + ':' + config['DB_PASSWORD'] + '@localhost/nft_data')
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
+
         self.w3 = Web3(Web3.HTTPProvider(polygon_url))
         self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
         self.cf_abi = json.load(open(self.cf_abi_file_path))
         self.so_abi = json.load(open(self.so_abi_file_path))
-        self.mycursor = self.mydb.cursor()
+        
+        try:
+            lastScannedBlock = self.session.query(NFTContractDetails.last_scan_block).first()
+        except Exception as e:
+            logging.error("Error fetching the last_scan_block: ",e)
+        finally:
+            self.session.close()
+        # print("lastScannedBlock: ",lastScannedBlock[0])
 
-        # Update owner command
-        self.update_owner_command = 'UPDATE nft_ownership SET transfer_event_block = (%s), owner_address = (%s) WHERE nft_address = (%s) AND nft_ID=(%s)'
-        # Is NFT exists check
-        self.is_nft_exists_command = 'SELECT * from nft_ownership WHERE nft_address = (%s) AND nft_ID=(%s)'
+        if lastScannedBlock:
+            self.from_block = lastScannedBlock[0] + 1
+        else:
+            # Block at which the contracts were deployed
+            self.from_block = 34333512
+
+        self.batch_size = 1000
+
+    # Function to update the ownership of the NFT or insert a newly minted NFT
+    def update_or_insert_nft(self, blockNumber, to, contract_address, token_id):
+        try:
+            Session = sessionmaker(bind=self.engine)
+            self.session = Session()
+        except Exception as e:
+            logging.error("Error creating a new session: ",e)
+
+        try:
+            nft_ownership = self.session.query(NFTData).filter_by(nft_address=contract_address, nft_ID=token_id).first()
+
+            if nft_ownership:
+                # Update the NFT details
+                nft_ownership.transfer_event_block = blockNumber
+                nft_ownership.owner_address = to
+            else:
+                # Insert new NFT details
+                nft_ownership = NFTData(
+                    transfer_event_block=blockNumber,
+                    owner_address=to,
+                    nft_address=contract_address,
+                    nft_ID=token_id
+                )
+
+            self.session.add(nft_ownership)
+            self.session.commit()
+            return True
+        except Exception as e:
+            logging.error("Error updating NFT ownership: ", e)
+            return False
+        finally:
+            self.session.close()
 
     def start_NFT_scan(self, target_block):
         while self.from_block < target_block:
             warnings.filterwarnings("ignore")
 
             to_block = self.from_block + self.batch_size
-            logging.info(self.from_block,to_block)
+            # logging.info(f"scanning from {self.from_block} to {target_block}")
 
             cf_contract = self.w3.eth.contract(address=Web3.toChecksumAddress(self.cf_contract_address), abi=self.cf_abi)
             so_contract = self.w3.eth.contract(address=Web3.toChecksumAddress(self.so_contract_address), abi=self.so_abi)
 
             cf_transfer_events = cf_contract.events.Transfer.getLogs(fromBlock=self.from_block, toBlock=to_block)
             so_transfer_events = so_contract.events.Transfer.getLogs(fromBlock=self.from_block, toBlock=to_block)
-
+            
             # Scan for contract with Chainlink functions events
             if cf_transfer_events:
                 cf_event_size = len(cf_transfer_events)
                 i = 0
 
                 while i < cf_event_size:
+                    token_id = cf_transfer_events[i].args.tokenId
+
                     if cf_transfer_events[i].args["from"] != '0x0000000000000000000000000000000000000000':
-
+                        # When a `transfer` event occurs
                         token_id = cf_transfer_events[i].args.tokenId
+                        
+                        try:
+                            self.update_or_insert_nft(cf_transfer_events[i].blockNumber,
+                            cf_transfer_events[i].args.to,
+                            self.cf_contract_address,
+                            token_id)
+                        except Exception as e:
+                            logging.error("Error updating the NFT details: ",e)
 
-                        nft_check_params = (self.cf_contract_address, token_id)
-
-                        self.mycursor.execute(self.is_nft_exists_command, nft_check_params)
-                        nft_exists_check = self.mycursor.fetchall()
-
-                        if nft_exists_check:
-                            cf_update_params = [
-                                cf_transfer_events[i].blockNumber,
-                                cf_transfer_events[i].args.to,
-                                self.cf_contract_address,
-                                token_id
-                            ]
-
-                            try:
-                                self.mycursor.execute(self.update_owner_command, cf_update_params)
-                                self.mydb.commit()
-                                logging.info(f"Updated owner for NFT Address: {self.cf_contract_address}")
-                            except e:
-                                logging.info(f"An error occurred while updating owner for NFT Address {CF_CONTRACT_ADDRESS}: {e}")
-                        else:
-                            logging.info(f"Following NFT address does not exist in the DB: {CF_CONTRACT_ADDRESS}")
+                    elif cf_transfer_events[i].args["from"] == '0x0000000000000000000000000000000000000000':
+                        # When a new NFT is minted
+                        try:
+                            self.update_or_insert_nft(cf_transfer_events[i].blockNumber,
+                            cf_transfer_events[i].args.to,
+                            self.cf_contract_address,
+                            token_id)
+                        except Exception as e:
+                            logging.error("Error inserting the NFT details: ",e)
 
                     i=i+1
 
@@ -106,31 +149,27 @@ class NFTScanner:
                 i = 0
 
                 while i < so_event_size:
+                    token_id = so_transfer_events[i].args.tokenId
+
                     if so_transfer_events[i].args["from"] != '0x0000000000000000000000000000000000000000':
+                        # When a `transfer` event occurs
+                        try:
+                            self.update_or_insert_nft(so_transfer_events[i].blockNumber,
+                            so_transfer_events[i].args.to,
+                            self.so_contract_address,
+                            token_id)
+                        except Exception as e:
+                            logging.error("Error updating the NFT details: ",e)
 
-                        token_id = so_transfer_events[i].args.tokenId
-
-                        nft_check_params = (self.so_contract_address, token_id)
-
-                        self.mycursor.execute(self.is_nft_exists_command, nft_check_params)
-                        nft_exists_check = self.mycursor.fetchall()
-
-                        if nft_exists_check:
-                            so_update_params = [
-                                so_transfer_events[i].blockNumber,
-                                so_transfer_events[i].args.to,
-                                self.so_contract_address,
-                                token_id
-                            ]
-
-                            try:
-                                self.mycursor.execute(self.update_owner_command, so_update_params)
-                                self.mydb.commit()
-                                logging.info(f"Updated owner for NFT Address: {self.so_contract_address}")
-                            except e:
-                                logging.info(f"An error occurred while updating owner for NFT Address {SO_CONTRACT_ADDRESS}: {e}")
-                        else:
-                            logging.info(f"Following NFT address does not exist in the DB: {SO_CONTRACT_ADDRESS}")
+                    elif so_transfer_events[i].args["from"] == '0x0000000000000000000000000000000000000000':
+                        # When a new NFT is minted
+                        try:
+                            self.update_or_insert_nft(so_transfer_events[i].blockNumber,
+                            so_transfer_events[i].args.to,
+                            self.so_contract_address,
+                            token_id)
+                        except Exception as e:
+                            logging.error("Error inserting the NFT details: ",e)                
 
                     i=i+1
 
@@ -140,16 +179,32 @@ class NFTScanner:
             if(blockDiff < self.batch_size):
                 batchSize = blockDiff
 
+        # Update last scanned block
+        try:
+            Session = sessionmaker(bind=self.engine)
+            self.session = Session()
+            self.session.query(NFTContractDetails).update({'last_scan_block': target_block})
+            self.session.commit()
+        except Exception as e:
+            logging.error("Error updating the last_scan_block: ",e)
+        finally:
+            self.session.close()
+
 def main():
     # Configurable parameters:
-    cf_contract_addr='0xD81288579c13e26F621840B66aE16af1460ebB5a'
-    so_contract_addr='0x923AfAdE5d2c600b8650334af60D6403642c1bce'
-    start_block=34492518
+    try:
+        cf_contract_addr=config['CF_CONTRACT_ADDRESS']
+        so_contract_addr=config['SO_CONTRACT_ADDRESS']
+    except Exception as e:
+        logging.error("Please check address configuration: ",e)
 
     # Start scanner:
-    scanner_0bj = NFTScanner(cf_contract_addr,so_contract_addr,start_block)
-    target_block = scanner_0bj.w3.eth.get_block('latest')
-    scanner_0bj.start_NFT_scan(target_block.number)
+    try:
+        scanner_0bj = NFTScanner(cf_contract_addr,so_contract_addr)
+        target_block = scanner_0bj.w3.eth.get_block('latest')
+        scanner_0bj.start_NFT_scan(target_block.number)
+    except Exception as e:
+        logging.error("Error while starting the scan script: ", e)
 
 if __name__ == '__main__':
     main()

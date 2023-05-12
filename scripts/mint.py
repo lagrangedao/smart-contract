@@ -11,6 +11,7 @@ from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
 
 from dotenv import load_dotenv
+import logging
 load_dotenv()
 
 print('''
@@ -73,5 +74,5 @@ tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
 receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
 hash = web3.to_hex(tx_hash)
 
-print(f"Mint is completed. Transaction Hash: {hash}")
-print(f"View on Block Explorer: https://mumbai.polygonscan.com/tx/{hash}")
+logging.info(f"Mint is completed. Transaction Hash: {hash}")
+logging.info(f"View on Block Explorer: https://mumbai.polygonscan.com/tx/{hash}")
