@@ -45,3 +45,20 @@ pip install mysql-connector-python
 ```
 python3 hyperspacescan.py
 ```
+
+# Steps to run the NFT scanning script:  
+
+1. Checkout to the `rishabh/nft-scanner` branch.
+2. Configure the `.env` file by renaming `.env.template` to `.env` 
+3. Add the following parameters to it and configure them according to your DB parameters:
+```
+DB_USER=
+DB_PASSWORD=
+```
+4. Create the `nft_ownership` table in your DB by running the script found in `scanner/db/NFT_SQL_COMMANDS.sql`
+5. Now run the NFT scanning script by running the following command:
+```
+python3 nftScanner.py
+```
+
+Note: Some dependencies/pip packages were giving some errors and in case you face the same, I would recommend setting up a python virtual environment by following this article: https://programwithus.com/learn/python/pip-virtualenv-mac and running the steps described above.

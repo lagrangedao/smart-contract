@@ -2,126 +2,153 @@
 pragma solidity ^0.8.7;
 
 import "./DataNFT.sol";
-import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import "@chainlink/contracts/src/v0.8/dev/functions/FunctionsClient.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title DataNFTFactory
- * @author 
+ * @author
  * @notice Creates ERC721 and ERC20 contracts
  * ERC721 contracts are DataNFTs representing one dataset
  * ERC721 Tokens within each contract represent versioning
  * ERC721 Tokens can accept certain ERC20 tokens as datatokens
  */
-contract DataNFTFactory is ChainlinkClient, Ownable {
-    using Chainlink for Chainlink.Request;
+contract DataNFTFactory is FunctionsClient, Ownable {
+    using Functions for Functions.Request;
 
-    bytes32 private jobId;
-    uint256 private fee;
+    uint64 private subscriptionId; // need to fund this subscription with LINK tokens
+    string public source; // js code to call GET request
     address public oracleAddress;
 
     struct RequestData {
-        address owner;
-        // uint datasetId;
-        string uri;
-        bool deployable;
+        address requestor;
+        string name;
+        string symbol;
+        string datasetUri;
         bool fulfilled;
+        bool claimable;
     }
-    mapping(bytes32 => RequestData) public requestData;
-    // mapping(uint => address) public dataIdToNftAddress;
-    mapping(string => address) public uriToNftAddress;
 
-    event OracleResult(bytes32 indexed requestId, bool isOwner);
-    event DeployNFT(string uri, address contractAddress);
+    mapping(bytes32 => RequestData) public requestData;
+
+    event OCRResponse(bytes32 indexed requestId, bytes result, bytes err);
+    event DeployNFT(bytes32 requestId, address contractAddress);
 
     constructor(
-        address linkTokenAddress,
-        address _oracleAddress,
-        uint _fee
-    ) {
-        setChainlinkToken(linkTokenAddress);
-        setChainlinkOracle(_oracleAddress);
-        oracleAddress = _oracleAddress;
-        jobId = '7da2702f37fd48e5b1b9a5715e3509b6'; // GET req job ID
-        fee = _fee; // 0,1 * 10**18 (Varies by network and job)
+        address oracle,
+        uint64 _subscriptionId,
+        string memory _source
+    ) FunctionsClient(oracle) {
+        subscriptionId = _subscriptionId;
+        source = _source;
+        oracleAddress = oracle;
     }
 
     /**
-     * @dev for now, pass in uri, checks owner,
-     * TODO: pass dataset id, check api to verify owner
-     * @dev The deployed contract stores Metadata, ownership, sub-license 
-     * information, permissions.
-     * @notice Users call this function to request Chainlink Oracle to 
-     * deploy your dataNFT contract. The oracle will verify the sender is the 
-     * owner of the dataset
-     * @notice this function will not deploy the contract, it will set 
-     * RequestData.deployable to true, so the user needs to call 
-     * CreateDataNFT to deploy. This is to avoid out of gas error from oracle.
-     * @return requestId - analogous to placing an order and getting an order#
-     * users can refer to requestData[requestId] to "track" progress
+     *
+     * @param metadataUri IPFS URL for the dataset info. should be JSON containing:
+     * - name
+     * - symbol
+     * - datasetUrl
+     * - license
+     * @notice sends a request to Chainlink to verify the metadata, allowing the user to claim
      */
     function requestDataNFT(
-            // uint datasetId, 
-            string memory uri
-        ) public returns (bytes32 requestId) {
-        Chainlink.Request memory req = buildChainlinkRequest(
-            jobId,
-            address(this),
-            this.fulfill.selector
-        );
+        string memory metadataUri
+    ) public returns (bytes32) {
+        string[] memory args = new string[](2);
+        args[0] = metadataUri;
+        args[1] = addressToString(msg.sender);
 
-        req.add("get", uri);
-        req.add("path", "owner");
+        // sends the chainlink request to call API, returns reqID
+        Functions.Request memory req;
+        req.initializeRequestForInlineJavaScript(source);
+        req.addArgs(args);
+        bytes32 assignedReqID = sendRequest(req, subscriptionId, 300000);
 
-
-        bytes32 assignedReqID = sendChainlinkRequest(req, fee);
-        requestData[assignedReqID] = RequestData(
-                msg.sender, 
-                // datasetId, 
-                uri, 
-                false,
-                false
-            );
+        // stores the req info in the mapping (we need to access this info to mint later)
+        RequestData storage data = requestData[assignedReqID];
+        data.requestor = msg.sender;
 
         return assignedReqID;
     }
 
     /**
-     * @notice this function should only be called by the oracle
-     * if the requester was the owner of the dataset, it will deploy DataNFT
-     * and emit an event containing the contract address
-     * @dev currently verifying ownership via owner parameter in the passed uri
+     * @notice the oracle DON will call this function
+     * @param requestId - request identifier
+     * @param response - source code response
+     * @param err - any errors
      */
-    function fulfill(
+    function fulfillRequest(
         bytes32 requestId,
-        bytes memory uriOwnerBytes
-    ) public recordChainlinkFulfillment(requestId) {
-        require(msg.sender == oracleAddress, "only called by oracle");
-        address uriOwner = bytesToAddress(uriOwnerBytes);
+        bytes memory response,
+        bytes memory err
+    ) internal override {
+        if (bytesToBool(response)) {
+            requestData[requestId].claimable = true;
+        }
 
-        requestData[requestId].deployable = uriOwner == requestData[requestId].owner;
-        requestData[requestId].fulfilled = true; // the oracle processed the request (regardless of result)
+        // update requestData information
+        requestData[requestId].fulfilled = true;
 
-        emit OracleResult(requestId, requestData[requestId].deployable);
+        emit OCRResponse(requestId, response, err);
     }
 
-    function createDataNFT( bytes32 requestId, string memory name, string memory symbol) public {
-            DataNFT dataset = new DataNFT(name, symbol);
-            uriToNftAddress[requestData[requestId].uri] = address(dataset);
-            emit DeployNFT(requestData[requestId].uri, address(dataset));
+    /**
+     * @dev TODO, not sure if I should use requestID or metadataURL
+     */
+    function claimDataNFT(bytes32 requestId) public {
+        require(requestData[requestId].fulfilled);
+        require(requestData[requestId].claimable);
+
+        DataNFT dataset = new DataNFT(
+            requestData[requestId].name,
+            requestData[requestId].symbol
+        );
+        emit DeployNFT(requestId, address(dataset));
     }
 
-    function bytesToAddress(bytes memory b) private pure returns (address addr) {
+    function bytesToAddress(
+        bytes memory b
+    ) private pure returns (address addr) {
         assembly {
-        addr := mload(add(b,20))
+            addr := mload(add(b, 20))
         }
     }
 
-    function withdrawLink() public onlyOwner {
-        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-        require(
-            link.transfer(msg.sender, link.balanceOf(address(this))),
-            "Unable to transfer"
-        );
+    function bytesToBool(bytes memory b) public pure returns (bool) {
+        if (b.length != 32) {
+            return false;
+        }
+        if (b[31] == 0x01) {
+            return true;
+        }
+        return false;
+    }
+
+    function addressToString(
+        address _address
+    ) public pure returns (string memory) {
+        bytes20 _bytes = bytes20(_address);
+        bytes16 _hexAlphabet = "0123456789abcdef";
+        bytes memory _stringBytes = new bytes(42);
+        _stringBytes[0] = "0";
+        _stringBytes[1] = "x";
+        for (uint i = 0; i < 20; i++) {
+            uint _byte = uint8(_bytes[i]);
+            _stringBytes[2 + i * 2] = _hexAlphabet[_byte >> 4];
+            _stringBytes[3 + i * 2] = _hexAlphabet[_byte & 0x0f];
+        }
+        return string(_stringBytes);
+    }
+
+    /**
+     * @notice Allows the Functions oracle address to be updated
+     *
+     * @param oracle New oracle address
+     */
+    function updateOracleAddress(address oracle) public onlyOwner {
+        oracleAddress = oracle;
+        setOracle(oracle);
     }
 }

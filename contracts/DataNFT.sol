@@ -13,28 +13,20 @@ import "./DataToken.sol";
  * each tokenId will be mapped to metadata (that should include the dataset uri)
  * and can be viewed as different versions of the dataset.
  */
-contract DataNFT is
-    ERC721,
-    ERC721URIStorage,
-    Ownable
-{
+contract DataNFT is ERC721, ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
     string public contractURI; // dataset metadata
 
-    struct DataTokenSettings {
-        bool assigned;
-        uint uriFee; // amount to view uri
-        bool consumesDataToken; // if true, user has to pay uriFee
-    }
-
-    mapping(uint => mapping(address => DataTokenSettings)) idToDataTokens;
-
+    mapping(uint => address) idToDataToken;
     event DeployDataToken(address dataTokenAddress);
 
-    constructor(string memory name, string memory symbol) ERC721(name, symbol){}
- 
+    constructor(
+        string memory name,
+        string memory symbol
+    ) ERC721(name, symbol) {}
+
     /**
      * @notice creates a new version for the dataset, sub-licensed to recipient
      * @param recipient - sub-licensee
@@ -51,14 +43,14 @@ contract DataNFT is
     /**
      * @notice deploys a new data token for this dataset.
      */
-    function deployDataToken() public {
-        DataToken dataToken = new DataToken();
+    function deployDataToken(
+        uint tokenId,
+        string memory name,
+        string memory symbol
+    ) public {
+        DataToken dataToken = new DataToken(name, symbol);
+        idToDataToken[tokenId] = address(dataToken);
         emit DeployDataToken(address(dataToken));
-    }
-
-    function assignToken(uint tokenId, address dataTokenAddress, uint fee, bool consume) public {
-        require(ownerOf(tokenId) == msg.sender, "msg.sender is not token owner");
-        idToDataTokens[tokenId][dataTokenAddress] = DataTokenSettings(true, fee, consume);
     }
 
     // The following functions are overrides required by Solidity.
@@ -76,19 +68,8 @@ contract DataNFT is
     function tokenURI(
         uint256 tokenId
     ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        require(ownerOf(tokenId) == msg.sender);
         return super.tokenURI(tokenId);
     }
-
-    function tokenURI(uint tokenId,
-        address dataToken) public view returns (string memory) {
-            DataTokenSettings memory settings = idToDataTokens[tokenId][dataToken];
-            require(settings.assigned, "this datatoken is not assigned to this NFT");
-            require(IERC20(dataToken).balanceOf(msg.sender) >= settings.uriFee);
-            require(!settings.consumesDataToken || IERC20(dataToken).allowance(msg.sender, address(this)) >= settings.uriFee);
-
-            return super.tokenURI(tokenId);
-        }
 
     function totalSupply() public view returns (uint) {
         return _tokenIdCounter.current();
