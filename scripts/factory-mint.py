@@ -30,8 +30,8 @@ private_key = config('private_key')
 
 print(f"Your address: {wallet_address}\n")
 
-assert web3.isChecksumAddress(wallet_address), f"Not a valid wallet address: {wallet_address}"
-assert web3.isChecksumAddress(factory_contract_address), f"Not a valid contract address: {factory_contract_address}"
+assert web3.is_checksum_address(wallet_address), f"Not a valid wallet address: {wallet_address}"
+assert web3.is_checksum_address(factory_contract_address), f"Not a valid contract address: {factory_contract_address}"
 
 # smart contract instance
 factory_contract = web3.eth.contract(address=factory_contract_address, abi=factory_contract_abi)
@@ -42,9 +42,9 @@ nft_uri = 'https://3b46ed854.acl.multichain.storage/ipfs/QmfWumvNSWTTXS6QTkmsEun
 
 tx_config = {
     'from': wallet_address,
-    # 'gas': 2000000,
-    'maxFeePerGas': web3.toWei('5', 'gwei'),
-    'maxPriorityFeePerGas': web3.toWei('1', 'gwei'),
+    'gas': 4000000,
+    'maxFeePerGas': web3.to_wei('5', 'gwei'),
+    'maxPriorityFeePerGas': web3.to_wei('1', 'gwei'),
 }
 nonce = web3.eth.get_transaction_count(wallet_address)
 tx_config["nonce"] = nonce
@@ -56,7 +56,7 @@ request_dataNFT_tx = factory_contract.functions.requestDataNFT(nft_uri).build_tr
 signed_tx = web3.eth.account.sign_transaction(request_dataNFT_tx, private_key)
 tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
 tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
-hash = web3.toHex(tx_hash)
+hash = web3.to_hex(tx_hash)
 print("hash: ",hash)
 
 # Get the `Topics` field to retrieve `requestID`
@@ -66,7 +66,7 @@ request_id = TxLogs[0].topics[1].hex()
 print("request_id: ",request_id)
 
 # Wait for the oracle to complete the request
-time.sleep(10)
+time.sleep(60)
 
 # Call the `requestData` mapping to check if the request was fulfilled
 # request_data_tx = factory_contract.functions.requestData(request_id).call()
@@ -98,19 +98,14 @@ tx_config["nonce"] = nonce2
 # create_dataNFT_tx = factory_contract.functions.claimDataNFT(request_id).build_transaction(tx_config)
 
 # create_dataNFT_tx = factory_contract.functions.claimDataNFT(request_id).estimateGas(tx_config)
-create_dataNFT_tx = factory_contract.functions.claimDataNFT(request_id).buildTransaction({
-    'from': wallet_address,
-    'nonce': web3.eth.get_transaction_count(wallet_address),
-    'gas': 2000000,  # Adjust the gas limit as needed
-    'gasPrice': web3.toWei('5', 'gwei'),  # Adjust the gas price as needed
-})
+create_dataNFT_tx = factory_contract.functions.claimDataNFT(request_id).build_transaction(tx_config)
 
 print(f"Deploying new NFT contract...")
 # SIGN TX for createDataNFT
 createDataNFT_signed_tx = web3.eth.account.sign_transaction(create_dataNFT_tx, private_key)
 createDataNFT_tx_hash = web3.eth.send_raw_transaction(createDataNFT_signed_tx.rawTransaction)
 createDataNFT_tx_receipt = web3.eth.wait_for_transaction_receipt(createDataNFT_tx_hash)
-createDataNFT_hash = web3.toHex(createDataNFT_tx_hash)
+createDataNFT_hash = web3.to_hex(createDataNFT_tx_hash)
 print("createDataNFT_hash: ",createDataNFT_hash)
 
 create_dataNFT_Txlogs = createDataNFT_tx_receipt['logs']
