@@ -41,11 +41,10 @@ nft_uri = 'https://3b46ed854.acl.multichain.storage/ipfs/QmfWumvNSWTTXS6QTkmsEun
 # transaction = factory_contract.functions.requestDataNFT(nft_uri).transact()
 
 tx_config = {
-    'chainId': web3.eth.chain_id,
     'from': wallet_address,
     # 'gas': 2000000,
-    'maxFeePerGas': web3.toWei('50', 'gwei'),
-    'maxPriorityFeePerGas': web3.toWei('10', 'gwei'),
+    'maxFeePerGas': web3.toWei('5', 'gwei'),
+    'maxPriorityFeePerGas': web3.toWei('1', 'gwei'),
 }
 nonce = web3.eth.get_transaction_count(wallet_address)
 tx_config["nonce"] = nonce
