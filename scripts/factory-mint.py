@@ -42,12 +42,11 @@ factory_contract = web3.eth.contract(address=factory_contract_address, abi=facto
 # example: 'https://3b46ed854.acl.multichain.storage/ipfs/QmfWumvNSWTTXS6QTkmsEunDtUqGTwFyGNDp8bMCxxUK6y'
 nft_uri = input("Enter IPFS URI: ")
 
-# TODO: change to to_wei
 tx_config = {
     'from': wallet_address,
     'gas': 4000000,
-    'maxFeePerGas': web3.toWei('5', 'gwei'),
-    'maxPriorityFeePerGas': web3.toWei('1', 'gwei'),
+    'maxFeePerGas': web3.to_wei('5', 'gwei'),
+    'maxPriorityFeePerGas': web3.to_wei('1', 'gwei'),
 }
 nonce = web3.eth.get_transaction_count(wallet_address)
 tx_config["nonce"] = nonce
@@ -63,12 +62,11 @@ if wallet_balance_wei < max_tx_cost_wei * 2:
 # Build Tx with chainId, wallet address, nonce
 request_dataNFT_tx = factory_contract.functions.requestDataNFT(nft_uri).build_transaction(tx_config)
 
-# TODO: change to to_hex
 # SIGN TX
 signed_tx = web3.eth.account.sign_transaction(request_dataNFT_tx, private_key)
 tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
 tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
-hash = web3.toHex(tx_hash)
+hash = web3.to_hex(tx_hash)
 # print("hash: ",hash)
 
 # Get the `Topics` field to retrieve `requestID`
@@ -120,8 +118,7 @@ print(f"Deploying new NFT contract...\n")
 createDataNFT_signed_tx = web3.eth.account.sign_transaction(create_dataNFT_tx, private_key)
 createDataNFT_tx_hash = web3.eth.send_raw_transaction(createDataNFT_signed_tx.rawTransaction)
 createDataNFT_tx_receipt = web3.eth.wait_for_transaction_receipt(createDataNFT_tx_hash)
-# TODO: change to to_hex
-createDataNFT_hash = web3.toHex(createDataNFT_tx_hash)
+createDataNFT_hash = web3.to_hex(createDataNFT_tx_hash)
 # print("createDataNFT_hash: ",createDataNFT_hash)
 
 create_dataNFT_Txlogs = createDataNFT_tx_receipt['logs']
