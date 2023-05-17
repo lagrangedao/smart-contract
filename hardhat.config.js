@@ -51,10 +51,15 @@ module.exports = {
       url: 'https://data-seed-prebsc-1-s2.binance.org:8545',
       accounts: [process.env.private_key],
     },
+    sepolia: {
+      url: 'https://rpc2.sepolia.org',
+      accounts: [process.env.private_key],
+    },
   },
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.POLYGONSCAN_API_KEY,
+      sepolia: process.env.ETHERSCAN_API_KEY,
     },
   },
 }

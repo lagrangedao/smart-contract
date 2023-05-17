@@ -3,6 +3,7 @@
 1. `LagrangeDAOToken` is an ERC-20 contract
 2. `LagrangePlatform` rewards users for uploading data and models to the Langrange Platform
 3. `SpacePayment` allows users to purchase spaces
+4. `Job Processor` allows users to create computing jobs and allows computing providers (CPs) to complete jobs, deposit and claim collateral.
 
 ## Addresses
 
@@ -66,3 +67,18 @@ Users can purchase space with a numbered hardware type used for computing, as we
 - `changeHardware(uint hardwareType, string newName, uint newPrice)` the owner can change the hardware types
 
 - `withdraw(uint amount)` the owner can withdraw LAD tokens from the contract.
+
+# Data NFTs
+
+A data NFT represents the copyright (or exclusive license against copyright) for a data asset on the blockchain. When a user publishes a dataset on Lagrange DAO, they can request a data NFT as part of the process. This data NFT is proof of your claim of base IP.
+
+After uploading a dataset, the user can request their data NFT. This will trigger
+Chainlink Functions to verify the user is the owner of the dataset (according to Lagrange DAO). After verification is complete, the user can claim their data NFT.
+
+![](./datanft-diagram.png)
+
+### Sepolia Testnet
+
+| Contract       | Address                                    |
+| -------------- | ------------------------------------------ |
+| DataNFTFactory | 0x26FE0adD600965518c06c25CCff182115917C34A |

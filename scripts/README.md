@@ -103,3 +103,23 @@ Minting...
 Mint is completed. Transaction Hash: 0x042186563c2d5e22aa39b35c1218874001753d8b7f049f8e4b0c93f85ca3aff1
 View on Block Explorer: https://mumbai.polygonscan.com/tx/0x042186563c2d5e22aa39b35c1218874001753d8b7f049f8e4b0c93f85ca3aff1
 ```
+
+### Factory mint script:
+
+Note: The current contract is deployed on the Sepolia testnet
+
+1. Configure the `rpc_endpoint` to the Sepolia testnet in the .env file. Example:
+
+```
+rpc_endpoint = "https://eth-sepolia.public.blastapi.io"
+```
+
+2. Also, configure your `private_key` and `wallet_address` in the .env file.
+3. Run the factory minting script:
+
+```
+python3 factory-mint.py
+```
+
+4. When prompted, input the IPFS uri.  
+   Example: https://3b46ed854.acl.multichain.storage/ipfs/QmfWumvNSWTTXS6QTkmsEunDtUqGTwFyGNDp8bMCxxUK6y
