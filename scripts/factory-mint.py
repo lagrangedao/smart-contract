@@ -33,16 +33,14 @@ print(f"Your address: {wallet_address}\n")
 # Get the balance
 wallet_balance_wei = web3.eth.get_balance(wallet_address)
 
-# TODO: change to is_checksum_address
 assert web3.isChecksumAddress(wallet_address), f"Not a valid wallet address: {wallet_address}"
 assert web3.isChecksumAddress(factory_contract_address), f"Not a valid contract address: {factory_contract_address}"
 
 # smart contract instance
 factory_contract = web3.eth.contract(address=factory_contract_address, abi=factory_contract_abi)
 
-# call requestDataNFT function
-nft_uri = 'https://3b46ed854.acl.multichain.storage/ipfs/QmfWumvNSWTTXS6QTkmsEunDtUqGTwFyGNDp8bMCxxUK6y'
-# transaction = factory_contract.functions.requestDataNFT(nft_uri).transact()
+# example: 'https://3b46ed854.acl.multichain.storage/ipfs/QmfWumvNSWTTXS6QTkmsEunDtUqGTwFyGNDp8bMCxxUK6y'
+nft_uri = input("Enter IPFS URI: ")
 
 # TODO: change to to_wei
 tx_config = {
