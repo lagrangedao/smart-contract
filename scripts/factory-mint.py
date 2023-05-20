@@ -33,8 +33,8 @@ print(f"Your address: {wallet_address}\n")
 # Get the balance
 wallet_balance_wei = web3.eth.get_balance(wallet_address)
 
-assert web3.isChecksumAddress(wallet_address), f"Not a valid wallet address: {wallet_address}"
-assert web3.isChecksumAddress(factory_contract_address), f"Not a valid contract address: {factory_contract_address}"
+assert web3.is_checksum_address(wallet_address), f"Not a valid wallet address: {wallet_address}"
+assert web3.is_checksum_address(factory_contract_address), f"Not a valid contract address: {factory_contract_address}"
 
 # smart contract instance
 factory_contract = web3.eth.contract(address=factory_contract_address, abi=factory_contract_abi)
