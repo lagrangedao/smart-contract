@@ -2,40 +2,47 @@
 pragma solidity ^0.8.0;
 
 // Import the ERC20 token contract
-import "./YourERC20Token.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SpacePaymentV2 is Ownable {
     // Address of the ERC20 token contract
-    YourERC20Token public tokenContract;
+    IERC20 public tokenContract;
 
-    // Mapping of space to refund amount
-    mapping(address => mapping(string => uint)) public spaceRefund;
+    struct SpaceInfo {
+        // address owner;
+        // string spaceName;
+        uint hardwareId;
+        uint expiryDate;
+        uint refundableAmount;
+    }
+
+    struct Hardware {
+        string name;
+        uint pricePerHour;
+        bool isActive;
+    }
 
     // Mapping of admin(s)
     mapping(address => bool) public isAdmin;
 
-    // Mapping of GPU prices
-    mapping(uint => uint) public gpuPrices;
+    mapping(address => mapping(string => SpaceInfo)) public spaceInfo;
+    mapping(uint => Hardware) public hardwareInfo;
 
-    // Event emitted when the refundable status is updated
-    event RefundableStatusUpdated(uint256 spaceId, bool refundable);
-
-    // Event emitted when a payment is made for a space
-    event PaymentMade(uint256 spaceId, address payer, uint256 amount);
-
+    event HardwareSet(uint hardwareId, string name, uint hourlyRate, bool active);
+    event PaymentMade(address payer, address spaceOwner, string spaceName, string hardware, uint numHours);
     event RefundSet(address wallet, string spaceName, uint amount);
     event RefundClaimed(address wallet, string spaceName, uint amount);
 
 
     constructor(address _tokenContract) {
-        tokenContract = YourERC20Token(_tokenContract);
+        tokenContract = IERC20(_tokenContract);
         isAdmin[msg.sender] = true;
     }
 
     // Modifier to check if the caller is the admin
     modifier onlyAdmin() {
-        require(msg.sender == adminWallet, "Only the admin can call this function.");
+        require(isAdmin[msg.sender], "Only the admin can call this function.");
         _;
     }
 
@@ -43,35 +50,57 @@ contract SpacePaymentV2 is Ownable {
         isAdmin[admin] = status;
     }
 
-    function setGpuPrice(uint gpuId, uint price) public onlyOwner {
-        gpuPrices[gpuId] = price;
+    function setHardware(uint hardwareId, string memory name, uint hourlyRate, bool active) public onlyOwner {
+        hardwareInfo[hardwareId] = Hardware(name, hourlyRate, active);
+        emit HardwareSet(hardwareId, name, hourlyRate, active);
+    }
+
+    function setToken(address token) public onlyOwner {
+        tokenContract = IERC20(token);
+    }
+
+    function withdraw(uint amount) public onlyOwner {
+        tokenContract.transfer(msg.sender, amount);
     }
 
     // Update the refundable status of a space
-    function setRefund(address wallet, string memory spaceName, uint refundAmount) external onlyAdmin {
-        spaceRefund[wallet][spaceName] = refundAmount;
+    function setRefund(address wallet, string memory spaceName, uint refundAmount) public onlyAdmin {
+        spaceInfo[wallet][spaceName].refundableAmount = refundAmount;
+        emit RefundSet(wallet, spaceName, refundAmount);
+    }
+
+    // Update the refundable status of a space
+    function claimRefund (string memory spaceName) public {
+        uint refundAmount = spaceInfo[msg.sender][spaceName].refundableAmount;
+        require(refundAmount > 0, "No refund to claim.");
+        require(tokenContract.balanceOf(address(this)) >= refundAmount, "Refund currently unavailable");
+
+        spaceInfo[msg.sender][spaceName].refundableAmount = 0;
+        tokenContract.transfer(msg.sender, refundAmount);
+
+        emit RefundClaimed(msg.sender, spaceName, refundAmount);
     }
 
     // Make a payment for a space
-    function makePayment(uint256 spaceId) external payable {
-        require(spaces[spaceId].gpuPrice > 0, "Space with the given ID does not exist.");
-        require(msg.value > 0, "Payment amount must be greater than zero.");
+    function makePayment(address spaceOwner, string memory spaceName, uint hardwareId, uint numHours) public {
+        require(hardwareInfo[hardwareId].isActive, "Requested hardware is not supported.");
 
-        uint256 price = spaces[spaceId].gpuPrice;
+        uint price = hardwareInfo[hardwareId].pricePerHour * numHours;
+        require(tokenContract.balanceOf(msg.sender) >= price, "Insufficient funds.");
+        require(tokenContract.allowance(msg.sender, address(this)) >= price, "Approve spending funds.");
 
         // Transfer the payment to the admin wallet
-        adminWallet.transfer(price);
-
-        // Transfer an equivalent amount of ERC20 tokens from the caller to the contract
         tokenContract.transferFrom(msg.sender, address(this), price);
 
-        emit PaymentMade(spaceId, msg.sender, price);
-    }
+        if (spaceInfo[spaceOwner][spaceName].expiryDate <= block.timestamp) {
+            // new space
+            spaceInfo[spaceOwner][spaceName] = SpaceInfo(hardwareId, block.timestamp + (numHours * 1 hours), 0);
+        } else {
+            // TODO: extending space
+            spaceInfo[spaceOwner][spaceName].hardwareId = hardwareId;
+            spaceInfo[spaceOwner][spaceName].expiryDate +=  numHours * 1 hours;
+        }
 
-    // Check if a space is refundable
-    function isRefundable(uint256 spaceId) external view returns (bool) {
-        require(spaces[spaceId].gpuPrice > 0, "Space with the given ID does not exist.");
-
-        return spaces[spaceId].refundable;
+        emit PaymentMade(msg.sender, spaceOwner, spaceName, hardwareInfo[hardwareId].name, numHours);
     }
 }
