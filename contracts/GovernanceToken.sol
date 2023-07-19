@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract GovernanceToken is ERC20, ERC20Permit, ERC20Votes {
     uint public MAX_SUPPLY = 1_000_000_000 ether;
 
-    constructor() ERC20("LaSwan", "LAS") ERC20Permit("LaSwan") {
+    constructor() ERC20("LLL", "LLL") ERC20Permit("LLL") {
         _mint(msg.sender, MAX_SUPPLY);
     }
     

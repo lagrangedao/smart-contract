@@ -35,16 +35,14 @@ module.exports = {
       },
     ],
   },
-  defaultNetwork: 'hyperspace',
   networks: {
     hyperspace: {
       url: 'https://api.hyperspace.node.glif.io/rpc/v1',
       accounts: [process.env.private_key],
     },
     mumbai: {
-      url: process.env.rpc_endpoint,
-      accounts: [process.env.private_key],
-      oracleAddress: '0xeA6721aC65BCeD841B8ec3fc5fEdeA6141a0aDE4',
+      url: process.env.MUMBAI_RPC,
+      accounts: [process.env.PRIVATE_KEY],
     },
     bsc: {
       url: 'https://data-seed-prebsc-1-s2.binance.org:8545',
