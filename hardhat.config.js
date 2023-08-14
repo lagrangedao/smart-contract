@@ -1,7 +1,8 @@
 /** @type import('hardhat/config').HardhatUserConfig */
-require('@nomiclabs/hardhat-waffle')
-require('@nomiclabs/hardhat-etherscan')
+require('@nomiclabs/hardhat-ethers')
+require('@openzeppelin/hardhat-upgrades')
 require('dotenv').config()
+require('@nomicfoundation/hardhat-verify')
 
 module.exports = {
   solidity: {
@@ -46,7 +47,7 @@ module.exports = {
     },
     bsc: {
       url: 'https://data-seed-prebsc-1-s2.binance.org:8545',
-      accounts: [process.env.private_key],
+      accounts: [process.env.PRIVATE_KEY],
     },
     sepolia: {
       url: 'https://rpc2.sepolia.org',
@@ -57,6 +58,7 @@ module.exports = {
     apiKey: {
       polygonMumbai: process.env.POLYGONSCAN_API_KEY,
       sepolia: process.env.ETHERSCAN_API_KEY,
+      bscTestnet: process.env.BSCSCAN_API_KEY,
     },
   },
 }

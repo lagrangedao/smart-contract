@@ -4,10 +4,10 @@ pragma solidity ^0.8.8;
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract GovernanceToken is ERC20, ERC20Permit, ERC20Votes {
+contract LagrangeToken is ERC20, ERC20Permit, ERC20Votes {
     uint public MAX_SUPPLY = 1_000_000_000 ether;
 
-    constructor() ERC20("LLL", "LLL") ERC20Permit("LLL") {
+    constructor() ERC20("Lagrange", "LAG") ERC20Permit("Lagrange") {
         _mint(msg.sender, MAX_SUPPLY);
     }
     
