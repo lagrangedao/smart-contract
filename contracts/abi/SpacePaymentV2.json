@@ -1,14 +1,40 @@
 [
   {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
         "internalType": "address",
-        "name": "_tokenContract",
+        "name": "previousAdmin",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newAdmin",
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "name": "AdminChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "beacon",
+        "type": "address"
+      }
+    ],
+    "name": "BeaconUpgraded",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -45,6 +71,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "previousOwner",
@@ -66,19 +105,13 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "payer",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
         "name": "spaceOwner",
         "type": "address"
       },
       {
         "indexed": false,
         "internalType": "string",
-        "name": "spaceName",
+        "name": "spaceId",
         "type": "string"
       },
       {
@@ -102,15 +135,15 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "address",
-        "name": "wallet",
-        "type": "address"
+        "internalType": "string",
+        "name": "refundId",
+        "type": "string"
       },
       {
         "indexed": false,
-        "internalType": "string",
-        "name": "spaceName",
-        "type": "string"
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
       },
       {
         "indexed": false,
@@ -127,15 +160,15 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "address",
-        "name": "wallet",
-        "type": "address"
+        "internalType": "string",
+        "name": "refundId",
+        "type": "string"
       },
       {
         "indexed": false,
-        "internalType": "string",
-        "name": "spaceName",
-        "type": "string"
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
       },
       {
         "indexed": false,
@@ -148,16 +181,116 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "RewardClaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "RewardSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
+    "type": "event"
+  },
+  {
     "inputs": [
       {
         "internalType": "string",
-        "name": "spaceName",
+        "name": "refundId",
         "type": "string"
       }
     ],
     "name": "claimRefund",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      }
+    ],
+    "name": "claimReward",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "name": "claimable",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -193,6 +326,19 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
@@ -211,13 +357,8 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "spaceOwner",
-        "type": "address"
-      },
-      {
         "internalType": "string",
-        "name": "spaceName",
+        "name": "spaceId",
         "type": "string"
       },
       {
@@ -244,6 +385,19 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "proxiableUUID",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -305,14 +459,14 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "refundId",
+        "type": "string"
+      },
+      {
         "internalType": "address",
         "name": "wallet",
         "type": "address"
-      },
-      {
-        "internalType": "string",
-        "name": "spaceName",
-        "type": "string"
       },
       {
         "internalType": "uint256",
@@ -321,6 +475,29 @@
       }
     ],
     "name": "setRefund",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "cpWallet",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "rewardAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "setReward",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -341,11 +518,6 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
         "internalType": "string",
         "name": "",
         "type": "string"
@@ -361,11 +533,6 @@
       {
         "internalType": "uint256",
         "name": "expiryDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "refundableAmount",
         "type": "uint256"
       }
     ],
@@ -396,6 +563,50 @@
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      }
+    ],
+    "name": "upgradeTo",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "upgradeToAndCall",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "version",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   },
   {
