@@ -1,20 +1,23 @@
 /** @type import('hardhat/config').HardhatUserConfig */
-require('@nomiclabs/hardhat-waffle')
-require('@nomiclabs/hardhat-etherscan')
+require('@nomiclabs/hardhat-ethers')
+require('@openzeppelin/hardhat-upgrades')
 require('dotenv').config()
-require('./tasks/mint')
+require('@nomicfoundation/hardhat-verify')
 
 module.exports = {
   solidity: {
     compilers: [
       {
-        version: '0.8.7',
+        version: '0.8.9',
         settings: {
           optimizer: {
             enabled: true,
             runs: 1_000,
           },
         },
+      },
+      {
+        version: '0.8.19',
       },
       {
         version: '0.6.6',
@@ -36,20 +39,18 @@ module.exports = {
       },
     ],
   },
-  defaultNetwork: 'hyperspace',
   networks: {
     hyperspace: {
       url: 'https://api.hyperspace.node.glif.io/rpc/v1',
       accounts: [process.env.private_key],
     },
     mumbai: {
-      url: process.env.rpc_endpoint,
-      accounts: [process.env.private_key],
-      oracleAddress: '0xeA6721aC65BCeD841B8ec3fc5fEdeA6141a0aDE4',
+      url: process.env.MUMBAI_RPC,
+      accounts: [process.env.PRIVATE_KEY],
     },
     bsc: {
       url: 'https://data-seed-prebsc-1-s2.binance.org:8545',
-      accounts: [process.env.private_key],
+      accounts: [process.env.PRIVATE_KEY],
     },
     sepolia: {
       url: 'https://rpc2.sepolia.org',
@@ -60,6 +61,7 @@ module.exports = {
     apiKey: {
       polygonMumbai: process.env.POLYGONSCAN_API_KEY,
       sepolia: process.env.ETHERSCAN_API_KEY,
+      bscTestnet: process.env.BSCSCAN_API_KEY,
     },
   },
 }
