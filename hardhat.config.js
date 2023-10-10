@@ -17,6 +17,9 @@ module.exports = {
         },
       },
       {
+        version: '0.8.19',
+      },
+      {
         version: '0.6.6',
         settings: {
           optimizer: {
