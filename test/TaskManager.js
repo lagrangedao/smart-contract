@@ -18,13 +18,15 @@ describe('TaskManager', function () {
     await token.mint(cp, ethers.parseEther('10.0'))
 
     const TaskManager = await ethers.getContractFactory('TaskManager')
-    taskManager = await TaskManager.deploy(token.target)
+    taskManager = await upgrades.deployProxy(TaskManager, [token.target], {
+      initializer: 'initialize',
+    })
     await taskManager.waitForDeployment()
   })
 
   it('Should deploy and initialize the contract', async function () {
     // Check if the contract was deployed and initialized correctly.
-    const revenueToken = await taskManager.revenueToken()
+    const revenueToken = await taskManager.token()
     const ownerAddress = await taskManager.owner()
 
     // Perform assertions to check contract state.
@@ -42,7 +44,7 @@ describe('TaskManager', function () {
     await token.connect(user).approve(taskManager.target, revenue)
 
     // Request a task and check locked revenue.
-    await taskManager.connect(user).requestCP(taskId, taskDuration, revenue)
+    await taskManager.connect(user).lockRevenue(taskId, taskDuration, revenue)
 
     // Retrieve task details after the request.
     const task = await taskManager.tasks(taskId)
@@ -64,7 +66,7 @@ describe('TaskManager', function () {
       .assignTask(taskId, computingProvider, collateral) // Assuming a collateral value of 100 (in your contract, use the actual value).
 
     // Retrieve the assigned computing provider address from the contract.
-    const assignedCp = await taskManager.assignedCp(taskId)
+    const assignedCp = (await taskManager.tasks(taskId)).assignedCP
 
     // Check if the assigned computing provider matches the expected value.
     expect(assignedCp).to.equal(computingProvider)
@@ -77,11 +79,11 @@ describe('TaskManager', function () {
 
     await token.connect(cp).approve(taskManager.target, collateral)
     // Accept the task as the computing provider.
-    await taskManager.connect(cp).acceptTask(taskId)
+    await taskManager.connect(cp).lockCollateral(taskId)
 
     // Retrieve the task details after accepting.
     const task = await taskManager.tasks(taskId)
-    const assignedCp = await taskManager.assignedCp(taskId)
+    const assignedCp = task.assignedCP
 
     // Check that the task is assigned to the computing provider and taskDeadline is set.
     expect(assignedCp).to.equal(cp.address)
