@@ -56,10 +56,17 @@ module.exports = {
       url: 'https://rpc2.sepolia.org',
       accounts: [process.env.private_key],
     },
+    polygon: {
+      // url: 'https://polygon.llamarpc.com',
+      // url: 'https://polygon-bor.publicnode.com',
+      url: process.env.POLYGON_URL,
+      accounts: [process.env.PRIVATE_KEY],
+    },
   },
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.POLYGONSCAN_API_KEY,
+      polygon: process.env.POLYGONSCAN_API_KEY,
       sepolia: process.env.ETHERSCAN_API_KEY,
       bscTestnet: process.env.BSCSCAN_API_KEY,
     },
