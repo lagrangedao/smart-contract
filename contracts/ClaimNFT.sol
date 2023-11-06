@@ -1,57 +1,56 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.19;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155SupplyUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
 
-contract ClaimNFT is Initializable, ERC1155Upgradeable, OwnableUpgradeable, ERC1155BurnableUpgradeable, ERC1155SupplyUpgradeable, UUPSUpgradeable {
+// Import the ERC20 token contract
+import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+
+contract ClaimNFT is Initializable, OwnableUpgradeable, ERC1155HolderUpgradeable {
+
+    IERC1155 collection;
+
+    // Mapping of admin(s)
+    mapping(address => bool) public isAdmin;
+    mapping(address => mapping(uint => bool)) public claimable;
+
+    event NFTClaimed(address indexed user, uint256 tokenId);
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize() initializer public {
-        __ERC1155_init();
+    function initialize(address collectionAddress) initializer public {
         __Ownable_init();
-        __ERC1155Burnable_init();
-        __ERC1155Supply_init();
-        __UUPSUpgradeable_init();
+        __ERC1155Holder_init();
+
+        isAdmin[msg.sender] = true;
+        collection = IERC1155(collectionAddress);
     }
 
-    function setURI(string memory newuri) public onlyOwner {
-        _setURI(newuri);
+    // Modifier to check if the caller is the admin
+    modifier onlyAdmin() {
+        require(isAdmin[msg.sender], "Only the admin can call this function.");
+        _;
     }
 
-    // function mint(address account, uint256 id, uint256 amount, bytes memory data)
-    //     public
-    //     onlyOwner
-    // {
-    //     _mint(account, id, amount, data);
-    // }
+    function setAdmin(address admin, bool status) public onlyOwner {
+        isAdmin[admin] = status;
+    }
 
-    // function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
-    //     public
-    //     onlyOwner
-    // {
-    //     _mintBatch(to, ids, amounts, data);
-    // }
+    function setClaim(address claimer, uint tokenId) public onlyAdmin {
+        claimable[claimer][tokenId] = true;
+    }
 
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        onlyOwner
-        override
-    {}
+    function claim(uint tokenId) public {
+        require(claimable[msg.sender][tokenId], "token id not claimable");
+        claimable[msg.sender][tokenId] = false;
 
-    // The following functions are overrides required by Solidity.
+        collection.safeTransferFrom(address(this), msg.sender, tokenId, 1, "");
 
-    function _update(address from, address to, uint256[] memory ids, uint256[] memory values)
-        internal
-        override(ERC1155Upgradeable, ERC1155SupplyUpgradeable)
-    {
-        super._update(from, to, ids, values);
+        emit NFTClaimed(msg.sender, tokenId);
     }
 }
