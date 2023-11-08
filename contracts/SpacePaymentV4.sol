@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity 0.8.19;
 
 // Import the ERC20 token contract
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract SpacePaymentV3 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract SpacePaymentV4 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     // Address of the ERC20 token contract
     IERC20 public paymentToken;
 
@@ -254,7 +254,7 @@ contract SpacePaymentV3 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         if (isClaimValid) {
             uint returnedRevenue = tasks[taskId].revenue;
             tasks[taskId].revenue = 0;
-            paymentToken.transferFrom(apWallet, msg.sender, returnedRevenue);
+            paymentToken.transferFrom(apWallet, tasks[taskId].user, returnedRevenue);
         } 
 
         tasks[taskId].refundDeadline += block.timestamp;
@@ -269,13 +269,14 @@ contract SpacePaymentV3 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(!tasks[taskId].processingRefundClaim, "claim under review");
 
         uint revenue = tasks[taskId].revenue;
-        uint returnAmountInPaymentToken = revenue + tasks[taskId].collateral;
-        uint returnAmountInRevenueToken = returnAmountInPaymentToken * paymentToRevenueRate;
+        uint collateral = tasks[taskId].collateral;
+        uint returnAmountInRevenueToken = revenue * paymentToRevenueRate;
         tasks[taskId].revenue = 0;
         tasks[taskId].collateral = 0;
+        paymentToken.transferFrom(apWallet, msg.sender, collateral);
         revenueToken.transferFrom(apWallet, msg.sender, returnAmountInRevenueToken);
 
-        emit RevenueCollected(taskId, revenue * paymentToRevenueRate);
+        emit RevenueCollected(taskId, returnAmountInRevenueToken);
     }
 
 

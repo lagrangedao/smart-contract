@@ -3,18 +3,13 @@ require('@nomiclabs/hardhat-ethers')
 require('@openzeppelin/hardhat-upgrades')
 require('dotenv').config()
 require('@nomicfoundation/hardhat-verify')
+require('@nomicfoundation/hardhat-chai-matchers')
 
 module.exports = {
   solidity: {
     compilers: [
       {
         version: '0.8.9',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 1_000,
-          },
-        },
       },
       {
         version: '0.8.19',

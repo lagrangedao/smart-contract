@@ -5,12 +5,27 @@
       "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
       "txHash": "0xa45845f7611094b6c9d1431c7714d61a830fa3f7008568524ee0c470303c246b",
       "kind": "uups"
+    },
+    {
+      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
+      "txHash": "0x69da37b5e0004c2d95ad075f3b1f22c2b03d8ff5c42e1a4218231279812a1f71",
+      "kind": "uups"
+    },
+    {
+      "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "txHash": "0x6493847b0aacb5cf69011dd437f324ed5abba084d4f75cab05cd4476993ce0fe",
+      "kind": "uups"
+    },
+    {
+      "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      "txHash": "0xfa8cf3e6ee1e3cd55e457f3dc88bb40040273caa63699c8352331d0f0d5b45e4",
+      "kind": "uups"
     }
   ],
   "impls": {
     "1aae93bfef72b5cf5aa20763bdfc4d60b60cf2f12650fe8e4117fc23e39e47da": {
-      "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-      "txHash": "0xa774b2b4369ef8bcad23fce9a5cb9568830e5c87f315f81ab1ef827d88779cae",
+      "address": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+      "txHash": "0x1a157c7db94d5999617dc45c5092a5e9314aa01f10023928292d5845ec6b571f",
       "layout": {
         "solcVersion": "0.8.19",
         "storage": [
@@ -75,7 +90,7 @@
             "label": "tasks",
             "offset": 0,
             "slot": "201",
-            "type": "t_mapping(t_string_memory_ptr,t_struct(Task)1395_storage)",
+            "type": "t_mapping(t_string_memory_ptr,t_struct(Task)5874_storage)",
             "contract": "TaskManager",
             "src": "contracts/TaskManager.sol:35"
           },
@@ -91,7 +106,7 @@
             "label": "token",
             "offset": 0,
             "slot": "203",
-            "type": "t_contract(IERC20)1361",
+            "type": "t_contract(IERC20)4968",
             "contract": "TaskManager",
             "src": "contracts/TaskManager.sol:38"
           },
@@ -121,7 +136,7 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(IERC20)1361": {
+          "t_contract(IERC20)4968": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
@@ -129,7 +144,7 @@
             "label": "mapping(address => bool)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_string_memory_ptr,t_struct(Task)1395_storage)": {
+          "t_mapping(t_string_memory_ptr,t_struct(Task)5874_storage)": {
             "label": "mapping(string => struct TaskManager.Task)",
             "numberOfBytes": "32"
           },
@@ -137,7 +152,7 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(Task)1395_storage": {
+          "t_struct(Task)5874_storage": {
             "label": "struct TaskManager.Task",
             "members": [
               {
@@ -213,6 +228,324 @@
           },
           "t_string_storage": {
             "label": "string"
+          }
+        }
+      }
+    },
+    "0f956aeb85f6e5d4e73e89fe97decbb16340dcc87a43eeb42cfa35f84ca08522": {
+      "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+      "txHash": "0x97cc5ea956db8a90bf7a2801fcc2b3942ea71bead280b75234f2cb1ef3ddedb2",
+      "layout": {
+        "solcVersion": "0.8.19",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "paymentToken",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_contract(IERC20)1361",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:13"
+          },
+          {
+            "label": "isAdmin",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:27"
+          },
+          {
+            "label": "hardwareInfo",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_mapping(t_uint256,t_struct(Hardware)1388_storage)",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:29"
+          },
+          {
+            "label": "spaceInfo",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_mapping(t_string_memory_ptr,t_struct(SpaceInfo)1381_storage)",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:30"
+          },
+          {
+            "label": "claimable",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_mapping(t_address,t_mapping(t_string_memory_ptr,t_uint256))",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:31"
+          },
+          {
+            "label": "refundClaimDuration",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_uint256",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:47"
+          },
+          {
+            "label": "tasks",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_mapping(t_string_memory_ptr,t_struct(Task)1523_storage)",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:63"
+          },
+          {
+            "label": "arWallet",
+            "offset": 0,
+            "slot": "208",
+            "type": "t_address",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:65"
+          },
+          {
+            "label": "apWallet",
+            "offset": 0,
+            "slot": "209",
+            "type": "t_address",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:66"
+          },
+          {
+            "label": "revenueToken",
+            "offset": 0,
+            "slot": "210",
+            "type": "t_contract(IERC20)1361",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:67"
+          },
+          {
+            "label": "paymentToRevenueRate",
+            "offset": 0,
+            "slot": "211",
+            "type": "t_uint256",
+            "contract": "SpacePaymentV4",
+            "src": "contracts/SpacePaymentV4.sol:68"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)1361": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(address => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_struct(SpaceInfo)1381_storage)": {
+            "label": "mapping(string => struct SpacePaymentV4.SpaceInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_struct(Task)1523_storage)": {
+            "label": "mapping(string => struct SpacePaymentV4.Task)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Hardware)1388_storage)": {
+            "label": "mapping(uint256 => struct SpacePaymentV4.Hardware)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Hardware)1388_storage": {
+            "label": "struct SpacePaymentV4.Hardware",
+            "members": [
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "pricePerHour",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "isActive",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SpaceInfo)1381_storage": {
+            "label": "struct SpacePaymentV4.SpaceInfo",
+            "members": [
+              {
+                "label": "hardwareId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "expiryDate",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Task)1523_storage": {
+            "label": "struct SpacePaymentV4.Task",
+            "members": [
+              {
+                "label": "user",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "cp",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "startTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "duration",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "taskDeadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "refundDeadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "revenue",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "collateral",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "processingRefundClaim",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "8"
+              }
+            ],
+            "numberOfBytes": "288"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
           }
         }
       }
