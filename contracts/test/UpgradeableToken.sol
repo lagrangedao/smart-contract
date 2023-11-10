@@ -1,27 +1,26 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20CappedUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract SwanTokenUpgradeable is Initializable, ERC20CappedUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
-    uint public constant TOKEN_CAP = 1 ether * 10 ** 9;
-
+contract UPToken is Initializable, ERC20Upgradeable, OwnableUpgradeable, ERC20PermitUpgradeable, UUPSUpgradeable {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
     function initialize() initializer public {
+        __ERC20_init("UP Token", "UP");
         __Ownable_init();
-        __ERC20_init("Swan Token", "SWAN");
-        __ERC20Capped_init(TOKEN_CAP);
+        __ERC20Permit_init("UP Token");
         __UUPSUpgradeable_init();
     }
 
-    function mint(address to, uint amount) public onlyOwner {
+    function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);
     }
 

@@ -3,7 +3,6 @@ pragma solidity 0.8.19;
 
 // Import the ERC20 token contract
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -43,6 +42,7 @@ contract SpacePaymentV4 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event RefundSubmitted(string taskId, address indexed user);
     event ClaimResult(string taskId, bool result);
     event RevenueCollected(string taskId, uint revenue);
+    event TaskTerminated(string taskId, address terminator, uint timestamp);
 
     uint public refundClaimDuration;
 
@@ -72,11 +72,12 @@ contract SpacePaymentV4 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         _disableInitializers();
     }
 
-    function initialize(address token) initializer public {
+    function initialize(address inToken, address outToken) initializer public {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        paymentToken = IERC20(token);
+        paymentToken = IERC20(inToken);
+        revenueToken = IERC20(outToken);
         isAdmin[msg.sender] = true;
     }
 
@@ -181,7 +182,7 @@ contract SpacePaymentV4 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     {}
 
     function version() public pure returns(uint) {
-        return 3;
+        return 4;
     }
 
     function setRefundClaimDuration(uint duration) public onlyAdmin {
@@ -206,8 +207,10 @@ contract SpacePaymentV4 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit RevenueLocked(taskId, msg.sender, price, tasks[taskId].duration);
     }
 
-    function assignTask(string memory taskId, address cp, uint collateral) public onlyAdmin {
+    function assignTask(string memory taskId, address cp, uint revenue, uint collateral) public onlyAdmin {
+        require(tasks[taskId].revenue == 0 || tasks[taskId].revenue == revenue, "revenue amount does not match");
         tasks[taskId].cp = cp;
+        tasks[taskId].revenue = revenue;
         tasks[taskId].collateral = collateral;
     }
 
@@ -216,7 +219,7 @@ contract SpacePaymentV4 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(paymentToken.balanceOf(msg.sender) >= tasks[taskId].collateral, "Insufficient funds.");
         require(paymentToken.allowance(msg.sender, address(this)) >= tasks[taskId].collateral, "Approve spending funds.");
 
-        paymentToken.transferFrom(msg.sender, arWallet, tasks[taskId].collateral);
+        paymentToken.transferFrom(msg.sender, address(this), tasks[taskId].collateral);
 
         tasks[taskId].startTime = block.timestamp;
         tasks[taskId].taskDeadline = block.timestamp + tasks[taskId].duration;
@@ -225,7 +228,32 @@ contract SpacePaymentV4 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function terminateTask(string memory taskId) public {
-        // TODO
+    //     require(tasks[taskId].cp == msg.sender || tasks[taskId].user == msg.sender, "task is not assigned to caller");
+
+    //     uint revenue = tasks[taskId].revenue;
+    //     uint collateral = tasks[taskId].collateral;
+    //     uint elaspedDuration = block.timestamp - tasks[taskId].startTime;
+
+    //     tasks[taskId].revenue = 0;
+    //     tasks[taskId].collateral = 0;
+
+    //    //TODO: slashing rules
+
+    //     if (tasks[taskId].user == msg.sender) {
+    //         uint earnedRevenue = revenue * (elaspedDuration / tasks[taskId].duration);
+    //         uint revenueToCp = earnedRevenue * 95 / 100;
+    //         uint revenueToCpInRevenueToken = revenueToCp * paymentToRevenueRate;
+
+    //         revenueToken.transfer(tasks[taskId].cp, revenueToCpInRevenueToken);
+    //         paymentToken.transfer(tasks[taskId].cp, collateral);
+    //     } else if (msg.sender == tasks[taskId].cp) {
+    //         uint earnedCollateral = collateral * (elaspedDuration / tasks[taskId].duration);
+
+    //         paymentToken.transfer(msg.sender, earnedCollateral);
+    //     }
+
+    //     paymentToken.transferFrom(apWallet, msg.sender, revenue);
+    //     emit TaskTerminated(taskId, msg.sender, block.timestamp);
     }
 
     function completeTask(string memory taskId) public onlyAdmin {
@@ -268,15 +296,16 @@ contract SpacePaymentV4 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(block.timestamp > tasks[taskId].refundDeadline, "wait for claim deadline");
         require(!tasks[taskId].processingRefundClaim, "claim under review");
 
-        uint revenue = tasks[taskId].revenue;
         uint collateral = tasks[taskId].collateral;
-        uint returnAmountInRevenueToken = revenue * paymentToRevenueRate;
+        uint revenue = tasks[taskId].revenue;
+        uint revenueToCp = revenue * 95 / 100;
+        uint revenueToCpInRevenueToken = revenueToCp * paymentToRevenueRate;
         tasks[taskId].revenue = 0;
         tasks[taskId].collateral = 0;
-        paymentToken.transferFrom(apWallet, msg.sender, collateral);
-        revenueToken.transferFrom(apWallet, msg.sender, returnAmountInRevenueToken);
+        paymentToken.transfer(msg.sender, collateral);
+        revenueToken.transferFrom(apWallet, msg.sender, revenueToCpInRevenueToken);
 
-        emit RevenueCollected(taskId, returnAmountInRevenueToken);
+        emit RevenueCollected(taskId, revenueToCpInRevenueToken);
     }
 
 

@@ -25,8 +25,8 @@ describe('SpacePayment', function () {
 
     await usdc.mint(user, ethers.parseUnits('100', 'mwei'))
     await usdc.mint(cp, ethers.parseUnits('100', 'mwei'))
-    await token.mint(ap, ethers.parseEther('100.0'))
     await usdc.mint(ap, ethers.parseUnits('100', 'mwei'))
+    await token.mint(ap, ethers.parseEther('100.0'))
 
     const SpacePayment = await ethers.getContractFactory('SpacePaymentV4')
     spacePayment = await upgrades.deployProxy(SpacePayment, [usdc.target], {
@@ -96,7 +96,12 @@ describe('SpacePayment', function () {
     await expect(
       spacePayment
         .connect(user)
-        .assignTask(taskId, cp.address, ethers.parseUnits('10', 'mwei')),
+        .assignTask(
+          taskId,
+          cp.address,
+          ethers.parseUnits('5', 'mwei'),
+          ethers.parseUnits('10', 'mwei'),
+        ),
     ).to.be.reverted
   })
 
@@ -104,6 +109,7 @@ describe('SpacePayment', function () {
     await spacePayment.assignTask(
       taskId,
       cp.address,
+      ethers.parseUnits('5', 'mwei'),
       ethers.parseUnits('10', 'mwei'),
     )
 
@@ -145,15 +151,6 @@ describe('SpacePayment', function () {
   })
 
   it('Should allow user to request refund', async function () {
-    // // Fast forward to a specific future timestamp (e.g., 2 hours ahead)
-    // const futureTimestamp = currentTimestamp + 7200 // 2 hours in seconds
-    // await network.provider.send('evm_setNextBlockTimestamp', [futureTimestamp])
-    // await network.provider.send('evm_mine')
-
-    // // Check the updated block timestamp
-    // const updatedTimestamp = (await ethers.provider.getBlock('latest'))
-    //   .timestamp
-
     await spacePayment.connect(user).requestRefund(taskId)
     const task = await spacePayment.tasks(taskId)
 
@@ -166,6 +163,8 @@ describe('SpacePayment', function () {
 
     expect(task.processingRefundClaim).to.be.false
     expect(await usdc.balanceOf(user)).to.equal('100000000')
+    expect(await usdc.balanceOf(ap)).to.equal('95000000')
+    expect(await usdc.balanceOf(ar)).to.equal('5000000')
     expect(await usdc.balanceOf(cp)).to.equal('90000000')
   })
 
@@ -180,7 +179,7 @@ describe('SpacePayment', function () {
 
     // Request a task and check locked revenue.
     await spacePayment.connect(user).lockRevenue(taskId2, 0, 5)
-    await spacePayment.assignTask(taskId2, cp.address, collateral)
+    await spacePayment.assignTask(taskId2, cp.address, revenue, collateral)
     await spacePayment.connect(cp).lockCollateral(taskId2)
     await spacePayment.completeTask(taskId2)
 
@@ -202,11 +201,10 @@ describe('SpacePayment', function () {
 
     expect(await usdc.balanceOf(user.address)).to.equal('95000000')
     expect(await usdc.balanceOf(cp.address)).to.equal('90000000')
-    expect(await token.balanceOf(cp.address)).to.equal('6150000000000000000')
+    expect(await token.balanceOf(cp.address)).to.equal('5842500000000000000')
+    expect(await usdc.balanceOf(ar.address)).to.equal('10000000')
 
-    expect(await usdc.balanceOf(ar.address)).to.equal('30000000')
-    expect(await token.balanceOf(ar.address)).to.equal('0')
-    expect(await usdc.balanceOf(ap.address)).to.equal('85000000')
-    expect(await token.balanceOf(ap.address)).to.equal('93850000000000000000')
+    expect(await usdc.balanceOf(spacePayment.target)).to.equal('10000000')
+    expect(await token.balanceOf(ap.address)).to.equal('94157500000000000000')
   })
 })

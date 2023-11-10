@@ -54,6 +54,15 @@ module.exports = {
       url: 'https://rpc2.sepolia.org',
       accounts: [process.env.private_key],
     },
+    opswan: {
+      url: 'http://34.95.38.202:8545',
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 8598668088,
+    },
+    tbsc: {
+      url: 'https://bsc-testnet.publicnode.com',
+      accounts: [process.env.PRIVATE_KEY],
+    },
   },
   etherscan: {
     apiKey: {
