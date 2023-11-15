@@ -23,7 +23,7 @@
     },
     {
       "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
-      "txHash": "0x0fc2e5889bc752a8f661f5f3c40aef95b0454ce7898675e03655da05e12f8d6c",
+      "txHash": "0x457e3adc92412bd4c50689f0c9c0f455cd80c986d84551922c8497363898457e",
       "kind": "uups"
     }
   ],
@@ -237,9 +237,9 @@
         }
       }
     },
-    "c70b4e6e0b8bc080b17128e4f6c28e17ca157c8112ad6386329d3f1825aea2e9": {
+    "6a3ecd8a48b5810db12e1a7f3adfc1f6e6b32c6cb0f7b9fc038de97771f367db": {
       "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
-      "txHash": "0x4fdcad28ff935d79290f5f005434ab849b29365a347184c5cdacc94f5d50a4ff",
+      "txHash": "0xd56ec1eecead2da74caa6050d678a82a60ae2a37ff4008316cc92ce2f495138c",
       "layout": {
         "solcVersion": "0.8.19",
         "storage": [
@@ -305,88 +305,88 @@
             "offset": 0,
             "slot": "201",
             "type": "t_contract(IERC20)1361",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:13"
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:12"
           },
           {
             "label": "isAdmin",
             "offset": 0,
             "slot": "202",
             "type": "t_mapping(t_address,t_bool)",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:27"
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:26"
           },
           {
             "label": "hardwareInfo",
             "offset": 0,
             "slot": "203",
             "type": "t_mapping(t_uint256,t_struct(Hardware)1388_storage)",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:29"
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:28"
           },
           {
             "label": "spaceInfo",
             "offset": 0,
             "slot": "204",
             "type": "t_mapping(t_string_memory_ptr,t_struct(SpaceInfo)1381_storage)",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:30"
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:29"
           },
           {
             "label": "claimable",
             "offset": 0,
             "slot": "205",
             "type": "t_mapping(t_address,t_mapping(t_string_memory_ptr,t_uint256))",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:31"
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:30"
           },
           {
             "label": "refundClaimDuration",
             "offset": 0,
             "slot": "206",
             "type": "t_uint256",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:48"
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:47"
           },
           {
             "label": "tasks",
             "offset": 0,
             "slot": "207",
-            "type": "t_mapping(t_string_memory_ptr,t_struct(Task)1531_storage)",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:64"
+            "type": "t_mapping(t_string_memory_ptr,t_struct(Task)1535_storage)",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:64"
           },
           {
             "label": "arWallet",
             "offset": 0,
             "slot": "208",
             "type": "t_address",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:66"
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:66"
           },
           {
             "label": "apWallet",
             "offset": 0,
             "slot": "209",
             "type": "t_address",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:67"
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:67"
           },
           {
             "label": "revenueToken",
             "offset": 0,
             "slot": "210",
             "type": "t_contract(IERC20)1361",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:68"
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:68"
           },
           {
             "label": "paymentToRevenueRate",
             "offset": 0,
             "slot": "211",
             "type": "t_uint256",
-            "contract": "SpacePaymentV4",
-            "src": "contracts/SpacePaymentV4.sol:69"
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:69"
           }
         ],
         "types": {
@@ -419,11 +419,11 @@
             "numberOfBytes": "32"
           },
           "t_mapping(t_string_memory_ptr,t_struct(SpaceInfo)1381_storage)": {
-            "label": "mapping(string => struct SpacePaymentV4.SpaceInfo)",
+            "label": "mapping(string => struct SpacePaymentV6.SpaceInfo)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_string_memory_ptr,t_struct(Task)1531_storage)": {
-            "label": "mapping(string => struct SpacePaymentV4.Task)",
+          "t_mapping(t_string_memory_ptr,t_struct(Task)1535_storage)": {
+            "label": "mapping(string => struct SpacePaymentV6.Task)",
             "numberOfBytes": "32"
           },
           "t_mapping(t_string_memory_ptr,t_uint256)": {
@@ -431,7 +431,7 @@
             "numberOfBytes": "32"
           },
           "t_mapping(t_uint256,t_struct(Hardware)1388_storage)": {
-            "label": "mapping(uint256 => struct SpacePaymentV4.Hardware)",
+            "label": "mapping(uint256 => struct SpacePaymentV6.Hardware)",
             "numberOfBytes": "32"
           },
           "t_string_memory_ptr": {
@@ -443,7 +443,7 @@
             "numberOfBytes": "32"
           },
           "t_struct(Hardware)1388_storage": {
-            "label": "struct SpacePaymentV4.Hardware",
+            "label": "struct SpacePaymentV6.Hardware",
             "members": [
               {
                 "label": "name",
@@ -467,7 +467,7 @@
             "numberOfBytes": "96"
           },
           "t_struct(SpaceInfo)1381_storage": {
-            "label": "struct SpacePaymentV4.SpaceInfo",
+            "label": "struct SpacePaymentV6.SpaceInfo",
             "members": [
               {
                 "label": "hardwareId",
@@ -484,8 +484,8 @@
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(Task)1531_storage": {
-            "label": "struct SpacePaymentV4.Task",
+          "t_struct(Task)1535_storage": {
+            "label": "struct SpacePaymentV6.Task",
             "members": [
               {
                 "label": "user",
@@ -540,9 +540,15 @@
                 "type": "t_bool",
                 "offset": 0,
                 "slot": "8"
+              },
+              {
+                "label": "cpRevenue",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "9"
               }
             ],
-            "numberOfBytes": "288"
+            "numberOfBytes": "320"
           },
           "t_uint256": {
             "label": "uint256",

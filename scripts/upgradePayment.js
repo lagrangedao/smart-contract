@@ -1,9 +1,9 @@
 const { ethers, upgrades } = require('hardhat')
 
-const PROXY = '0xB8C33A9C75CFd4C7A748109372a1bd2c61A5cA69'
+const PROXY = '0x2108e71280b825131220cd710813c25874f0e718'
 
 async function main() {
-  const NewPayment = await ethers.getContractFactory('SpacePaymentV5')
+  const NewPayment = await ethers.getContractFactory('SpacePaymentV6')
   console.log('Upgrading Space Payment...')
   await upgrades.upgradeProxy(PROXY, NewPayment)
   console.log('Space Payment upgraded successfully')
