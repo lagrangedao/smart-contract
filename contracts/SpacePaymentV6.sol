@@ -36,7 +36,7 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event RewardSet(string taskId, address wallet, uint amount);
     event RewardClaimed(string taskId, address wallet, uint amount);
 
-    event RevenueLocked(string taskId, address indexed user, uint paid, uint cpRevenue, uint duration);
+    event RevenueLocked(string spaceId, address indexed user, uint paid, uint cpRevenue, uint duration);
     event CollateralLocked(string taskId, address indexed cp, uint collateral);
     event TaskCompleted(string taskId, uint timestamp);
     event RefundSubmitted(string taskId, address indexed user);
