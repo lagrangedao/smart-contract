@@ -280,13 +280,13 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "paid",
+        "name": "amountPaid",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "cpRevenue",
+        "name": "amountToEarn",
         "type": "uint256"
       },
       {
