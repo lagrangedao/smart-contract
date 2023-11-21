@@ -268,7 +268,7 @@
       {
         "indexed": false,
         "internalType": "string",
-        "name": "taskId",
+        "name": "spaceId",
         "type": "string"
       },
       {
@@ -280,7 +280,13 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "revenue",
+        "name": "amountPaid",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amountToEarn",
         "type": "uint256"
       },
       {
@@ -440,7 +446,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "revenue",
+        "name": "revenueInPaymentToken",
         "type": "uint256"
       },
       {
@@ -613,7 +619,7 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "taskId",
+        "name": "spaceId",
         "type": "string"
       },
       {
@@ -993,6 +999,11 @@
         "internalType": "bool",
         "name": "processingRefundClaim",
         "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "cpRevenue",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",

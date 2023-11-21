@@ -32,7 +32,7 @@ contract DataNFT is ERC721, ERC721URIStorage, Ownable {
      * @param recipient - sub-licensee
      * @param uri - new verison metadata
      */
-    function mint(address recipient, string memory uri) public onlyOwner {
+    function createLicense(address recipient, string memory uri) public onlyOwner {
         _tokenIdCounter.increment();
         uint256 tokenId = _tokenIdCounter.current();
 
