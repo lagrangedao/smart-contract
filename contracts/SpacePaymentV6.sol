@@ -88,6 +88,8 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         _;
     }
 
+    /** SETTER FUNCTIONS */
+
     function setAdmin(address admin, bool status) public onlyOwner {
         isAdmin[admin] = status;
     }
@@ -128,6 +130,8 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit RewardSet(taskId, cpWallet, rewardAmount);
     }
 
+    /* CLAIM FUNCTIONS */
+
     function claim (address wallet, string memory claimId) internal returns(uint){
         uint claimAmount = claimable[wallet][claimId];
         require(claimAmount > 0, "Nothing to claim.");
@@ -152,6 +156,7 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         uint collateral = tasks[taskId].collateral;
         uint revenue = tasks[taskId].cpRevenue;
         tasks[taskId].revenue = 0;
+        tasks[taskId].cpRevenue = 0;
         tasks[taskId].collateral = 0;
         paymentToken.transfer(msg.sender, collateral);
         revenueToken.transferFrom(apWallet, msg.sender, revenue);
@@ -159,7 +164,7 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit RevenueCollected(taskId, revenue);
     }
 
-    // Make a payment for a space
+    // Make a payment for a space (DEPRECIATED, USE lockRevenue)
     function makePayment(string memory spaceId, uint hardwareId, uint numHours) public {
         require(hardwareInfo[hardwareId].isActive, "Requested hardware is not supported.");
 
@@ -200,6 +205,14 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         refundClaimDuration = duration;
     }
 
+    /**
+     * 
+     * @param spaceId - identify for space
+     * @param hardwareId - cp hardware id
+     * @param numHours - duration in hours
+     * @notice The user calls this function to pay for the task, amount paid based on hardware id and duration
+     * @dev checks if the user has enough funds and approval
+     */
     function lockRevenue(string memory spaceId, uint hardwareId, uint numHours) public {
         // require(tasks[taskId].user == address(0), "task id already in use");
         require(hardwareInfo[hardwareId].isActive, "Requested hardware is not supported.");
@@ -218,6 +231,15 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit RevenueLocked(spaceId, msg.sender, price, tasks[spaceId].revenue, tasks[spaceId].duration);
     }
 
+    /**
+     * 
+     * @param taskId - task id
+     * @param cp - computing provider address
+     * @param revenueInPaymentToken - the amount the user paid (usdc)
+     * @param collateral - the required amount of colleteral the cp will need to lock
+     * @notice This function assigns the cp and collateral values in the Task object
+     * @dev This function also calculates how much SWAN the cp will earn
+     */
     function assignTask(string memory taskId, address cp, uint revenueInPaymentToken, uint collateral) public onlyAdmin {
         // require(tasks[taskId].revenue == 0 || tasks[taskId].revenue == revenue, "revenue amount does not match");
         tasks[taskId].cp = cp;
@@ -225,6 +247,12 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         tasks[taskId].collateral = collateral;
     }
 
+    /**
+     * 
+     * @param taskId - task id
+     * @notice The CP will call this to lock collateral in the contract. Checks funds and approval.
+     * @dev This function will also use the block timestamp as the start time.
+     */
     function lockCollateral(string memory taskId) public {
         require(tasks[taskId].startTime == 0, "task already accepted");
         require(paymentToken.balanceOf(msg.sender) >= tasks[taskId].collateral, "Insufficient funds.");
@@ -237,6 +265,12 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit CollateralLocked(taskId, msg.sender, tasks[taskId].collateral);
     }
 
+    /**
+     * 
+     * @param taskId - task id
+     * @notice the user can terminate the task early. The CP should get paid relative to the time elasped.
+     * @dev currently not in use, need more discussion on CP termination
+     */
     function terminateTask(string memory taskId) public {
     //     require(tasks[taskId].cp == msg.sender || tasks[taskId].user == msg.sender, "task is not assigned to caller");
 
@@ -266,6 +300,11 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     //     emit TaskTerminated(taskId, msg.sender, block.timestamp);
     }
 
+    /**
+     * 
+     * @param taskId - task id
+     * @notice completes the task and starts the cooldown so the cp can claim the reward.
+     */
     function completeTask(string memory taskId) public onlyAdmin {
         // require(block.timestamp < tasks[taskId].taskDeadline, "task deadline passed");
         require(tasks[taskId].refundDeadline == 0, "task already completed");
@@ -275,6 +314,12 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit TaskCompleted(taskId, block.timestamp);
     }
 
+    /**
+     * 
+     * @param taskId - task id
+     * @notice the user can request refund only during the cooldown period. This pauses the cooldown
+     * @dev refundDeadline becomes the remaining time so when we need to resume, we can just add block timestamp
+     */
     function requestRefund(string memory taskId) public {
         require(tasks[taskId].user == msg.sender || isAdmin[msg.sender], "sender cannot claim this task");
         require(block.timestamp < tasks[taskId].refundDeadline, "not within claim window");
@@ -287,6 +332,14 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit RefundSubmitted(taskId, msg.sender);
     }
 
+    /**
+     * 
+     * @param taskId - task id
+     * @param isClaimValid - claim success result
+     * @notice the validation system should determine the result and call this function. 
+     * @notice If true, the user should be eligible for refund, and collateral should be slashed
+     * @dev slashing rule here still needs to be discussed.
+     */
     function validateClaim(string memory taskId, bool isClaimValid) public onlyAdmin {
         require(tasks[taskId].processingRefundClaim, "no claim submitted for this task");
         if (isClaimValid) {
@@ -301,6 +354,7 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit ClaimResult(taskId, isClaimValid);
     }
 
+    // depreciated in favor of claimReward
     function collectRevenue(string memory taskId) public {
         // require(tasks[taskId].cp == msg.sender, "task is not assigned to caller");
         // require(block.timestamp > tasks[taskId].refundDeadline, "wait for claim deadline");

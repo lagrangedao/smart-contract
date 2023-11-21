@@ -70,5 +70,15 @@ module.exports = {
       sepolia: process.env.ETHERSCAN_API_KEY,
       bscTestnet: process.env.BSCSCAN_API_KEY,
     },
+    customChains: [
+      {
+        network: 'opswan',
+        chainId: 8598668088,
+        urls: {
+          apiURL: 'http://34.130.248.50/api',
+          browserURL: 'http://34.130.248.50',
+        },
+      },
+    ],
   },
 }
