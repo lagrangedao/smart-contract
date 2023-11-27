@@ -13,7 +13,7 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     mapping(address => bool) public isAdmin;
     mapping(address => uint) public balances;
 
-    event Deposit(address fundingWallet, uint depositAmount);
+    event Deposit(address fundingWallet, address receivingWallet, uint depositAmount);
     event Withdraw(address fundingWallet, uint withdrawAmount);
     event LockCollateral(address taskContract, address[] cpList, uint collateralAmount);
 
@@ -49,14 +49,14 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
      * @notice - deposits tokens into the contract
      * @dev - checks allowance and user balance before depositing
      */
-    function deposit(uint amount) public {
+    function deposit(address recipient, uint amount) public {
         require(collateralToken.allowance(msg.sender, address(this)) >= amount, "Please approve spending funds.");
         require(collateralToken.balanceOf(msg.sender) >= amount, "Insufficient funds.");
 
         collateralToken.transferFrom(msg.sender, address(this), amount);
-        balances[msg.sender] += amount;
+        balances[recipient] += amount;
 
-        emit Deposit(msg.sender, amount);
+        emit Deposit(msg.sender, recipient, amount);
     }
     
     /**

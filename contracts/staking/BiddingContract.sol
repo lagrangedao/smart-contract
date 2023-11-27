@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+import "./Swap.sol";
 import "./Task.sol";
 import "./CollateralContract.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
@@ -16,6 +17,8 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address apWallet;
     IERC20 paymentToken;
     IERC20 rewardToken; 
+    TokenSwap tokenSwap;
+
     mapping(address => bool) isAdmin;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -23,13 +26,14 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         _disableInitializers();
     }
 
-    function initialize(address ar, address ap, address collateralContractAddress, address paymentTokenAddress, address rewardTokenAddress) initializer public {
+    function initialize(address ar, address ap, address collateralContractAddress, address paymentTokenAddress, address rewardTokenAddress, address swapContractAddress) initializer public {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
         collateralContract = CollateralContract(collateralContractAddress);
         paymentToken = IERC20(paymentTokenAddress);
         rewardToken = IERC20(rewardTokenAddress);
+        tokenSwap = TokenSwap(swapContractAddress);
         arWallet = ar;
         apWallet = ap;
         isAdmin[msg.sender] = true;
@@ -51,12 +55,18 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     
-    function assignTask(address user, address[] memory cpList, uint reward, uint collateral, uint duration) public onlyAdmin {
+    function assignTask(address user, address[] memory cpList, uint rewardInUsdc, uint collateral, uint duration) public onlyAdmin {
         address clone = Clones.clone(implementation);
-        Task(clone).initialize(user, cpList, arWallet, apWallet, reward, collateral, duration);
+
+        uint rewardForCp = rewardInUsdc * 95/100;
+
+        paymentToken.transferFrom(apWallet, address(this), rewardForCp);
+        uint rewardInSwan = tokenSwap.swapUsdcToSwan(rewardForCp);
+
+        Task(clone).initialize(msg.sender, user, cpList, rewardForCp, rewardInSwan, collateral, duration);
 
         collateralContract.lockCollateral(clone, cpList, collateral);
-        rewardToken.transferFrom(apWallet, clone, reward);
+        rewardToken.transfer(clone, rewardInSwan);
     }
 
     function _authorizeUpgrade(address newImplementation)
