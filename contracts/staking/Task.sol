@@ -165,7 +165,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
                 usdc.transfer(user, refundToUser);
             } else {
                 usdc.transfer(user, refundableUsdcReward);
-            }  
+            }
         }
 
         refundDeadline += block.timestamp;
