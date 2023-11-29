@@ -37,7 +37,6 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     function initialize(
         address admin,
-        address userAddress, 
         address[] memory cpAddresses, 
         uint usdcReward, 
         uint swanReward, 
@@ -45,7 +44,6 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         uint duration_
     ) public initializer{ 
         isAdmin[admin] = true;
-        user = userAddress;
         cpList = cpAddresses;
         isRewardClaimed = new bool[](cpList.length);
         usdcRewardAmount = usdcReward;
@@ -126,8 +124,9 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @notice - admin marks task as complete
      * @dev - gives the user `refundClaimDuration` time to sumbit a refund claim.
      */
-    function completeTask() public onlyAdmin {
+    function completeTask(address userAddress) public onlyAdmin {
         require(refundDeadline == 0, "task already completed");
+        user = userAddress;
         refundDeadline = block.timestamp + refundClaimDuration;
     }
 
@@ -137,6 +136,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @dev pauses the refundClaimDuration and stores the time remaining.
      */
     function requestRefund() public  {
+        require(!isProcessingRefundClaim, "already requested refund");
         require(user == msg.sender || isAdmin[msg.sender], "sender cannot claim this task");
         require(block.timestamp < refundDeadline, "not within claim window");
 

@@ -115,7 +115,13 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "userAddress",
+        "type": "address"
+      }
+    ],
     "name": "completeTask",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -158,11 +164,6 @@
       {
         "internalType": "address",
         "name": "admin",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "userAddress",
         "type": "address"
       },
       {

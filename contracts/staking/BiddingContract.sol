@@ -11,13 +11,13 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     
-    CollateralContract collateralContract;
-    address implementation;
-    address arWallet;
-    address apWallet;
-    IERC20 paymentToken;
-    IERC20 rewardToken; 
-    TokenSwap tokenSwap;
+    CollateralContract public collateralContract;
+    address public implementation;
+    address public arWallet;
+    address public apWallet;
+    IERC20 public paymentToken;
+    IERC20 public rewardToken; 
+    TokenSwap public tokenSwap;
 
     mapping(address => bool) isAdmin;
     mapping(string => address) public tasks;
@@ -58,7 +58,7 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     
-    function assignTask(string memory taskId, address user, address[] memory cpList, uint rewardInUsdc, uint collateral, uint duration) public onlyAdmin {
+    function assignTask(string memory taskId, address[] memory cpList, uint rewardInUsdc, uint collateral, uint duration) public onlyAdmin {
         address clone = Clones.clone(implementation);
         tasks[taskId] = clone;
 
@@ -70,7 +70,7 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         collateralContract.lockCollateral(clone, cpList, collateral);
         rewardToken.transfer(clone, rewardInSwan);
 
-        Task(clone).initialize(msg.sender, user, cpList, rewardForCp, rewardInSwan, collateral, duration);
+        Task(clone).initialize(msg.sender, cpList, rewardForCp, rewardInSwan, collateral, duration);
     
         emit TaskCreated(taskId, clone);
     }
