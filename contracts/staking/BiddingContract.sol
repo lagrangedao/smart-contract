@@ -20,6 +20,7 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     TokenSwap tokenSwap;
 
     mapping(address => bool) isAdmin;
+    mapping(string => address) public tasks;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -55,18 +56,19 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     
-    function assignTask(address user, address[] memory cpList, uint rewardInUsdc, uint collateral, uint duration) public onlyAdmin {
+    function assignTask(string memory taskId, address user, address[] memory cpList, uint rewardInUsdc, uint collateral, uint duration) public onlyAdmin {
         address clone = Clones.clone(implementation);
+        tasks[taskId] = clone;
 
         uint rewardForCp = rewardInUsdc * 95/100;
 
         paymentToken.transferFrom(apWallet, address(this), rewardForCp);
         uint rewardInSwan = tokenSwap.swapUsdcToSwan(rewardForCp);
 
-        Task(clone).initialize(msg.sender, user, cpList, rewardForCp, rewardInSwan, collateral, duration);
-
         collateralContract.lockCollateral(clone, cpList, collateral);
         rewardToken.transfer(clone, rewardInSwan);
+
+        Task(clone).initialize(msg.sender, user, cpList, rewardForCp, rewardInSwan, collateral, duration);
     }
 
     function _authorizeUpgrade(address newImplementation)

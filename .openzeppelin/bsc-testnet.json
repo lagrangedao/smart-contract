@@ -826,6 +826,330 @@
           }
         }
       }
+    },
+    "d7ae0604f40374a2576b9ba1fa8731a221bdc0d03477cbcc5cb3e0fa5f123bc1": {
+      "address": "0x8Dc5756234bbF5a02FEa20FE59876325A00657AF",
+      "txHash": "0x5140329f367df482deb0d842b193b54bd8cfbe098123af2517343199ecf90efb",
+      "layout": {
+        "solcVersion": "0.8.19",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "paymentToken",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_contract(IERC20)1361",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:12"
+          },
+          {
+            "label": "isAdmin",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:26"
+          },
+          {
+            "label": "hardwareInfo",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_mapping(t_uint256,t_struct(Hardware)1388_storage)",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:28"
+          },
+          {
+            "label": "spaceInfo",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_mapping(t_string_memory_ptr,t_struct(SpaceInfo)1381_storage)",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:29"
+          },
+          {
+            "label": "claimable",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_mapping(t_address,t_mapping(t_string_memory_ptr,t_uint256))",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:30"
+          },
+          {
+            "label": "refundClaimDuration",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_uint256",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:47"
+          },
+          {
+            "label": "tasks",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_mapping(t_string_memory_ptr,t_struct(Task)1535_storage)",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:64"
+          },
+          {
+            "label": "arWallet",
+            "offset": 0,
+            "slot": "208",
+            "type": "t_address",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:66"
+          },
+          {
+            "label": "apWallet",
+            "offset": 0,
+            "slot": "209",
+            "type": "t_address",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:67"
+          },
+          {
+            "label": "revenueToken",
+            "offset": 0,
+            "slot": "210",
+            "type": "t_contract(IERC20)1361",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:68"
+          },
+          {
+            "label": "paymentToRevenueRate",
+            "offset": 0,
+            "slot": "211",
+            "type": "t_uint256",
+            "contract": "SpacePaymentV6",
+            "src": "contracts/SpacePaymentV6.sol:69"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)1361": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_string_memory_ptr,t_uint256))": {
+            "label": "mapping(address => mapping(string => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_struct(SpaceInfo)1381_storage)": {
+            "label": "mapping(string => struct SpacePaymentV6.SpaceInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_struct(Task)1535_storage)": {
+            "label": "mapping(string => struct SpacePaymentV6.Task)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_uint256)": {
+            "label": "mapping(string => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Hardware)1388_storage)": {
+            "label": "mapping(uint256 => struct SpacePaymentV6.Hardware)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Hardware)1388_storage": {
+            "label": "struct SpacePaymentV6.Hardware",
+            "members": [
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "pricePerHour",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "isActive",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(SpaceInfo)1381_storage": {
+            "label": "struct SpacePaymentV6.SpaceInfo",
+            "members": [
+              {
+                "label": "hardwareId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "expiryDate",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Task)1535_storage": {
+            "label": "struct SpacePaymentV6.Task",
+            "members": [
+              {
+                "label": "user",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "cp",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "startTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "duration",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "taskDeadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "refundDeadline",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "revenue",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "collateral",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "processingRefundClaim",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "cpRevenue",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "9"
+              }
+            ],
+            "numberOfBytes": "320"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
     }
   }
 }

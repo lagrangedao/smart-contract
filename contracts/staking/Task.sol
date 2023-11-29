@@ -112,6 +112,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         swan.transfer(cpList[1], rewardToOtherCps + refundableCollateral);
         swan.transfer(cpList[2], rewardToOtherCps + refundableCollateral);
 
+        swan.approve(address(tokenSwap), refundableSwanReward);
         uint refundToUser = tokenSwap.swapSwanToUsdc(refundableSwanReward - rewardSubtotal);
 
         if (refundToUser < refundableUsdcReward) {
@@ -159,6 +160,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             swanRewardAmount = 0;
             usdcRewardAmount = 0;   
 
+            swan.approve(address(tokenSwap), refundableSwanReward); 
             uint refundToUser = tokenSwap.swapSwanToUsdc(refundableSwanReward);
 
             if (refundToUser < refundableUsdcReward) {
