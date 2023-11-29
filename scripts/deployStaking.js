@@ -50,6 +50,11 @@ async function main() {
   let tx = await collateral.addAdmin(bidding.target)
   await tx.wait()
   console.log(tx.hash)
+
+  console.log('Setting Admin as Bidding Admin')
+  let tx2 = await bidding.addAdmin(ADMIN_WALLET)
+  await tx2.wait()
+  console.log(tx2.hash)
 }
 
 main()

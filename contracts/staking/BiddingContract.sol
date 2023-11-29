@@ -57,6 +57,9 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         isAdmin[admin] = false;
     }
 
+    function setImplementation(address newImplementation) public onlyOwner {
+        implementation = newImplementation;
+    }
     
     function assignTask(string memory taskId, address[] memory cpList, uint rewardInUsdc, uint collateral, uint duration) public onlyAdmin {
         address clone = Clones.clone(implementation);

@@ -30,6 +30,9 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     mapping(address => bool) isAdmin;
 
+    event TaskTerminated(address user, address[] cpList, uint elaspedDuration, uint userRefund, uint leadingReward, uint otherReward);
+    event RewardClaimed(address cp, uint reward);
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -90,9 +93,14 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @notice - user will get usdc refunded based on the time remaining
      * @dev - swap the reward amount back to usdc, and compare with the original amount paid.
      */
-    function terminateTask() public {
+    function terminateTask(address userAddress) public {
         require(refundDeadline == 0, "task already completed");
         require(msg.sender == user || isAdmin[msg.sender], "sender cannot terminate task");
+        
+        if (isAdmin[msg.sender] && user == address(0)) {
+            user = userAddress;
+        }
+        
         uint refundableSwanReward = swanRewardAmount;
         uint refundableUsdcReward = usdcRewardAmount;
         uint refundableCollateral = swanCollateralAmount;
@@ -118,6 +126,8 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         } else {
             usdc.transfer(user, refundableUsdcReward);
         }
+
+        emit TaskTerminated(user, cpList, elaspedDuration, refundToUser, rewardToLeadingCp, rewardToOtherCps);
     }
 
     /**
@@ -196,9 +206,12 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     
         if (cpIndex == 0) {
             swan.transfer(cpList[0], swanRewardAmount * 7/10 + swanCollateralAmount);
+            emit RewardClaimed(msg.sender, swanRewardAmount * 7/10 );
         } else {
             swan.transfer(cpList[cpIndex], swanRewardAmount * 15/100 + swanCollateralAmount);
+            emit RewardClaimed(msg.sender, swanRewardAmount * 15/100 );
         }
+
     }
 
     function _authorizeUpgrade(address newImplementation)
