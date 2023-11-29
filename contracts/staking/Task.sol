@@ -57,7 +57,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         apWallet = 0x4BC1eE66695AD20771596290548eBE5Cfa1Be332;
         usdc = IERC20(0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a);
         swan = IERC20(0x407a5856050053CF1DB54113bd9Ea9D2Eeee7C35);
-        tokenSwap = TokenSwap(address(0));
+        tokenSwap = TokenSwap(0xaAc390a1A1C1BCF35261181207Ecf6f565dbacb5);
 
         startTime = block.timestamp;
         refundClaimDuration = 3 days;

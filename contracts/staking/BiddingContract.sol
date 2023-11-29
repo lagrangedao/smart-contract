@@ -21,6 +21,8 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     mapping(address => bool) isAdmin;
     mapping(string => address) public tasks;
+    
+    event TaskCreated(string taskId, address taskContractAddress);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -69,6 +71,8 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         rewardToken.transfer(clone, rewardInSwan);
 
         Task(clone).initialize(msg.sender, user, cpList, rewardForCp, rewardInSwan, collateral, duration);
+    
+        emit TaskCreated(taskId, clone);
     }
 
     function _authorizeUpgrade(address newImplementation)
