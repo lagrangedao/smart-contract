@@ -19,7 +19,7 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     IERC20 public rewardToken; 
     TokenSwap public tokenSwap;
 
-    mapping(address => bool) isAdmin;
+    mapping(address => bool) public isAdmin;
     mapping(string => address) public tasks;
     
     event TaskCreated(string taskId, address taskContractAddress);
@@ -67,7 +67,8 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         uint rewardForCp = rewardInUsdc * 95/100;
 
-        paymentToken.transferFrom(apWallet, address(this), rewardForCp);
+        // paymentToken.transferFrom(apWallet, address(this), rewardForCp);
+        paymentToken.approve(address(tokenSwap), rewardForCp);
         uint rewardInSwan = tokenSwap.swapUsdcToSwan(rewardForCp);
 
         collateralContract.lockCollateral(clone, cpList, collateral);

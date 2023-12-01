@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
-    IERC20 collateralToken;
+    IERC20 public collateralToken;
 
     mapping(address => bool) public isAdmin;
     mapping(address => uint) public balances;
@@ -86,7 +86,7 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
             balances[cpList[i]] -= collateral;
         }
 
-        collateralToken.transfer(taskContract, 3 * collateral);
+        collateralToken.transfer(taskContract, cpList.length * collateral);
 
         emit LockCollateral(taskContract, cpList, collateral);
     }

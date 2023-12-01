@@ -86,6 +86,10 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         _;
     }
 
+    function getCpList() public view returns(address[] memory) {
+        return cpList;
+    }
+
     
     /**
      * @notice - early termination of the task. Can only be called by the user

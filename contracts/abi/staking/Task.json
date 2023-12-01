@@ -222,6 +222,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getCpList",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
