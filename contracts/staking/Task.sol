@@ -27,6 +27,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     uint public refundClaimDuration;
     bool public isProcessingRefundClaim;
     bool[] public isRewardClaimed;
+    bool public isTaskTerminated;
 
     mapping(address => bool) isAdmin;
 
@@ -44,7 +45,8 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         uint usdcReward, 
         uint swanReward, 
         uint swanCollateral, 
-        uint duration_
+        uint taskDuration,
+        uint refundDuration
     ) public initializer{ 
         isAdmin[admin] = true;
         cpList = cpAddresses;
@@ -52,7 +54,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         usdcRewardAmount = usdcReward;
         swanRewardAmount = swanReward;
         swanCollateralAmount = swanCollateral;
-        duration = duration_;
+        duration = taskDuration;
 
         arWallet = 0x47846473daE8fA6E5E51e03f12AbCf4F5eDf9Bf5;
         apWallet = 0x4BC1eE66695AD20771596290548eBE5Cfa1Be332;
@@ -61,7 +63,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         tokenSwap = TokenSwap(0xaAc390a1A1C1BCF35261181207Ecf6f565dbacb5);
 
         startTime = block.timestamp;
-        refundClaimDuration = 3 days;
+        refundClaimDuration = refundDuration;
     }
 
     // Modifier to check if the caller is the admin
@@ -89,7 +91,6 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function getCpList() public view returns(address[] memory) {
         return cpList;
     }
-
     
     /**
      * @notice - early termination of the task. Can only be called by the user
@@ -98,10 +99,13 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @dev - swap the reward amount back to usdc, and compare with the original amount paid.
      */
     function terminateTask(address userAddress) public {
+        require(!isTaskTerminated, "task already terminated");
         require(refundDeadline == 0, "task already completed");
         require(msg.sender == user || isAdmin[msg.sender], "sender cannot terminate task");
         
-        if (isAdmin[msg.sender] && user == address(0)) {
+        isTaskTerminated = true;
+
+        if (isAdmin[msg.sender]) {
             user = userAddress;
         }
         
@@ -114,24 +118,26 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         swanRewardAmount = 0;
         swanCollateralAmount = 0;
 
-        uint rewardSubtotal = refundableSwanReward * (elaspedDuration / duration);
+        uint rewardSubtotal = refundableSwanReward * elaspedDuration / duration;
         uint rewardToLeadingCp = rewardSubtotal * 70/100;
-        uint rewardToOtherCps = (rewardSubtotal - rewardToLeadingCp) / 2;
+        uint rewardToOtherCps = (rewardSubtotal - rewardToLeadingCp) / (cpList.length - 1);
 
         swan.transfer(cpList[0], rewardToLeadingCp + refundableCollateral);
-        swan.transfer(cpList[1], rewardToOtherCps + refundableCollateral);
-        swan.transfer(cpList[2], rewardToOtherCps + refundableCollateral);
+
+        for (uint i = 1; i < cpList.length; i++) {
+            swan.transfer(cpList[i], rewardToOtherCps + refundableCollateral);
+        }
 
         swan.approve(address(tokenSwap), refundableSwanReward);
         uint refundToUser = tokenSwap.swapSwanToUsdc(refundableSwanReward - rewardSubtotal);
 
         if (refundToUser < refundableUsdcReward) {
-            usdc.transfer(user, refundToUser);
+            usdc.transfer(userAddress, refundToUser);
         } else {
-            usdc.transfer(user, refundableUsdcReward);
+            usdc.transfer(userAddress, refundableUsdcReward);
         }
 
-        emit TaskTerminated(user, cpList, elaspedDuration, refundToUser, rewardToLeadingCp, rewardToOtherCps);
+        emit TaskTerminated(userAddress, cpList, elaspedDuration, refundToUser, rewardToLeadingCp, rewardToOtherCps);
     }
 
     /**
@@ -142,6 +148,10 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(refundDeadline == 0, "task already completed");
         user = userAddress;
         refundDeadline = block.timestamp + refundClaimDuration;
+        uint taskFee = swanRewardAmount * 5/100;
+        swanRewardAmount -= taskFee;
+
+        swan.transfer(apWallet, taskFee);
     }
 
     /**
@@ -196,26 +206,23 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(block.timestamp > refundDeadline, "wait for claim deadline");
         require(!isProcessingRefundClaim, "claim under review");
 
-        uint cpIndex;
+        uint claimAmount = 0;
+
+        if (msg.sender == cpList[0] && !isRewardClaimed[0]) {
+            claimAmount += swanRewardAmount * 7/10 + swanCollateralAmount;
+            isRewardClaimed[0] = true;
+        }
         // claim rules
-        for(uint i=0; i<cpList.length; i++) {
-            if (msg.sender == cpList[i]) {
-                cpIndex = i;
+        for(uint i=1; i<cpList.length; i++) {
+            if (msg.sender == cpList[i] && !isRewardClaimed[i]) {
+                claimAmount += (swanRewardAmount * 3/10) / (cpList.length - 1);
+                claimAmount += swanCollateralAmount;
+                isRewardClaimed[i] = true;
             }
         }
 
-        require(!isRewardClaimed[cpIndex], "reward already claimed");
-
-        isRewardClaimed[cpIndex] = true;
-    
-        if (cpIndex == 0) {
-            swan.transfer(cpList[0], swanRewardAmount * 7/10 + swanCollateralAmount);
-            emit RewardClaimed(msg.sender, swanRewardAmount * 7/10 );
-        } else {
-            swan.transfer(cpList[cpIndex], swanRewardAmount * 15/100 + swanCollateralAmount);
-            emit RewardClaimed(msg.sender, swanRewardAmount * 15/100 );
-        }
-
+        swan.transfer(msg.sender, claimAmount);
+        emit RewardClaimed(msg.sender, claimAmount );
     }
 
     function _authorizeUpgrade(address newImplementation)

@@ -24,6 +24,8 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     
     event TaskCreated(string taskId, address taskContractAddress);
 
+    uint public refundClaimDuration;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -60,21 +62,24 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function setImplementation(address newImplementation) public onlyOwner {
         implementation = newImplementation;
     }
+
+    function setRefundClaimDuration(uint claimDuration) public onlyOwner {
+        refundClaimDuration = claimDuration;
+    }
     
     function assignTask(string memory taskId, address[] memory cpList, uint rewardInUsdc, uint collateral, uint duration) public onlyAdmin {
+        require(tasks[taskId] == address(0), "taskId already assigned");
         address clone = Clones.clone(implementation);
         tasks[taskId] = clone;
 
-        uint rewardForCp = rewardInUsdc * 95/100;
-
         // paymentToken.transferFrom(apWallet, address(this), rewardForCp);
-        paymentToken.approve(address(tokenSwap), rewardForCp);
-        uint rewardInSwan = tokenSwap.swapUsdcToSwan(rewardForCp);
+        paymentToken.approve(address(tokenSwap), rewardInUsdc);
+        uint rewardInSwan = tokenSwap.swapUsdcToSwan(rewardInUsdc);
 
         collateralContract.lockCollateral(clone, cpList, collateral);
         rewardToken.transfer(clone, rewardInSwan);
 
-        Task(clone).initialize(msg.sender, cpList, rewardForCp, rewardInSwan, collateral, duration);
+        Task(clone).initialize(msg.sender, cpList, rewardInUsdc, rewardInSwan, collateral, duration, refundClaimDuration);
     
         emit TaskCreated(taskId, clone);
     }

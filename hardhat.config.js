@@ -72,6 +72,10 @@ module.exports = {
       url: process.env.OP_GOERLI_RPC,
       accounts: [process.env.PRIVATE_KEY],
     },
+    opsepolia: {
+      url: 'https://sepolia.optimism.io',
+      accounts: [process.env.PRIVATE_KEY],
+    },
   },
   etherscan: {
     apiKey: {
@@ -79,6 +83,7 @@ module.exports = {
       sepolia: process.env.ETHERSCAN_API_KEY,
       bscTestnet: process.env.BSCSCAN_API_KEY,
       optimisticGoerli: process.env.OP_API_KEY,
+      opsepolia: process.env.OP_API_KEY,
     },
     customChains: [
       {
@@ -87,6 +92,14 @@ module.exports = {
         urls: {
           apiURL: 'http://34.130.248.50/api',
           browserURL: 'http://34.130.248.50',
+        },
+      },
+      {
+        network: 'opsepolia',
+        chainId: 11155420,
+        urls: {
+          browserURL: 'https://optimism-sepolia.blockscout.com',
+          apiURL: 'https://optimism-sepolia.blockscout.com/api',
         },
       },
     ],

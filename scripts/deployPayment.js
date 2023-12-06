@@ -1,9 +1,9 @@
 const { ethers, upgrades } = require('hardhat')
 
-const TOKEN1 = '0xFEA043Bf8b514F9FD8E87C4b7Dfc81096E4c6Ec8'
-const TOKEN2 = '0xc648B1a7645FA706B52B1dFC799e7B2b487c08AD'
+const TOKEN1 = '0x91B25A65b295F0405552A4bbB77879ab5e38166c'
+const TOKEN2 = '0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a'
 async function main() {
-  const SP = await ethers.getContractFactory('SpacePaymentV4')
+  const SP = await ethers.getContractFactory('SpacePaymentV6')
 
   console.log('Deploying SpacePayment...')
 
