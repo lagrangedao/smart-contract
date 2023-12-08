@@ -7,7 +7,7 @@ const ADMIN_WALLET = '0x29eD49c8E973696D07E7927f748F6E5Eacd5516D'
 const SWAN_CHAIN_USDC = '0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a'
 const SWAN_CHAIN_SWAN = '0x407a5856050053CF1DB54113bd9Ea9D2Eeee7C35'
 
-const SWAP = '0xaAc390a1A1C1BCF35261181207Ecf6f565dbacb5'
+const SWAP = '0x9b89AA8ed8eF4EDeAAd266F58dfec09864bbeC1f'
 
 async function main() {
   const Collateral = await ethers.getContractFactory('CollateralContract')
@@ -17,16 +17,16 @@ async function main() {
 
   console.log('Deploying Collateral Contract...')
 
-  const collateral = await upgrades.deployProxy(Collateral, [SWAN_CHAIN_SWAN], {
-    initializer: 'initialize',
-  })
-  await collateral.waitForDeployment()
+  //   const collateral = await upgrades.deployProxy(Collateral, [SWAN_CHAIN_SWAN], {
+  //     initializer: 'initialize',
+  //   })
+  //   await collateral.waitForDeployment()
 
-  console.log('Collateral Contract deployed to:', await collateral.getAddress())
+  //   console.log('Collateral Contract deployed to:', await collateral.getAddress())
 
-  //   const collateral = Collateral.attach(
-  //     '0xbb3023a1Cc5013f6B17bC18a68Df3f2979291C95',
-  //   )
+  const collateral = Collateral.attach(
+    '0xaAea25dF7D20f2098B816486880E4b706DD57044',
+  )
 
   console.log('Deploying Bidding Contract...')
 
