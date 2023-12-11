@@ -119,14 +119,21 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         swanCollateralAmount = 0;
 
         uint rewardSubtotal = refundableSwanReward * elaspedDuration / duration;
-        uint rewardToLeadingCp = rewardSubtotal * 70/100;
-        uint rewardToOtherCps = (rewardSubtotal - rewardToLeadingCp) / (cpList.length - 1);
+        uint rewardToLeadingCp = rewardSubtotal;
+        uint rewardToOtherCps = 0;
 
-        swan.transfer(cpList[0], rewardToLeadingCp + refundableCollateral);
+        if (cpList.length > 1) {
+            rewardToLeadingCp = rewardSubtotal * 70/100;
+            rewardToOtherCps = (rewardSubtotal - rewardToLeadingCp) / (cpList.length - 1);
+        }
+
+        if (cpList.length >= 1) {
+            swan.transfer(cpList[0], rewardToLeadingCp + refundableCollateral); 
+        }
 
         for (uint i = 1; i < cpList.length; i++) {
             swan.transfer(cpList[i], rewardToOtherCps + refundableCollateral);
-        }
+        }   
 
         swan.approve(address(tokenSwap), refundableSwanReward);
         uint refundToUser = tokenSwap.swapSwanToUsdc(refundableSwanReward - rewardSubtotal);
@@ -209,7 +216,11 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         uint claimAmount = 0;
 
         if (msg.sender == cpList[0] && !isRewardClaimed[0]) {
-            claimAmount += swanRewardAmount * 7/10 + swanCollateralAmount;
+            if (cpList.length == 1) {
+                claimAmount += swanRewardAmount + swanCollateralAmount;
+            } else {
+                claimAmount += swanRewardAmount * 7/10 + swanCollateralAmount;
+            }
             isRewardClaimed[0] = true;
         }
         // claim rules

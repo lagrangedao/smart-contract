@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "./Swap.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "./Task.sol";
 import "./CollateralContract.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
@@ -17,7 +17,10 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public apWallet;
     IERC20 public paymentToken;
     IERC20 public rewardToken; 
-    TokenSwap public tokenSwap;
+    IUniswapV2Router02 public uniswapRouter;
+    uint public swapTime;
+    address[] public swapPath;
+    
 
     mapping(address => bool) public isAdmin;
     mapping(string => address) public tasks;
@@ -38,11 +41,16 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         collateralContract = CollateralContract(collateralContractAddress);
         paymentToken = IERC20(paymentTokenAddress);
         rewardToken = IERC20(rewardTokenAddress);
-        tokenSwap = TokenSwap(swapContractAddress);
+        uniswapRouter = IUniswapV2Router02(swapContractAddress);
         arWallet = ar;
         apWallet = ap;
         isAdmin[msg.sender] = true;
         implementation = address(new Task());
+
+        swapTime = 2 hours;
+        swapPath = [paymentTokenAddress, rewardTokenAddress];
+
+        paymentToken.approve(swapContractAddress, type(uint256).max);
     }
 
     // Modifier to check if the caller is the admin
@@ -72,14 +80,14 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         address clone = Clones.clone(implementation);
         tasks[taskId] = clone;
 
-        // paymentToken.transferFrom(apWallet, address(this), rewardForCp);
-        paymentToken.approve(address(tokenSwap), rewardInUsdc);
-        uint rewardInSwan = tokenSwap.swapUsdcToSwan(rewardInUsdc);
+        paymentToken.transferFrom(apWallet, address(this), rewardInUsdc);
+        // paymentToken.approve(address(uniswapRouter), rewardInUsdc);
+        uint[] memory rewardInSwan = uniswapRouter.swapExactTokensForTokens(rewardInUsdc, 0, swapPath, clone, block.timestamp + swapTime);
 
         collateralContract.lockCollateral(clone, cpList, collateral);
-        rewardToken.transfer(clone, rewardInSwan);
+        // rewardToken.transfer(clone, rewardInSwan);
 
-        Task(clone).initialize(msg.sender, cpList, rewardInUsdc, rewardInSwan, collateral, duration, refundClaimDuration);
+        Task(clone).initialize(msg.sender, cpList, rewardInUsdc, rewardInSwan[1], collateral, duration, refundClaimDuration);
     
         emit TaskCreated(taskId, clone);
     }
