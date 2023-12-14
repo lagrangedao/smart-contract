@@ -1,6 +1,6 @@
 const { ethers, upgrades } = require('hardhat')
 
-const PROXY = '0x37c93891943D319e3546f6455b14661636dEAA5d'
+const PROXY = '0x1beeD4d28757a5b692722311DF9A2c8D53B32a90'
 
 async function main() {
   const NewPayment = await ethers.getContractFactory('BiddingContract')

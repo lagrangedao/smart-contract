@@ -1,25 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
-import "./Task.sol";
-import "./CollateralContract.sol";
+import { TaskV2 } from "./TaskV2.sol";
+import { CollateralContractV2 } from  "./CollateralContractV2.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract BiddingContractV2 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     
-    CollateralContract public collateralContract;
+    CollateralContractV2 public collateralContract;
     address public implementation;
     address public arWallet;
     address public apWallet;
-    IERC20 public paymentToken;
-    IERC20 public rewardToken; 
-    IUniswapV2Router02 public uniswapRouter;
-    uint public swapTime;
-    address[] public swapPath;
+    address public wethAddress;
     
 
     mapping(address => bool) public isAdmin;
@@ -34,23 +30,16 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         _disableInitializers();
     }
 
-    function initialize(address ar, address ap, address collateralContractAddress, address paymentTokenAddress, address rewardTokenAddress, address swapContractAddress) initializer public {
+    function initialize(address ar, address ap, address collateralContractAddress, address tokenAddress) initializer public {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        collateralContract = CollateralContract(collateralContractAddress);
-        paymentToken = IERC20(paymentTokenAddress);
-        rewardToken = IERC20(rewardTokenAddress);
-        uniswapRouter = IUniswapV2Router02(swapContractAddress);
+        collateralContract = CollateralContractV2(payable(collateralContractAddress));
+        wethAddress = tokenAddress;
         arWallet = ar;
         apWallet = ap;
         isAdmin[msg.sender] = true;
-        implementation = address(new Task());
-
-        swapTime = 2 hours;
-        swapPath = [paymentTokenAddress, rewardTokenAddress];
-
-        paymentToken.approve(swapContractAddress, type(uint256).max);
+        implementation = address(new TaskV2());
     }
 
     // Modifier to check if the caller is the admin
@@ -75,23 +64,15 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         refundClaimDuration = claimDuration;
     }
     
-    function assignTask(string memory taskId, address[] memory cpList, uint rewardInUsdc, uint collateral, uint duration) public onlyAdmin {
+    function assignTask(string memory taskId, address[] memory cpList, uint reward, uint collateral, uint duration) public onlyAdmin {
         require(tasks[taskId] == address(0), "taskId already assigned");
         address clone = Clones.clone(implementation);
         tasks[taskId] = clone;
 
-        uint rewardInSwan = 0;
-
-        if (rewardInUsdc > 0) {
-            paymentToken.transferFrom(apWallet, address(this), rewardInUsdc);
-            // paymentToken.approve(address(uniswapRouter), rewardInUsdc);
-            uint[] memory swapOutput = uniswapRouter.swapExactTokensForTokens(rewardInUsdc, 0, swapPath, clone, block.timestamp + swapTime);
-            rewardInSwan = swapOutput[1];
-        }
-
+        IERC20(wethAddress).transferFrom(apWallet, address(this), reward);
         collateralContract.lockCollateral(clone, cpList, collateral);
 
-        Task(clone).initialize(msg.sender, cpList, rewardInUsdc, rewardInSwan, collateral, duration, refundClaimDuration);
+        TaskV2(clone).initialize(msg.sender, cpList, reward, collateral, duration, refundClaimDuration);
     
         emit TaskCreated(taskId, clone);
     }

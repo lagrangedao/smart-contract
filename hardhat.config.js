@@ -61,7 +61,7 @@ module.exports = {
     },
     opswan: {
       url: 'https://rpc.swanchain.dev',
-      accounts: [process.env.PRIVATE_KEY, process.env.AR_PRIVATE_KEY],
+      accounts: [process.env.PRIVATE_KEY, process.env.AP_PRIVATE_KEY],
       chainId: 8598668088,
     },
     tbsc: {
