@@ -13,6 +13,11 @@ module.exports = {
       },
       {
         version: '0.8.19',
+        settings: {
+          optimizer: {
+            enabled: true,
+          },
+        },
       },
       {
         version: '0.8.20',
@@ -46,6 +51,10 @@ module.exports = {
       url: process.env.MUMBAI_RPC,
       accounts: [process.env.PRIVATE_KEY],
     },
+    polygon: {
+      url: process.env.POLYGON_URL,
+      accounts: [process.env.MAIN_PRIVATE_KEY],
+    },
     bsc: {
       url: 'https://data-seed-prebsc-1-s2.binance.org:8545',
       accounts: [process.env.PRIVATE_KEY],
@@ -55,20 +64,31 @@ module.exports = {
       accounts: [process.env.private_key],
     },
     opswan: {
-      url: 'http://34.95.38.202:8545',
-      accounts: [process.env.PRIVATE_KEY],
+      url: 'https://rpc.swanchain.dev',
+      accounts: [process.env.PRIVATE_KEY, process.env.AP_PRIVATE_KEY],
       chainId: 8598668088,
     },
     tbsc: {
-      url: 'https://bsc-testnet.publicnode.com',
+      url: 'https://data-seed-prebsc-1-s1.bnbchain.org:8545',
+      accounts: [process.env.PRIVATE_KEY],
+    },
+    opgoerli: {
+      url: process.env.OP_GOERLI_RPC,
+      accounts: [process.env.PRIVATE_KEY],
+    },
+    opsepolia: {
+      url: 'https://sepolia.optimism.io',
       accounts: [process.env.PRIVATE_KEY],
     },
   },
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.POLYGONSCAN_API_KEY,
+      polygon: process.env.POLYGONSCAN_API_KEY,
       sepolia: process.env.ETHERSCAN_API_KEY,
       bscTestnet: process.env.BSCSCAN_API_KEY,
+      optimisticGoerli: process.env.OP_API_KEY,
+      opsepolia: process.env.OP_API_KEY,
     },
     customChains: [
       {
@@ -77,6 +97,14 @@ module.exports = {
         urls: {
           apiURL: 'http://34.130.248.50/api',
           browserURL: 'http://34.130.248.50',
+        },
+      },
+      {
+        network: 'opsepolia',
+        chainId: 11155420,
+        urls: {
+          browserURL: 'https://optimism-sepolia.blockscout.com',
+          apiURL: 'https://optimism-sepolia.blockscout.com/api',
         },
       },
     ],

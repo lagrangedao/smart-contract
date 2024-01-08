@@ -138,7 +138,7 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(paymentToken.balanceOf(arWallet) >= claimAmount, "Claim currently unavailable");
 
         claimable[wallet][claimId] = 0;
-        paymentToken.transfer(wallet, claimAmount);
+        paymentToken.transferFrom(arWallet, wallet, claimAmount);
 
         return claimAmount;
     }
@@ -149,19 +149,27 @@ contract SpacePaymentV6 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function claimReward (string memory taskId) public {
-        require(tasks[taskId].cp == msg.sender, "task is not assigned to caller");
-        require(block.timestamp > tasks[taskId].refundDeadline, "wait for claim deadline");
-        require(!tasks[taskId].processingRefundClaim, "claim under review");
+        uint claimAmount = claimable[msg.sender][taskId];
+        require(claimAmount > 0, "Nothing to claim.");
+        require(revenueToken.balanceOf(apWallet) >= claimAmount, "Claim currently unavailable");
 
-        uint collateral = tasks[taskId].collateral;
-        uint revenue = tasks[taskId].cpRevenue;
-        tasks[taskId].revenue = 0;
-        tasks[taskId].cpRevenue = 0;
-        tasks[taskId].collateral = 0;
-        paymentToken.transfer(msg.sender, collateral);
-        revenueToken.transferFrom(apWallet, msg.sender, revenue);
+        claimable[msg.sender][taskId] = 0;
+        revenueToken.transferFrom(apWallet, msg.sender, claimAmount);
 
-        emit RevenueCollected(taskId, revenue);
+        emit RewardClaimed(taskId, msg.sender, claimAmount);
+        // require(tasks[taskId].cp == msg.sender, "task is not assigned to caller");
+        // require(block.timestamp > tasks[taskId].refundDeadline, "wait for claim deadline");
+        // require(!tasks[taskId].processingRefundClaim, "claim under review");
+
+        // uint collateral = tasks[taskId].collateral;
+        // uint revenue = tasks[taskId].cpRevenue;
+        // tasks[taskId].revenue = 0;
+        // tasks[taskId].cpRevenue = 0;
+        // tasks[taskId].collateral = 0;
+        // paymentToken.transfer(msg.sender, collateral);
+        // revenueToken.transferFrom(apWallet, msg.sender, revenue);
+
+        // emit RevenueCollected(taskId, revenue);
     }
 
     // Make a payment for a space (DEPRECIATED, USE lockRevenue)
