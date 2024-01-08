@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "./Swap.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -17,7 +17,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public apWallet;
     IERC20 public usdc;
     IERC20 public swan;
-    TokenSwap public tokenSwap;
+    IUniswapV2Router02 public uniswapRouter;
     uint public usdcRewardAmount;
     uint public swanRewardAmount;
     uint public swanCollateralAmount;
@@ -28,6 +28,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     bool public isProcessingRefundClaim;
     bool[] public isRewardClaimed;
     bool public isTaskTerminated;
+    address[] public swapPath;
 
     mapping(address => bool) isAdmin;
 
@@ -60,7 +61,8 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         apWallet = 0x4BC1eE66695AD20771596290548eBE5Cfa1Be332;
         usdc = IERC20(0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a);
         swan = IERC20(0x407a5856050053CF1DB54113bd9Ea9D2Eeee7C35);
-        tokenSwap = TokenSwap(0xaAc390a1A1C1BCF35261181207Ecf6f565dbacb5);
+        uniswapRouter = IUniswapV2Router02(0x9b89AA8ed8eF4EDeAAd266F58dfec09864bbeC1f);
+        swapPath = [0x407a5856050053CF1DB54113bd9Ea9D2Eeee7C35, 0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a];
 
         startTime = block.timestamp;
         refundClaimDuration = refundDuration;
@@ -135,8 +137,10 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             swan.transfer(cpList[i], rewardToOtherCps + refundableCollateral);
         }   
 
-        swan.approve(address(tokenSwap), refundableSwanReward);
-        uint refundToUser = tokenSwap.swapSwanToUsdc(refundableSwanReward - rewardSubtotal);
+        swan.approve(address(uniswapRouter), refundableSwanReward);
+        uint[] memory result = uniswapRouter.swapExactTokensForTokens(refundableSwanReward - rewardSubtotal, 0, swapPath, address(this), block.timestamp + 2 hours);
+
+        uint refundToUser = result[1];
 
         if (refundToUser < refundableUsdcReward) {
             usdc.transfer(userAddress, refundToUser);
@@ -191,8 +195,9 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             swanRewardAmount = 0;
             usdcRewardAmount = 0;   
 
-            swan.approve(address(tokenSwap), refundableSwanReward); 
-            uint refundToUser = tokenSwap.swapSwanToUsdc(refundableSwanReward);
+            swan.approve(address(uniswapRouter), refundableSwanReward); 
+            uint[] memory swapResult = uniswapRouter.swapExactTokensForTokens(refundableSwanReward, 0, swapPath, address(this), block.timestamp + 2 hours);
+            uint refundToUser = swapResult[1];
 
             if (refundToUser < refundableUsdcReward) {
                 usdc.transfer(user, refundToUser);

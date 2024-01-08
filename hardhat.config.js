@@ -51,6 +51,10 @@ module.exports = {
       url: process.env.MUMBAI_RPC,
       accounts: [process.env.PRIVATE_KEY],
     },
+    polygon: {
+      url: process.env.POLYGON_URL,
+      accounts: [process.env.MAIN_PRIVATE_KEY],
+    },
     bsc: {
       url: 'https://data-seed-prebsc-1-s2.binance.org:8545',
       accounts: [process.env.PRIVATE_KEY],
@@ -80,6 +84,7 @@ module.exports = {
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.POLYGONSCAN_API_KEY,
+      polygon: process.env.POLYGONSCAN_API_KEY,
       sepolia: process.env.ETHERSCAN_API_KEY,
       bscTestnet: process.env.BSCSCAN_API_KEY,
       optimisticGoerli: process.env.OP_API_KEY,
