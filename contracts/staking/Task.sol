@@ -120,6 +120,10 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         swanRewardAmount = 0;
         swanCollateralAmount = 0;
 
+        if (elaspedDuration > duration) {
+            elaspedDuration = duration;
+        }
+
         uint rewardSubtotal = refundableSwanReward * elaspedDuration / duration;
         uint rewardToLeadingCp = rewardSubtotal;
         uint rewardToOtherCps = 0;
@@ -137,10 +141,15 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             swan.transfer(cpList[i], rewardToOtherCps + refundableCollateral);
         }   
 
-        swan.approve(address(uniswapRouter), refundableSwanReward);
-        uint[] memory result = uniswapRouter.swapExactTokensForTokens(refundableSwanReward - rewardSubtotal, 0, swapPath, address(this), block.timestamp + 2 hours);
+        uint refundAmount = refundableSwanReward - rewardSubtotal;
+        uint refundToUser = 0;
 
-        uint refundToUser = result[1];
+        if (refundAmount > 0) {
+            swan.approve(address(uniswapRouter), refundableSwanReward);
+            uint[] memory result = uniswapRouter.swapExactTokensForTokens(refundableSwanReward - rewardSubtotal, 0, swapPath, address(this), block.timestamp + 2 hours);
+
+            refundToUser = result[1];
+        }
 
         if (refundToUser < refundableUsdcReward) {
             usdc.transfer(userAddress, refundToUser);
@@ -195,9 +204,14 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             swanRewardAmount = 0;
             usdcRewardAmount = 0;   
 
-            swan.approve(address(uniswapRouter), refundableSwanReward); 
-            uint[] memory swapResult = uniswapRouter.swapExactTokensForTokens(refundableSwanReward, 0, swapPath, address(this), block.timestamp + 2 hours);
-            uint refundToUser = swapResult[1];
+            uint refundAmount = refundableSwanReward;
+            uint refundToUser = 0;
+
+            if (refundAmount > 0) {
+                swan.approve(address(uniswapRouter), refundableSwanReward); 
+                uint[] memory swapResult = uniswapRouter.swapExactTokensForTokens(refundableSwanReward, 0, swapPath, address(this), block.timestamp + 2 hours);
+                refundToUser = swapResult[1];
+            }
 
             if (refundToUser < refundableUsdcReward) {
                 usdc.transfer(user, refundToUser);

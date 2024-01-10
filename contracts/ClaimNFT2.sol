@@ -50,9 +50,9 @@ contract UBINFTClaim is Initializable, OwnableUpgradeable, ERC1155HolderUpgradea
     }
 
     function claim() public {
-        require(claimable[msg.sender].length == tokenIds.length);
+        require(claimable[msg.sender].length == tokenIds.length, 'nothing to claim');
         uint[] memory quantities = claimable[msg.sender];
-        claimable[msg.sender] = [0, 0, 0, 0, 0];
+        claimable[msg.sender] = [0];
 
         collection.safeBatchTransferFrom(address(this), msg.sender, tokenIds, quantities, "");
 
