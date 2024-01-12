@@ -248,11 +248,6 @@
       },
       {
         "internalType": "uint256",
-        "name": "usdcReward",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
         "name": "swanReward",
         "type": "uint256"
       },
@@ -263,7 +258,12 @@
       },
       {
         "internalType": "uint256",
-        "name": "duration_",
+        "name": "taskDuration",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "refundDuration",
         "type": "uint256"
       }
     ],
@@ -294,6 +294,19 @@
       }
     ],
     "name": "isRewardClaimed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "isTaskTerminated",
     "outputs": [
       {
         "internalType": "bool",
@@ -449,19 +462,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "tokenSwap",
-    "outputs": [
-      {
-        "internalType": "contract TokenSwap",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -503,32 +503,6 @@
     "name": "upgradeToAndCall",
     "outputs": [],
     "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "usdc",
-    "outputs": [
-      {
-        "internalType": "contract IERC20",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "usdcRewardAmount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

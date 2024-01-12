@@ -23,6 +23,9 @@ module.exports = {
         version: '0.8.20',
       },
       {
+        version: '0.5.16',
+      },
+      {
         version: '0.6.6',
         settings: {
           optimizer: {
@@ -79,6 +82,10 @@ module.exports = {
     opsepolia: {
       url: 'https://sepolia.optimism.io',
       accounts: [process.env.PRIVATE_KEY],
+    },
+    saturn: {
+      url: 'https://saturn-rpc.swanchain.io',
+      accounts: [process.env.PRIVATE_KEY, process.env.AP_PRIVATE_KEY],
     },
   },
   etherscan: {

@@ -15,10 +15,10 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address[] public cpList;
     address public arWallet;
     address public apWallet;
-    IERC20 public usdc;
+    // IERC20 public usdc;
     IERC20 public swan;
-    IUniswapV2Router02 public uniswapRouter;
-    uint public usdcRewardAmount;
+    // IUniswapV2Router02 public uniswapRouter;
+    // uint public usdcRewardAmount;
     uint public swanRewardAmount;
     uint public swanCollateralAmount;
     uint public duration;
@@ -28,7 +28,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     bool public isProcessingRefundClaim;
     bool[] public isRewardClaimed;
     bool public isTaskTerminated;
-    address[] public swapPath;
+    // address[] public swapPath;
 
     mapping(address => bool) isAdmin;
 
@@ -43,7 +43,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function initialize(
         address admin,
         address[] memory cpAddresses, 
-        uint usdcReward, 
+        // uint usdcReward, 
         uint swanReward, 
         uint swanCollateral, 
         uint taskDuration,
@@ -52,17 +52,17 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         isAdmin[admin] = true;
         cpList = cpAddresses;
         isRewardClaimed = new bool[](cpList.length);
-        usdcRewardAmount = usdcReward;
+        // usdcRewardAmount = usdcReward;
         swanRewardAmount = swanReward;
         swanCollateralAmount = swanCollateral;
         duration = taskDuration;
 
         arWallet = 0x47846473daE8fA6E5E51e03f12AbCf4F5eDf9Bf5;
         apWallet = 0x4BC1eE66695AD20771596290548eBE5Cfa1Be332;
-        usdc = IERC20(0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a);
-        swan = IERC20(0x407a5856050053CF1DB54113bd9Ea9D2Eeee7C35);
-        uniswapRouter = IUniswapV2Router02(0x9b89AA8ed8eF4EDeAAd266F58dfec09864bbeC1f);
-        swapPath = [0x407a5856050053CF1DB54113bd9Ea9D2Eeee7C35, 0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a];
+        // usdc = IERC20(0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a);
+        swan = IERC20(0x91B25A65b295F0405552A4bbB77879ab5e38166c);
+        // uniswapRouter = IUniswapV2Router02(0x9b89AA8ed8eF4EDeAAd266F58dfec09864bbeC1f);
+        // swapPath = [0x407a5856050053CF1DB54113bd9Ea9D2Eeee7C35, 0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a];
 
         startTime = block.timestamp;
         refundClaimDuration = refundDuration;
@@ -112,11 +112,11 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         }
         
         uint refundableSwanReward = swanRewardAmount;
-        uint refundableUsdcReward = usdcRewardAmount;
+        // uint refundableUsdcReward = usdcRewardAmount;
         uint refundableCollateral = swanCollateralAmount;
         uint elaspedDuration = block.timestamp - startTime;
 
-        usdcRewardAmount = 0;
+        // usdcRewardAmount = 0;
         swanRewardAmount = 0;
         swanCollateralAmount = 0;
 
@@ -142,22 +142,24 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         }   
 
         uint refundAmount = refundableSwanReward - rewardSubtotal;
-        uint refundToUser = 0;
+        // uint refundToUser = 0;
 
-        if (refundAmount > 0) {
-            swan.approve(address(uniswapRouter), refundableSwanReward);
-            uint[] memory result = uniswapRouter.swapExactTokensForTokens(refundableSwanReward - rewardSubtotal, 0, swapPath, address(this), block.timestamp + 2 hours);
+        // if (refundAmount > 0) {
+        //     swan.approve(address(uniswapRouter), refundableSwanReward);
+        //     uint[] memory result = uniswapRouter.swapExactTokensForTokens(refundableSwanReward - rewardSubtotal, 0, swapPath, address(this), block.timestamp + 2 hours);
 
-            refundToUser = result[1];
-        }
+        //     refundToUser = result[1];
+        // }
 
-        if (refundToUser < refundableUsdcReward) {
-            usdc.transfer(userAddress, refundToUser);
-        } else {
-            usdc.transfer(userAddress, refundableUsdcReward);
-        }
+        // if (refundToUser < refundableUsdcReward) {
+        //     usdc.transfer(userAddress, refundToUser);
+        // } else {
+        //     usdc.transfer(userAddress, refundableUsdcReward);
+        // }
 
-        emit TaskTerminated(userAddress, cpList, elaspedDuration, refundToUser, rewardToLeadingCp, rewardToOtherCps);
+        swan.transfer(userAddress, refundAmount);
+
+        emit TaskTerminated(userAddress, cpList, elaspedDuration, refundAmount, rewardToLeadingCp, rewardToOtherCps);
     }
 
     /**
@@ -200,24 +202,25 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(isProcessingRefundClaim, "no claim submitted for this task");
         if (result) {
             uint refundableSwanReward = swanRewardAmount;
-            uint refundableUsdcReward = usdcRewardAmount;
+            // uint refundableUsdcReward = usdcRewardAmount;
             swanRewardAmount = 0;
-            usdcRewardAmount = 0;   
+            // usdcRewardAmount = 0;   
 
-            uint refundAmount = refundableSwanReward;
-            uint refundToUser = 0;
+            swan.transfer(user, refundableSwanReward);
+            // uint refundAmount = refundableSwanReward;
+            // uint refundToUser = 0;
 
-            if (refundAmount > 0) {
-                swan.approve(address(uniswapRouter), refundableSwanReward); 
-                uint[] memory swapResult = uniswapRouter.swapExactTokensForTokens(refundableSwanReward, 0, swapPath, address(this), block.timestamp + 2 hours);
-                refundToUser = swapResult[1];
-            }
+            // if (refundAmount > 0) {
+            //     swan.approve(address(uniswapRouter), refundableSwanReward); 
+            //     uint[] memory swapResult = uniswapRouter.swapExactTokensForTokens(refundableSwanReward, 0, swapPath, address(this), block.timestamp + 2 hours);
+            //     refundToUser = swapResult[1];
+            // }
 
-            if (refundToUser < refundableUsdcReward) {
-                usdc.transfer(user, refundToUser);
-            } else {
-                usdc.transfer(user, refundableUsdcReward);
-            }
+            // if (refundToUser < refundableUsdcReward) {
+            //     usdc.transfer(user, refundToUser);
+            // } else {
+            //     usdc.transfer(user, refundableUsdcReward);
+            // }
         }
 
         refundDeadline += block.timestamp;
