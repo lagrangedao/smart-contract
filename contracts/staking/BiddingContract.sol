@@ -85,7 +85,7 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         // uint rewardInSwan = 0;
 
         if (reward > 0) {
-            paymentToken.transferFrom(apWallet, address(this), reward);
+            paymentToken.transferFrom(apWallet, clone, reward);
             // paymentToken.approve(address(uniswapRouter), rewardInUsdc);
             // uint[] memory swapOutput = uniswapRouter.swapExactTokensForTokens(rewardInUsdc, 0, swapPath, clone, block.timestamp + swapTime);
             // rewardInSwan = swapOutput[1];
