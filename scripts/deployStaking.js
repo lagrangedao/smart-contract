@@ -17,10 +17,13 @@ async function main() {
 
   console.log('Deploying Collateral Contract...')
 
-  const collateral = await upgrades.deployProxy(Collateral, [SWAN_CHAIN_SWAN], {
-    initializer: 'initialize',
-  })
-  await collateral.waitForDeployment()
+  //   const collateral = await upgrades.deployProxy(Collateral, [SWAN_CHAIN_SWAN], {
+  //     initializer: 'initialize',
+  //   })
+  //   await collateral.waitForDeployment()
+  const collateral = Collateral.attach(
+    '0xaAea25dF7D20f2098B816486880E4b706DD57044',
+  )
 
   console.log('Collateral Contract deployed to:', await collateral.getAddress())
 
@@ -36,9 +39,9 @@ async function main() {
       AR_WALLET,
       AP_WALLET,
       collateral.target,
-      SWAN_CHAIN_USDC,
+      //   SWAN_CHAIN_USDC,
       SWAN_CHAIN_SWAN,
-      SWAP,
+      //   SWAP,
     ],
     {
       initializer: 'initialize',

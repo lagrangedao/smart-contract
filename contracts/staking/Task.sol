@@ -21,13 +21,17 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     // uint public usdcRewardAmount;
     uint public swanRewardAmount;
     uint public swanCollateralAmount;
+    uint public rewardBalance;
+    uint public refundBalance;
     uint public duration;
     uint public startTime;
+    uint public endTime;
     uint public refundDeadline;
     uint public refundClaimDuration;
     bool public isProcessingRefundClaim;
     bool[] public isRewardClaimed;
     bool public isTaskTerminated;
+    bool public isEndTimeUpdateable;
     // address[] public swapPath;
 
     mapping(address => bool) isAdmin;
@@ -66,6 +70,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         startTime = block.timestamp;
         refundClaimDuration = refundDuration;
+        isEndTimeUpdateable = true;
     }
 
     // Modifier to check if the caller is the admin
@@ -93,9 +98,28 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function getCpList() public view returns(address[] memory) {
         return cpList;
     }
+
+    function updateEndTime(uint end) public onlyAdmin {
+        require(isEndTimeUpdateable, 'endTime is not updateable');
+        require(end > startTime, 'endTime cannot be before startTime');
+        endTime = end;
+        calculatePayout();
+    }
+
+    function calculatePayout() internal {
+        require(endTime > 0, 'endTime is not set');
+        uint elaspedDuration = endTime - startTime;
+
+        if (elaspedDuration > duration) {
+            elaspedDuration = duration;
+        }
+
+        rewardBalance = swanRewardAmount * elaspedDuration / duration;
+        refundBalance = swanRewardAmount - rewardBalance;
+    }
     
     /**
-     * @notice - early termination of the task. Can only be called by the user
+     * @notice - early termination of the task. 
      * @notice - cp's will get rewarded for the time eslapsed
      * @notice - user will get usdc refunded based on the time remaining
      * @dev - swap the reward amount back to usdc, and compare with the original amount paid.
@@ -111,55 +135,18 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             user = userAddress;
         }
         
-        uint refundableSwanReward = swanRewardAmount;
-        // uint refundableUsdcReward = usdcRewardAmount;
-        uint refundableCollateral = swanCollateralAmount;
-        uint elaspedDuration = block.timestamp - startTime;
+        endTime = block.timestamp;
+        calculatePayout();
 
-        // usdcRewardAmount = 0;
-        swanRewardAmount = 0;
-        swanCollateralAmount = 0;
-
-        if (elaspedDuration > duration) {
-            elaspedDuration = duration;
-        }
-
-        uint rewardSubtotal = refundableSwanReward * elaspedDuration / duration;
-        uint rewardToLeadingCp = rewardSubtotal;
+        uint rewardToLeadingCp = rewardBalance;
         uint rewardToOtherCps = 0;
 
         if (cpList.length > 1) {
-            rewardToLeadingCp = rewardSubtotal * 70/100;
-            rewardToOtherCps = (rewardSubtotal - rewardToLeadingCp) / (cpList.length - 1);
-        }
+            rewardToLeadingCp = rewardToLeadingCp * 70/100;
+            rewardToOtherCps = (rewardBalance - rewardToLeadingCp) / (cpList.length - 1);
+        } 
 
-        if (cpList.length >= 1) {
-            swan.transfer(cpList[0], rewardToLeadingCp + refundableCollateral); 
-        }
-
-        for (uint i = 1; i < cpList.length; i++) {
-            swan.transfer(cpList[i], rewardToOtherCps + refundableCollateral);
-        }   
-
-        uint refundAmount = refundableSwanReward - rewardSubtotal;
-        // uint refundToUser = 0;
-
-        // if (refundAmount > 0) {
-        //     swan.approve(address(uniswapRouter), refundableSwanReward);
-        //     uint[] memory result = uniswapRouter.swapExactTokensForTokens(refundableSwanReward - rewardSubtotal, 0, swapPath, address(this), block.timestamp + 2 hours);
-
-        //     refundToUser = result[1];
-        // }
-
-        // if (refundToUser < refundableUsdcReward) {
-        //     usdc.transfer(userAddress, refundToUser);
-        // } else {
-        //     usdc.transfer(userAddress, refundableUsdcReward);
-        // }
-
-        swan.transfer(userAddress, refundAmount);
-
-        emit TaskTerminated(userAddress, cpList, elaspedDuration, refundAmount, rewardToLeadingCp, rewardToOtherCps);
+        emit TaskTerminated(userAddress, cpList, endTime - startTime, refundBalance, rewardToLeadingCp, rewardToOtherCps);
     }
 
     /**
@@ -168,10 +155,12 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      */
     function completeTask(address userAddress) public onlyAdmin {
         require(refundDeadline == 0, "task already completed");
+        require(!isTaskTerminated, "task already terminated");
         user = userAddress;
         refundDeadline = block.timestamp + refundClaimDuration;
         uint taskFee = swanRewardAmount * 5/100;
-        swanRewardAmount -= taskFee;
+        rewardBalance = swanRewardAmount - taskFee;
+        refundBalance = 0;
 
         swan.transfer(apWallet, taskFee);
     }
@@ -183,6 +172,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      */
     function requestRefund() public  {
         require(!isProcessingRefundClaim, "already requested refund");
+        require(!isTaskTerminated, "already terminated");
         require(user == msg.sender || isAdmin[msg.sender], "sender cannot claim this task");
         require(block.timestamp < refundDeadline, "not within claim window");
 
@@ -230,6 +220,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * @notice the cp can claim reward after the refundClaimDuration ends
      * @dev the leading cp receives 70% and other cps split the 30%
+     * @dev the rewardBalance does not get deducted, otherwise the percent calculations will change after each call
      */
     function claimReward() public onlyCp {
         require(block.timestamp > refundDeadline, "wait for claim deadline");
@@ -237,25 +228,37 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         uint claimAmount = 0;
 
+        // if caller is leading cp
         if (msg.sender == cpList[0] && !isRewardClaimed[0]) {
             if (cpList.length == 1) {
-                claimAmount += swanRewardAmount + swanCollateralAmount;
+                claimAmount += rewardBalance + swanCollateralAmount;
             } else {
-                claimAmount += swanRewardAmount * 7/10 + swanCollateralAmount;
+                claimAmount += rewardBalance * 7/10 + swanCollateralAmount;
             }
             isRewardClaimed[0] = true;
         }
         // claim rules
         for(uint i=1; i<cpList.length; i++) {
             if (msg.sender == cpList[i] && !isRewardClaimed[i]) {
-                claimAmount += (swanRewardAmount * 3/10) / (cpList.length - 1);
+                claimAmount += (rewardBalance * 3/10) / (cpList.length - 1);
                 claimAmount += swanCollateralAmount;
                 isRewardClaimed[i] = true;
             }
         }
 
+        isEndTimeUpdateable = false;
         swan.transfer(msg.sender, claimAmount);
-        emit RewardClaimed(msg.sender, claimAmount );
+        emit RewardClaimed(msg.sender, claimAmount);
+    }
+
+    function claimRefund() public {
+        require(msg.sender == user, 'sender is not user address');
+        require(isTaskTerminated);
+
+        uint claimAmount = refundBalance;
+        refundBalance = 0;
+        isEndTimeUpdateable = false;
+        swan.transfer(msg.sender, claimAmount);
     }
 
     function _authorizeUpgrade(address newImplementation)
