@@ -184,6 +184,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "collateralContract",
+    "outputs": [
+      {
+        "internalType": "contract ICollateral",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",

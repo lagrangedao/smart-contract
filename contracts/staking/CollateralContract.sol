@@ -12,10 +12,15 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
     mapping(address => bool) public isAdmin;
     mapping(address => uint) public balances;
+    mapping(address => uint) public totalFrozenBalance;
+    mapping(address => uint) public taskBalance;
+    mapping(address => uint) public frozenBalance;
+    // mapping(address )
 
     event Deposit(address fundingWallet, address receivingWallet, uint depositAmount);
     event Withdraw(address fundingWallet, uint withdrawAmount);
     event LockCollateral(address taskContract, address[] cpList, uint collateralAmount);
+    event UnlockCollateral(address taskContract, address cp, uint collateralAmount);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -84,9 +89,12 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         for (uint i = 0; i < cpList.length; i++) {
             require(balances[cpList[i]] >= collateral, 'Not enough balance for collateral');
             balances[cpList[i]] -= collateral;
+            frozenBalance[cpList[i]] += collateral;
         }
 
-        collateralToken.transfer(taskContract, cpList.length * collateral);
+        uint totalCollateral = cpList.length * collateral;
+        taskBalance[taskContract] += totalCollateral;
+        collateralToken.transfer(taskContract, totalCollateral);
 
         emit LockCollateral(taskContract, cpList, collateral);
     }
@@ -99,5 +107,13 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
     function version() public pure returns(uint) {
         return 1;
+    }
+
+    function unlockCollateral(address recipient, uint amount) public {
+        require(taskBalance[msg.sender] > 0, "task has no balance");
+        taskBalance[msg.sender] -= amount;
+        frozenBalance[recipient] -= amount;
+
+        emit  UnlockCollateral(msg.sender, recipient, amount);
     }
 }

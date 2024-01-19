@@ -7,6 +7,9 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+interface ICollateral {
+    function unlockCollateral(address, uint) external;
+}
 
 contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
@@ -17,6 +20,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public apWallet;
     // IERC20 public usdc;
     IERC20 public swan;
+    ICollateral public collateralContract;
     // IUniswapV2Router02 public uniswapRouter;
     // uint public usdcRewardAmount;
     uint public swanRewardAmount;
@@ -65,6 +69,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         apWallet = 0x4BC1eE66695AD20771596290548eBE5Cfa1Be332;
         // usdc = IERC20(0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a);
         swan = IERC20(0x91B25A65b295F0405552A4bbB77879ab5e38166c);
+        collateralContract = ICollateral(0xd0370c1D117653Be799AC697FdfB3C8B1A80Dec1);
         // uniswapRouter = IUniswapV2Router02(0x9b89AA8ed8eF4EDeAAd266F58dfec09864bbeC1f);
         // swapPath = [0x407a5856050053CF1DB54113bd9Ea9D2Eeee7C35, 0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a];
 
@@ -101,7 +106,8 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     function updateEndTime(uint end) public onlyAdmin {
         require(isEndTimeUpdateable, 'endTime is not updateable');
-        require(end > startTime, 'endTime cannot be before startTime');
+        require(end >= startTime, 'endTime cannot be before startTime');
+        isTaskTerminated = true;
         endTime = end;
         calculatePayout();
     }
@@ -125,28 +131,28 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @dev - swap the reward amount back to usdc, and compare with the original amount paid.
      */
     function terminateTask(address userAddress) public {
-        require(!isTaskTerminated, "task already terminated");
-        require(refundDeadline == 0, "task already completed");
-        require(msg.sender == user || isAdmin[msg.sender], "sender cannot terminate task");
+        // require(!isTaskTerminated, "task already terminated");
+        // require(refundDeadline == 0, "task already completed");
+        // require(msg.sender == user || isAdmin[msg.sender], "sender cannot terminate task");
         
-        isTaskTerminated = true;
+        // isTaskTerminated = true;
 
-        if (isAdmin[msg.sender]) {
-            user = userAddress;
-        }
+        // if (isAdmin[msg.sender]) {
+        //     user = userAddress;
+        // }
         
-        endTime = block.timestamp;
-        calculatePayout();
+        // endTime = block.timestamp;
+        // calculatePayout();
 
-        uint rewardToLeadingCp = rewardBalance;
-        uint rewardToOtherCps = 0;
+        // uint rewardToLeadingCp = rewardBalance;
+        // uint rewardToOtherCps = 0;
 
-        if (cpList.length > 1) {
-            rewardToLeadingCp = rewardToLeadingCp * 70/100;
-            rewardToOtherCps = (rewardBalance - rewardToLeadingCp) / (cpList.length - 1);
-        } 
+        // if (cpList.length > 1) {
+        //     rewardToLeadingCp = rewardToLeadingCp * 70/100;
+        //     rewardToOtherCps = (rewardBalance - rewardToLeadingCp) / (cpList.length - 1);
+        // } 
 
-        emit TaskTerminated(userAddress, cpList, endTime - startTime, refundBalance, rewardToLeadingCp, rewardToOtherCps);
+        // emit TaskTerminated(userAddress, cpList, endTime - startTime, refundBalance, rewardToLeadingCp, rewardToOtherCps);
     }
 
     /**
@@ -223,37 +229,45 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @dev the rewardBalance does not get deducted, otherwise the percent calculations will change after each call
      */
     function claimReward() public onlyCp {
-        require(block.timestamp > refundDeadline, "wait for claim deadline");
+        require(block.timestamp > refundDeadline || isTaskTerminated, "wait for claim deadline");
         require(!isProcessingRefundClaim, "claim under review");
 
         uint claimAmount = 0;
+        uint collateralAmount = 0;
 
         // if caller is leading cp
         if (msg.sender == cpList[0] && !isRewardClaimed[0]) {
             if (cpList.length == 1) {
-                claimAmount += rewardBalance + swanCollateralAmount;
+                claimAmount += rewardBalance;
             } else {
-                claimAmount += rewardBalance * 7/10 + swanCollateralAmount;
+                claimAmount += rewardBalance * 7/10;
             }
+            collateralAmount += swanCollateralAmount;
             isRewardClaimed[0] = true;
         }
         // claim rules
         for(uint i=1; i<cpList.length; i++) {
             if (msg.sender == cpList[i] && !isRewardClaimed[i]) {
                 claimAmount += (rewardBalance * 3/10) / (cpList.length - 1);
-                claimAmount += swanCollateralAmount;
+                collateralAmount += swanCollateralAmount;
                 isRewardClaimed[i] = true;
             }
         }
 
         isEndTimeUpdateable = false;
+
+        swan.approve(address(collateralContract), collateralAmount);
+        collateralContract.unlockCollateral(msg.sender, collateralAmount);
         swan.transfer(msg.sender, claimAmount);
+
         emit RewardClaimed(msg.sender, claimAmount);
     }
 
     function claimRefund() public {
         require(msg.sender == user, 'sender is not user address');
         require(isTaskTerminated);
+        
+        isEndTimeUpdateable = false;
 
         uint claimAmount = refundBalance;
         refundBalance = 0;
