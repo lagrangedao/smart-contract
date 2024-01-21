@@ -107,4 +107,8 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function version() public pure returns(uint) {
         return 1;
     }
+
+    function setCollateralContract(address newCollateralContract) public onlyOwner {
+        collateralContract = CollateralContract(newCollateralContract);
+    }
 }
