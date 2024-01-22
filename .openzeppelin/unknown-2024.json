@@ -1183,9 +1183,9 @@
         }
       }
     },
-    "dffbfb7de62a650396125da50c11edce24960504725b77e30728751b5c25caa9": {
-      "address": "0xE7AFE783E6dFB707d45Bf072cA20104305544F10",
-      "txHash": "0x0b1166b862ee846dcb89e352f974b7eae592ac95660d6679bc502d289159ca65",
+    "535ef820240044f57e25c0e8df33baf57c3db409fbc1e26d55375c78336a2304": {
+      "address": "0xd46cF4eab4F3FaF5F67F979eEC720ff3d18691DA",
+      "txHash": "0xbbd00d39ab6397f43faaf1b1091da3faf6bcdd4c57d0571d8b0703d9b2b25a55",
       "layout": {
         "solcVersion": "0.8.19",
         "storage": [
@@ -1247,6 +1247,124 @@
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
           },
           {
+            "label": "collateralToken",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_contract(IERC20)1441",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:11"
+          },
+          {
+            "label": "isAdmin",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:13"
+          },
+          {
+            "label": "balances",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:14"
+          },
+          {
+            "label": "totalFrozenBalance",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:15"
+          },
+          {
+            "label": "taskBalance",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:16"
+          },
+          {
+            "label": "frozenBalance",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:17"
+          },
+<<<<<<< Updated upstream
+    "dffbfb7de62a650396125da50c11edce24960504725b77e30728751b5c25caa9": {
+      "address": "0xE7AFE783E6dFB707d45Bf072cA20104305544F10",
+      "txHash": "0x0b1166b862ee846dcb89e352f974b7eae592ac95660d6679bc502d289159ca65",
+=======
+    "535ef820240044f57e25c0e8df33baf57c3db409fbc1e26d55375c78336a2304": {
+      "address": "0xd46cF4eab4F3FaF5F67F979eEC720ff3d18691DA",
+      "txHash": "0xbbd00d39ab6397f43faaf1b1091da3faf6bcdd4c57d0571d8b0703d9b2b25a55",
+>>>>>>> Stashed changes
+      "layout": {
+        "solcVersion": "0.8.19",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
+          },
+          {
+<<<<<<< Updated upstream
             "label": "isAdmin",
             "offset": 0,
             "slot": "201",
@@ -1286,6 +1404,47 @@
             "contract": "NativeCollateralContract",
             "src": "contracts/staking/NativeCollateralContract.sol:14"
           }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)1441": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
         ],
         "types": {
           "t_address": {
@@ -1385,18 +1544,34 @@
             "type": "t_array(t_uint256)50_storage",
             "contract": "UUPSUpgradeable",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
+=======
+            "label": "collateralToken",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_contract(IERC20)1441",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:11"
+>>>>>>> Stashed changes
           },
           {
             "label": "isAdmin",
             "offset": 0,
+<<<<<<< Updated upstream
             "slot": "201",
             "type": "t_mapping(t_address,t_bool)",
             "contract": "NativeCollateralContract",
             "src": "contracts/staking/NativeCollateralContract.sol:10"
+=======
+            "slot": "202",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:13"
+>>>>>>> Stashed changes
           },
           {
             "label": "balances",
             "offset": 0,
+<<<<<<< Updated upstream
             "slot": "202",
             "type": "t_mapping(t_address,t_uint256)",
             "contract": "NativeCollateralContract",
@@ -1589,6 +1764,36 @@
             "type": "t_uint256",
             "contract": "BiddingContract",
             "src": "contracts/staking/BiddingContract.sol:30"
+=======
+            "slot": "203",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:14"
+          },
+          {
+            "label": "totalFrozenBalance",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:15"
+          },
+          {
+            "label": "taskBalance",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:16"
+          },
+          {
+            "label": "frozenBalance",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:17"
+>>>>>>> Stashed changes
           }
         ],
         "types": {
@@ -1608,10 +1813,13 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
+<<<<<<< Updated upstream
           "t_contract(CollateralContract)2497": {
             "label": "contract CollateralContract",
             "numberOfBytes": "20"
           },
+=======
+>>>>>>> Stashed changes
           "t_contract(IERC20)1441": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
@@ -1620,12 +1828,17 @@
             "label": "mapping(address => bool)",
             "numberOfBytes": "32"
           },
+<<<<<<< Updated upstream
           "t_mapping(t_string_memory_ptr,t_address)": {
             "label": "mapping(string => address)",
             "numberOfBytes": "32"
           },
           "t_string_memory_ptr": {
             "label": "string",
+=======
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+>>>>>>> Stashed changes
             "numberOfBytes": "32"
           },
           "t_uint256": {
@@ -1635,9 +1848,12 @@
           "t_uint8": {
             "label": "uint8",
             "numberOfBytes": "1"
+<<<<<<< Updated upstream
           },
           "t_string_storage": {
             "label": "string"
+=======
+>>>>>>> Stashed changes
           }
         }
       }

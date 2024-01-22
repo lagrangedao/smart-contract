@@ -114,6 +114,8 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         taskBalance[msg.sender] -= amount;
         frozenBalance[recipient] -= amount;
 
+        collateralToken.transferFrom(msg.sender, address(this), amount);
+
         emit  UnlockCollateral(msg.sender, recipient, amount);
     }
 }
