@@ -85,7 +85,7 @@ module.exports = {
     // },
     saturn: {
       url: 'https://saturn-rpc.swanchain.io',
-      accounts: [process.env.PRIVATE_KEY,],
+      accounts: [process.env.PRIVATE_KEY, process.env.AP_PRIVATE_KEY],
     },
   },
   // etherscan: {

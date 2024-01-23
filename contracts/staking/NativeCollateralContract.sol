@@ -118,8 +118,8 @@ contract NativeCollateralContract is Initializable, OwnableUpgradeable, UUPSUpgr
     }
 
     function depositETH(address recipient, uint amount) public payable {
-        balances[recipient] += amount;
+        balances[recipient] += msg.value;
 
-        emit Deposit(msg.sender, recipient, amount);
+        emit Deposit(msg.sender, recipient, msg.value);
     }
 }

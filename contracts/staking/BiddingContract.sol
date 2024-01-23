@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
-import "./Task.sol";
+import "./NativeTask.sol";
 import "./CollateralContract.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -47,7 +47,7 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         arWallet = ar;
         apWallet = ap;
         isAdmin[msg.sender] = true;
-        implementation = address(new Task());
+        implementation = address(new NativeTask());
 
         // swapTime = 2 hours;
         // swapPath = [paymentTokenAddress, rewardTokenAddress];
@@ -93,7 +93,7 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         collateralContract.lockCollateral(clone, cpList, collateral);
 
-        Task(clone).initialize(msg.sender, cpList, reward, collateral, duration, refundClaimDuration);
+        NativeTask(clone).initialize(msg.sender, cpList, reward, collateral, duration, refundClaimDuration);
     
         emit TaskCreated(taskId, clone);
     }

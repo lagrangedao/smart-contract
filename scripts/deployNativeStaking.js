@@ -4,28 +4,30 @@ const AR_WALLET = '0x47846473daE8fA6E5E51e03f12AbCf4F5eDf9Bf5'
 const AP_WALLET = '0x4BC1eE66695AD20771596290548eBE5Cfa1Be332'
 const ADMIN_WALLET = '0x29eD49c8E973696D07E7927f748F6E5Eacd5516D'
 
-const WETH_ADDRESS = '0x4A5d0592CDA144fCCe9543a4D3dEB121CbB0221D'
+// const SWAN_CHAIN_USDC = '0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a'
+const SWAN_CHAIN_SWAN = '0x91B25A65b295F0405552A4bbB77879ab5e38166c'
+
+// const SWAP = '0xaAc390a1A1C1BCF35261181207Ecf6f565dbacb5'
 
 async function main() {
-  const Collateral = await ethers.getContractFactory('CollateralContractV2')
-  const Bidding = await ethers.getContractFactory('BiddingContractV2')
-  const WETH = await ethers.getContractFactory('WETH9')
-  const weth = WETH.attach(WETH_ADDRESS)
+  const Collateral = await ethers.getContractFactory('NativeCollateralContract')
+  const Bidding = await ethers.getContractFactory('BiddingContract')
+  const Swan = await ethers.getContractFactory('Token')
+  let swan = Swan.attach(SWAN_CHAIN_SWAN)
 
   console.log('Deploying Collateral Contract...')
 
-  const collateral = await upgrades.deployProxy(Collateral, [SWAN_CHAIN_SWAN], {
+  const collateral = await upgrades.deployProxy(Collateral, [], {
     initializer: 'initialize',
   })
   await collateral.waitForDeployment()
 
   console.log('Collateral Contract deployed to:', await collateral.getAddress())
-
   console.log('Deploying Bidding Contract...')
 
   const bidding = await upgrades.deployProxy(
     Bidding,
-    [AR_WALLET, AP_WALLET, collateral.target, weth.target],
+    [AR_WALLET, AP_WALLET, collateral.target, SWAN_CHAIN_SWAN],
     {
       initializer: 'initialize',
     },
@@ -46,7 +48,7 @@ async function main() {
 
   console.log('Approving spending for Bidding of AP funds')
   let accounts = await ethers.getSigners()
-  let tx3 = await weth
+  let tx3 = await swan
     .connect(accounts[1])
     .approve(bidding.target, ethers.MaxInt256)
   console.log(tx3.hash)
