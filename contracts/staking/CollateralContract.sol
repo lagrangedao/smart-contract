@@ -9,7 +9,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     mapping(address => bool) public isAdmin;
     mapping(address => uint) public balances;
-    mapping(address => uint) public totalFrozenBalance;
     mapping(address => uint) public taskBalance;
     mapping(address => uint) public frozenBalance;
 
@@ -53,10 +52,6 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
      * @dev - checks allowance and user balance before depositing
      */
     function deposit(address recipient) public payable {
-        // require(collateralToken.allowance(msg.sender, address(this)) >= amount, "Please approve spending funds.");
-        // require(collateralToken.balanceOf(msg.sender) >= amount, "Insufficient funds.");
-
-        // collateralToken.transferFrom(msg.sender, address(this), amount);
         balances[recipient] += msg.value;
 
         emit Deposit(msg.sender, recipient, msg.value);
@@ -71,7 +66,6 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         require(balances[msg.sender] >= amount, "Withdraw amount exceeds balance");
 
         balances[msg.sender] -= amount;
-        // collateralToken.transfer(msg.sender, amount);
         payable(msg.sender).transfer(amount);
 
         emit Withdraw(msg.sender, amount);
@@ -87,14 +81,15 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
     function lockCollateral(address taskContract, address[] memory cpList, uint collateral) public onlyAdmin {
         for (uint i = 0; i < cpList.length; i++) {
             require(balances[cpList[i]] >= collateral, 'Not enough balance for collateral');
+        }
+
+        for (uint i = 0; i < cpList.length; i++) {
             balances[cpList[i]] -= collateral;
             frozenBalance[cpList[i]] += collateral;
         }
 
         uint totalCollateral = cpList.length * collateral;
         taskBalance[taskContract] += totalCollateral;
-        // collateralToken.transfer(taskContract, totalCollateral);
-        payable(taskContract).transfer(totalCollateral);
 
         emit LockCollateral(taskContract, cpList, collateral);
     }
@@ -109,17 +104,12 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         return 1;
     }
 
-    function unlockCollateral(address recipient) public payable {
-        require(taskBalance[msg.sender] > 0, "task has no balance");
-        taskBalance[msg.sender] -= msg.value;
-        frozenBalance[recipient] -= msg.value;
+    function unlockCollateral(address recipient, uint amount) public {
+        require(taskBalance[msg.sender] >= amount, "task has no balance");
+        taskBalance[msg.sender] -= amount;
+        frozenBalance[recipient] -= amount;
+        balances[recipient] += amount;
 
-        emit UnlockCollateral(msg.sender, recipient, msg.value);
-    }
-
-    function depositETH(address recipient, uint amount) public payable {
-        balances[recipient] += msg.value;
-
-        emit Deposit(msg.sender, recipient, msg.value);
+        emit UnlockCollateral(msg.sender, recipient, amount);
     }
 }

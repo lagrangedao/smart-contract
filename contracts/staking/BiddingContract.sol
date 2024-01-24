@@ -15,11 +15,6 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address public arWallet;
     address public apWallet;
     IERC20 public paymentToken;
-    // IERC20 public rewardToken; 
-    // IUniswapV2Router02 public uniswapRouter;
-    // uint public swapTime;
-    // address[] public swapPath;
-    
 
     mapping(address => bool) public isAdmin;
     mapping(string => address) public tasks;
@@ -34,24 +29,16 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function initialize(address ar, address ap, address collateralContractAddress, address paymentTokenAddress
-        // address rewardTokenAddress, address swapContractAddress
         ) initializer public {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
         collateralContract = CollateralContract(payable(collateralContractAddress));
         paymentToken = IERC20(paymentTokenAddress);
-        // rewardToken = IERC20(rewardTokenAddress);
-        // uniswapRouter = IUniswapV2Router02(swapContractAddress);
         arWallet = ar;
         apWallet = ap;
         isAdmin[msg.sender] = true;
         implementation = address(new Task());
-
-        // swapTime = 2 hours;
-        // swapPath = [paymentTokenAddress, rewardTokenAddress];
-
-        // paymentToken.approve(swapContractAddress, type(uint256).max);
     }
 
     // Modifier to check if the caller is the admin
@@ -89,7 +76,7 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         collateralContract.lockCollateral(clone, cpList, collateral);
 
-        Task(clone).initialize(msg.sender, cpList, reward, collateral, duration, refundClaimDuration);
+        Task(clone).initialize(msg.sender, cpList, reward, collateral, duration, refundClaimDuration, address(collateralContract));
     
         emit TaskCreated(taskId, clone);
     }

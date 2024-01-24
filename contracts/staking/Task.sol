@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 interface ICollateral {
-    function unlockCollateral(address) external payable;
+    function unlockCollateral(address, uint) external;
 }
 
 contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
@@ -51,11 +51,11 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function initialize(
         address admin,
         address[] memory cpAddresses, 
-        // uint usdcReward, 
         uint swanReward, 
         uint swanCollateral, 
         uint taskDuration,
-        uint refundDuration
+        uint refundDuration,
+        address collateralAddress
     ) public initializer{ 
         isAdmin[admin] = true;
         cpList = cpAddresses;
@@ -67,11 +67,8 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         arWallet = 0x47846473daE8fA6E5E51e03f12AbCf4F5eDf9Bf5;
         apWallet = 0x4BC1eE66695AD20771596290548eBE5Cfa1Be332;
-        // usdc = IERC20(0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a);
         swan = IERC20(0x91B25A65b295F0405552A4bbB77879ab5e38166c);
-        collateralContract = ICollateral(0xA6848249CE6c591Af754A0780d352d2117F9F0b0);
-        // uniswapRouter = IUniswapV2Router02(0x9b89AA8ed8eF4EDeAAd266F58dfec09864bbeC1f);
-        // swapPath = [0x407a5856050053CF1DB54113bd9Ea9D2Eeee7C35, 0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a];
+        collateralContract = ICollateral(collateralAddress);
 
         startTime = block.timestamp;
         refundClaimDuration = refundDuration;
@@ -198,25 +195,8 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(isProcessingRefundClaim, "no claim submitted for this task");
         if (result) {
             uint refundableSwanReward = swanRewardAmount;
-            // uint refundableUsdcReward = usdcRewardAmount;
             swanRewardAmount = 0;
-            // usdcRewardAmount = 0;   
-
             swan.transfer(user, refundableSwanReward);
-            // uint refundAmount = refundableSwanReward;
-            // uint refundToUser = 0;
-
-            // if (refundAmount > 0) {
-            //     swan.approve(address(uniswapRouter), refundableSwanReward); 
-            //     uint[] memory swapResult = uniswapRouter.swapExactTokensForTokens(refundableSwanReward, 0, swapPath, address(this), block.timestamp + 2 hours);
-            //     refundToUser = swapResult[1];
-            // }
-
-            // if (refundToUser < refundableUsdcReward) {
-            //     usdc.transfer(user, refundToUser);
-            // } else {
-            //     usdc.transfer(user, refundableUsdcReward);
-            // }
         }
 
         refundDeadline += block.timestamp;
@@ -256,9 +236,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         isEndTimeUpdateable = false;
 
-        // swan.approve(address(collateralContract), collateralAmount);
-        collateralContract.unlockCollateral{value: collateralAmount}(msg.sender);
-        swan.transfer(msg.sender, claimAmount);
+        collateralContract.unlockCollateral(msg.sender, collateralAmount);
 
         emit RewardClaimed(msg.sender, claimAmount);
     }
