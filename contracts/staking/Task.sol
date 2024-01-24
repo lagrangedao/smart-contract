@@ -18,11 +18,8 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address[] public cpList;
     address public arWallet;
     address public apWallet;
-    // IERC20 public usdc;
     IERC20 public swan;
     ICollateral public collateralContract;
-    // IUniswapV2Router02 public uniswapRouter;
-    // uint public usdcRewardAmount;
     uint public swanRewardAmount;
     uint public swanCollateralAmount;
     uint public rewardBalance;
@@ -36,9 +33,8 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     bool[] public isRewardClaimed;
     bool public isTaskTerminated;
     bool public isEndTimeUpdateable;
-    // address[] public swapPath;
 
-    mapping(address => bool) isAdmin;
+    mapping(address => bool) public isAdmin;
 
     event TaskTerminated(address user, address[] cpList, uint elaspedDuration, uint userRefund, uint leadingReward, uint otherReward);
     event RewardClaimed(address cp, uint reward);

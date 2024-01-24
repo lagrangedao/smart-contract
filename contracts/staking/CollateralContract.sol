@@ -49,7 +49,6 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
     /**
      * @notice - deposits tokens into the contract
-     * @dev - checks allowance and user balance before depositing
      */
     function deposit(address recipient) public payable {
         balances[recipient] += msg.value;
@@ -57,11 +56,6 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         emit Deposit(msg.sender, recipient, msg.value);
     }
     
-    /**
-     * @param amount - amount to withdraw
-     * @notice - withdraws tokens from the contract
-     * @dev - checks user's balance in contract before withdrawing
-     */
     function withdraw(uint amount) public {
         require(balances[msg.sender] >= amount, "Withdraw amount exceeds balance");
 
@@ -71,13 +65,6 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         emit Withdraw(msg.sender, amount);
     }
 
-    /**
-     * @param taskContract - the created task contract address
-     * @param cpList - list of all the cps on this task
-     * @param collateral - collateral amount
-     * @notice - the bidding contract will move funds deposited by the CPs here to the task contract as collateral
-     * @dev - checks the balance of each cp in the list to make sure there is enough funds deposited
-     */
     function lockCollateral(address taskContract, address[] memory cpList, uint collateral) public onlyAdmin {
         for (uint i = 0; i < cpList.length; i++) {
             require(balances[cpList[i]] >= collateral, 'Not enough balance for collateral');

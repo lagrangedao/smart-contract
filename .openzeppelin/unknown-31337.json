@@ -2,28 +2,8 @@
   "manifestVersion": "3.2",
   "proxies": [
     {
-      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-      "txHash": "0xa45845f7611094b6c9d1431c7714d61a830fa3f7008568524ee0c470303c246b",
-      "kind": "uups"
-    },
-    {
-      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
-      "txHash": "0x69da37b5e0004c2d95ad075f3b1f22c2b03d8ff5c42e1a4218231279812a1f71",
-      "kind": "uups"
-    },
-    {
-      "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-      "txHash": "0x6493847b0aacb5cf69011dd437f324ed5abba084d4f75cab05cd4476993ce0fe",
-      "kind": "uups"
-    },
-    {
       "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
       "txHash": "0xabe1d05aa8eb2260779682eb4604049cb56644a0d4b2b5be18d2334f0805e21a",
-      "kind": "uups"
-    },
-    {
-      "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
-      "txHash": "0x457e3adc92412bd4c50689f0c9c0f455cd80c986d84551922c8497363898457e",
       "kind": "uups"
     },
     {
@@ -37,23 +17,83 @@
       "kind": "uups"
     },
     {
-      "address": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
-      "txHash": "0x9f36bb113e740a39cf7ef514a7ae718514235eb310862354ecb0c272f2b06452",
+      "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+      "txHash": "0xec51c7c99d5def7b905762f3bb2d0da5175cedd7c187aca73a1f3849814d283e",
       "kind": "uups"
     },
     {
-      "address": "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
-      "txHash": "0x89fe4c8e104e05f33a604b17dfa8ad45f5e655215b27c79ce2070384192a6179",
+      "address": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
+      "txHash": "0x285576cca74201653e70c40b5ee0c14407cf7d68937b5e89d13ddc7a5b0f694e",
       "kind": "uups"
     },
     {
       "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-      "txHash": "0x4ca1ccca6a0d43085b69b2bb38748581034253063d545eac56caf10695dd61ad",
+      "txHash": "0x0e5a6f0a87c76fa309e759ec49ff1ea3cf61be9abe09f6f69b546c319b5ceb53",
+      "kind": "uups"
+    },
+    {
+      "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      "txHash": "0xf686c83b37898b3c30abeec0ce9b005243ea1d6b917d274ea2fdca69cbb27be6",
+      "kind": "uups"
+    },
+    {
+      "address": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+      "txHash": "0x2ffedcd5d3d08c18606dba672e110fc62d75ea41565e9a0261df2c874143b7ee",
+      "kind": "uups"
+    },
+    {
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "txHash": "0xf43969ea8b6b9452a5fc2da7625cbd1cae49187de415a6a5116cdcf0837766a4",
+      "kind": "uups"
+    },
+    {
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "txHash": "0x51d08dd3a9b439755c24d9baec0af1ecb6a56c67e6124ccb7b3f85cccb04bd94",
+      "kind": "uups"
+    },
+    {
+      "address": "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f",
+      "txHash": "0xf336a145d65d1aa51059f39135eda69a573a5fbcd2533e1d0348ae7216e045f0",
       "kind": "uups"
     },
     {
       "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-      "txHash": "0xcc8cbaedef4cde1a52658c5f9dae2dcec5523439f3eb6f09c74e64ce25a47c5a",
+      "txHash": "0xc1493e1ad8ce36480e9e38117014490e97f9f1522d66008bd68f55bc04f084eb",
+      "kind": "uups"
+    },
+    {
+      "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "txHash": "0xfb05824b92125b88a40946ce44b5a4147630043ca541e4025de039ec8e29f2b4",
+      "kind": "uups"
+    },
+    {
+      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
+      "txHash": "0x87555d5cbc09e800bad24bbcb3972151d2c77bb94d8aa779c727517d0000b75e",
+      "kind": "uups"
+    },
+    {
+      "address": "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
+      "txHash": "0x5d7e728a270ec625f14b5aab1102bafc260e47c6b0d630f8c0c52dfa212ad69a",
+      "kind": "uups"
+    },
+    {
+      "address": "0x4A679253410272dd5232B3Ff7cF5dbB88f295319",
+      "txHash": "0xcd853b3bf75fdc2e2546bde1a8e7594ad88eee2b827f373a58034c7dfb0b0d79",
+      "kind": "uups"
+    },
+    {
+      "address": "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F",
+      "txHash": "0x7f42c17e5d7bc8e7f9982dd1a715f7aafc22838e680b3e5d2daef41123214985",
+      "kind": "uups"
+    },
+    {
+      "address": "0x851356ae760d987E095750cCeb3bC6014560891C",
+      "txHash": "0xcd95f9b545668e4c1cae5f75d31f2610d47bd141e48f36ab9c6ffdb8d310fc5b",
+      "kind": "uups"
+    },
+    {
+      "address": "0xf5059a5D33d5853360D16C683c16e67980206f36",
+      "txHash": "0xddb1fffa730054182b1f0f645841c0d7072c20398469e2ee517a8eb038c58938",
       "kind": "uups"
     }
   ],
@@ -903,9 +943,9 @@
         }
       }
     },
-    "89a6fc767a512859a6e2be1865258c1e57f2d64c871f10a54a70fff244240236": {
-      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "txHash": "0xc81561e519cb73a55db2de307275af0726601f75d1cb07c65ce2fb8779f4a1e7",
+    "e0d6b1784da7af2f9fec00ee6d44315e757579a850768cc7e3e6ba1faf823cea": {
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "txHash": "0x2817e346e3e669fe638098fe703515df5d1a7a169c15e493b3a69686e7e88bf3",
       "layout": {
         "solcVersion": "0.8.19",
         "storage": [
@@ -971,40 +1011,32 @@
             "offset": 0,
             "slot": "201",
             "type": "t_mapping(t_address,t_bool)",
-            "contract": "NativeCollateralContract",
-            "src": "contracts/staking/NativeCollateralContract.sol:10"
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:10"
           },
           {
             "label": "balances",
             "offset": 0,
             "slot": "202",
             "type": "t_mapping(t_address,t_uint256)",
-            "contract": "NativeCollateralContract",
-            "src": "contracts/staking/NativeCollateralContract.sol:11"
-          },
-          {
-            "label": "totalFrozenBalance",
-            "offset": 0,
-            "slot": "203",
-            "type": "t_mapping(t_address,t_uint256)",
-            "contract": "NativeCollateralContract",
-            "src": "contracts/staking/NativeCollateralContract.sol:12"
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:11"
           },
           {
             "label": "taskBalance",
             "offset": 0,
-            "slot": "204",
+            "slot": "203",
             "type": "t_mapping(t_address,t_uint256)",
-            "contract": "NativeCollateralContract",
-            "src": "contracts/staking/NativeCollateralContract.sol:13"
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:12"
           },
           {
             "label": "frozenBalance",
             "offset": 0,
-            "slot": "205",
+            "slot": "204",
             "type": "t_mapping(t_address,t_uint256)",
-            "contract": "NativeCollateralContract",
-            "src": "contracts/staking/NativeCollateralContract.sol:14"
+            "contract": "CollateralContract",
+            "src": "contracts/staking/CollateralContract.sol:13"
           }
         ],
         "types": {
@@ -1043,9 +1075,9 @@
         }
       }
     },
-    "b673661511c97d205216b50026b3dc57572c0667f25a9730838e8d3b6ef747e0": {
-      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-      "txHash": "0x8bdb4d8d5ac2965ef96fbc78c2cb4a187c6c71d0cd1084af45d745dea0a8366f",
+    "38fcb5e421ada7f293b0fca67d3625a9e178b29dfdc1c6882acff52d9af8b98b": {
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "txHash": "0x1ed84c760f34cd6591b99b180d76d3cc2064dce086563ce0236c9272e9daff04",
       "layout": {
         "solcVersion": "0.8.19",
         "storage": [
@@ -1110,9 +1142,9 @@
             "label": "collateralContract",
             "offset": 0,
             "slot": "201",
-            "type": "t_contract(CollateralContract)2509",
+            "type": "t_contract(CollateralContract)2473",
             "contract": "BiddingContract",
-            "src": "contracts/staking/BiddingContract.sol:14"
+            "src": "contracts/staking/BiddingContract.sol:13"
           },
           {
             "label": "implementation",
@@ -1120,7 +1152,7 @@
             "slot": "202",
             "type": "t_address",
             "contract": "BiddingContract",
-            "src": "contracts/staking/BiddingContract.sol:15"
+            "src": "contracts/staking/BiddingContract.sol:14"
           },
           {
             "label": "arWallet",
@@ -1128,7 +1160,7 @@
             "slot": "203",
             "type": "t_address",
             "contract": "BiddingContract",
-            "src": "contracts/staking/BiddingContract.sol:16"
+            "src": "contracts/staking/BiddingContract.sol:15"
           },
           {
             "label": "apWallet",
@@ -1136,7 +1168,7 @@
             "slot": "204",
             "type": "t_address",
             "contract": "BiddingContract",
-            "src": "contracts/staking/BiddingContract.sol:17"
+            "src": "contracts/staking/BiddingContract.sol:16"
           },
           {
             "label": "paymentToken",
@@ -1144,7 +1176,7 @@
             "slot": "205",
             "type": "t_contract(IERC20)1441",
             "contract": "BiddingContract",
-            "src": "contracts/staking/BiddingContract.sol:18"
+            "src": "contracts/staking/BiddingContract.sol:17"
           },
           {
             "label": "isAdmin",
@@ -1152,7 +1184,7 @@
             "slot": "206",
             "type": "t_mapping(t_address,t_bool)",
             "contract": "BiddingContract",
-            "src": "contracts/staking/BiddingContract.sol:25"
+            "src": "contracts/staking/BiddingContract.sol:19"
           },
           {
             "label": "tasks",
@@ -1160,7 +1192,7 @@
             "slot": "207",
             "type": "t_mapping(t_string_memory_ptr,t_address)",
             "contract": "BiddingContract",
-            "src": "contracts/staking/BiddingContract.sol:26"
+            "src": "contracts/staking/BiddingContract.sol:20"
           },
           {
             "label": "refundClaimDuration",
@@ -1168,7 +1200,7 @@
             "slot": "208",
             "type": "t_uint256",
             "contract": "BiddingContract",
-            "src": "contracts/staking/BiddingContract.sol:30"
+            "src": "contracts/staking/BiddingContract.sol:24"
           }
         ],
         "types": {
@@ -1188,7 +1220,7 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(CollateralContract)2509": {
+          "t_contract(CollateralContract)2473": {
             "label": "contract CollateralContract",
             "numberOfBytes": "20"
           },

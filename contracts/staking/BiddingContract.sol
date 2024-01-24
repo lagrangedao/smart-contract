@@ -68,8 +68,6 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         address clone = Clones.clone(implementation);
         tasks[taskId] = clone;
 
-        // uint rewardInSwan = 0;
-
         if (reward > 0) {
             paymentToken.transferFrom(apWallet, clone, reward);
         }
