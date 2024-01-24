@@ -7,15 +7,11 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
-
-    IERC20 public collateralToken;
-
     mapping(address => bool) public isAdmin;
     mapping(address => uint) public balances;
     mapping(address => uint) public totalFrozenBalance;
     mapping(address => uint) public taskBalance;
     mapping(address => uint) public frozenBalance;
-    // mapping(address )
 
     event Deposit(address fundingWallet, address receivingWallet, uint depositAmount);
     event Withdraw(address fundingWallet, uint withdrawAmount);
@@ -27,11 +23,10 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         _disableInitializers();
     }
 
-    function initialize(address tokenAddress) initializer public {
+    function initialize() initializer public {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        collateralToken = IERC20(tokenAddress);
         isAdmin[msg.sender] = true;
     }
 
@@ -49,19 +44,22 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         isAdmin[admin] = false;
     }
 
+    receive() external payable {
+        deposit(msg.sender);
+    }
+
     /**
-     * @param amount - amount to deposit
      * @notice - deposits tokens into the contract
      * @dev - checks allowance and user balance before depositing
      */
-    function deposit(address recipient, uint amount) public {
-        require(collateralToken.allowance(msg.sender, address(this)) >= amount, "Please approve spending funds.");
-        require(collateralToken.balanceOf(msg.sender) >= amount, "Insufficient funds.");
+    function deposit(address recipient) public payable {
+        // require(collateralToken.allowance(msg.sender, address(this)) >= amount, "Please approve spending funds.");
+        // require(collateralToken.balanceOf(msg.sender) >= amount, "Insufficient funds.");
 
-        collateralToken.transferFrom(msg.sender, address(this), amount);
-        balances[recipient] += amount;
+        // collateralToken.transferFrom(msg.sender, address(this), amount);
+        balances[recipient] += msg.value;
 
-        emit Deposit(msg.sender, recipient, amount);
+        emit Deposit(msg.sender, recipient, msg.value);
     }
     
     /**
@@ -73,7 +71,8 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         require(balances[msg.sender] >= amount, "Withdraw amount exceeds balance");
 
         balances[msg.sender] -= amount;
-        collateralToken.transfer(msg.sender, amount);
+        // collateralToken.transfer(msg.sender, amount);
+        payable(msg.sender).transfer(amount);
 
         emit Withdraw(msg.sender, amount);
     }
@@ -94,7 +93,8 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
         uint totalCollateral = cpList.length * collateral;
         taskBalance[taskContract] += totalCollateral;
-        collateralToken.transfer(taskContract, totalCollateral);
+        // collateralToken.transfer(taskContract, totalCollateral);
+        payable(taskContract).transfer(totalCollateral);
 
         emit LockCollateral(taskContract, cpList, collateral);
     }
@@ -109,13 +109,17 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         return 1;
     }
 
-    function unlockCollateral(address recipient, uint amount) public {
+    function unlockCollateral(address recipient) public payable {
         require(taskBalance[msg.sender] > 0, "task has no balance");
-        taskBalance[msg.sender] -= amount;
-        frozenBalance[recipient] -= amount;
+        taskBalance[msg.sender] -= msg.value;
+        frozenBalance[recipient] -= msg.value;
 
-        collateralToken.transferFrom(msg.sender, address(this), amount);
+        emit UnlockCollateral(msg.sender, recipient, msg.value);
+    }
 
-        emit  UnlockCollateral(msg.sender, recipient, amount);
+    function depositETH(address recipient, uint amount) public payable {
+        balances[recipient] += msg.value;
+
+        emit Deposit(msg.sender, recipient, msg.value);
     }
 }

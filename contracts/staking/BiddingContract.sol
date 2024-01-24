@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
-import "./NativeTask.sol";
+import "./Task.sol";
 import "./CollateralContract.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -40,14 +39,14 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        collateralContract = CollateralContract(collateralContractAddress);
+        collateralContract = CollateralContract(payable(collateralContractAddress));
         paymentToken = IERC20(paymentTokenAddress);
         // rewardToken = IERC20(rewardTokenAddress);
         // uniswapRouter = IUniswapV2Router02(swapContractAddress);
         arWallet = ar;
         apWallet = ap;
         isAdmin[msg.sender] = true;
-        implementation = address(new NativeTask());
+        implementation = address(new Task());
 
         // swapTime = 2 hours;
         // swapPath = [paymentTokenAddress, rewardTokenAddress];
@@ -86,14 +85,11 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         if (reward > 0) {
             paymentToken.transferFrom(apWallet, clone, reward);
-            // paymentToken.approve(address(uniswapRouter), rewardInUsdc);
-            // uint[] memory swapOutput = uniswapRouter.swapExactTokensForTokens(rewardInUsdc, 0, swapPath, clone, block.timestamp + swapTime);
-            // rewardInSwan = swapOutput[1];
         }
 
         collateralContract.lockCollateral(clone, cpList, collateral);
 
-        NativeTask(clone).initialize(msg.sender, cpList, reward, collateral, duration, refundClaimDuration);
+        Task(clone).initialize(msg.sender, cpList, reward, collateral, duration, refundClaimDuration);
     
         emit TaskCreated(taskId, clone);
     }
@@ -109,6 +105,6 @@ contract BiddingContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function setCollateralContract(address newCollateralContract) public onlyOwner {
-        collateralContract = CollateralContract(newCollateralContract);
+        collateralContract = CollateralContract(payable(newCollateralContract));
     }
 }

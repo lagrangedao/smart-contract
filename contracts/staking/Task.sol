@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 interface ICollateral {
-    function unlockCollateral(address, uint) external;
+    function unlockCollateral(address) external payable;
 }
 
 contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
@@ -69,7 +69,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         apWallet = 0x4BC1eE66695AD20771596290548eBE5Cfa1Be332;
         // usdc = IERC20(0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a);
         swan = IERC20(0x91B25A65b295F0405552A4bbB77879ab5e38166c);
-        collateralContract = ICollateral(0xd0370c1D117653Be799AC697FdfB3C8B1A80Dec1);
+        collateralContract = ICollateral(0xA6848249CE6c591Af754A0780d352d2117F9F0b0);
         // uniswapRouter = IUniswapV2Router02(0x9b89AA8ed8eF4EDeAAd266F58dfec09864bbeC1f);
         // swapPath = [0x407a5856050053CF1DB54113bd9Ea9D2Eeee7C35, 0x0c1a5A0Cd0Bb4A9F564f09Cc66f4c921B560371a];
 
@@ -256,8 +256,8 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         isEndTimeUpdateable = false;
 
-        swan.approve(address(collateralContract), collateralAmount);
-        collateralContract.unlockCollateral(msg.sender, collateralAmount);
+        // swan.approve(address(collateralContract), collateralAmount);
+        collateralContract.unlockCollateral{value: collateralAmount}(msg.sender);
         swan.transfer(msg.sender, claimAmount);
 
         emit RewardClaimed(msg.sender, claimAmount);
