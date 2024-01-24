@@ -96,4 +96,27 @@ describe('BiddingContract', function () {
       BigInt(cpList.length) * collateral,
     )
   })
+
+  it('should not allow the same taskId', async () => {
+    const taskId = 'task-id'
+    const reward = ethers.parseEther('1')
+    const collateral = ethers.parseEther('0.3')
+    const duration = 3600 // 1 hour
+    const cpList = [user1.address, user2.address]
+
+    await collateralContract.deposit(user1.address, { value: reward })
+    await collateralContract.deposit(user2.address, { value: reward })
+
+    await biddingContract.assignTask(
+      taskId,
+      cpList,
+      reward,
+      collateral,
+      duration,
+    )
+
+    await expect(
+      biddingContract.assignTask(taskId, cpList, reward, collateral, duration),
+    ).to.be.reverted
+  })
 })
