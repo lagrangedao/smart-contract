@@ -321,6 +321,19 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "newCollateralContract",
+        "type": "address"
+      }
+    ],
+    "name": "setCollateralContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "newImplementation",
         "type": "address"
       }
