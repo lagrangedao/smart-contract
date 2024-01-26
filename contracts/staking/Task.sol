@@ -209,7 +209,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(!isProcessingRefundClaim, "claim under review");
 
         uint claimAmount = 0;
-        uint collateralAmount = 0;
+        // uint collateralAmount = 0;
 
         // if caller is leading cp
         if (msg.sender == cpList[0] && !isRewardClaimed[0]) {
@@ -218,21 +218,21 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             } else {
                 claimAmount += rewardBalance * 7/10;
             }
-            collateralAmount += swanCollateralAmount;
+            // collateralAmount += swanCollateralAmount;
             isRewardClaimed[0] = true;
         }
         // claim rules
         for(uint i=1; i<cpList.length; i++) {
             if (msg.sender == cpList[i] && !isRewardClaimed[i]) {
                 claimAmount += (rewardBalance * 3/10) / (cpList.length - 1);
-                collateralAmount += swanCollateralAmount;
+                // collateralAmount += swanCollateralAmount;
                 isRewardClaimed[i] = true;
             }
         }
 
         isEndTimeUpdateable = false;
 
-        collateralContract.unlockCollateral(msg.sender, collateralAmount);
+        // collateralContract.unlockCollateral(msg.sender, collateralAmount);
 
         emit RewardClaimed(msg.sender, claimAmount);
     }
@@ -257,5 +257,11 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     function version() public pure returns(uint) {
         return 1;
+    }
+
+    function unlockCollateral() public onlyAdmin {
+        for (uint i=0; i<cpList.length; i++) {
+            collateralContract.unlockCollateral(cpList[i], swanCollateralAmount);
+        }
     }
 }
