@@ -571,6 +571,13 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "unlockCollateral",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
