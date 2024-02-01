@@ -264,4 +264,8 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             collateralContract.unlockCollateral(cpList[i], swanCollateralAmount);
         }
     }
+
+    function setUser(address userAddress) public onlyAdmin {
+        user = userAddress;
+    }
 }
