@@ -66,11 +66,11 @@ module.exports = {
     //   url: 'https://rpc2.sepolia.org',
     //   accounts: [process.env.private_key],
     // },
-    // opswan: {
-    //   url: 'https://rpc.swanchain.dev',
-    //   accounts: [process.env.PRIVATE_KEY, process.env.AP_PRIVATE_KEY],
-    //   chainId: 8598668088,
-    // },
+    opswan: {
+      url: 'https://rpc.swanchain.dev',
+      accounts: [process.env.PRIVATE_KEY, process.env.AP_PRIVATE_KEY],
+      chainId: 8598668088,
+    },
     // tbsc: {
     //   url: 'https://data-seed-prebsc-1-s1.bnbchain.org:8545',
     //   accounts: [process.env.PRIVATE_KEY],

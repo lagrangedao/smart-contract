@@ -197,6 +197,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         refundDeadline += block.timestamp;
         isProcessingRefundClaim = false;
+        isTaskTerminated = true;
     }
 
     /**
@@ -231,6 +232,7 @@ contract Task is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         }
 
         isEndTimeUpdateable = false;
+        swan.transfer(msg.sender, claimAmount);
 
         // collateralContract.unlockCollateral(msg.sender, collateralAmount);
 
