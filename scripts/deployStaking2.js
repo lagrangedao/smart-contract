@@ -14,16 +14,12 @@ async function main() {
 
   console.log('Deploying Collateral Contract...')
 
-  //   const collateral = await upgrades.deployProxy(Collateral, [SWAN_CHAIN_SWAN], {
-  //     initializer: 'initialize',
-  //   })
-  //   await collateral.waitForDeployment()
+  const collateral = await upgrades.deployProxy(Collateral, [SWAN_CHAIN_SWAN], {
+    initializer: 'initialize',
+  })
+  await collateral.waitForDeployment()
 
-  //   console.log('Collateral Contract deployed to:', await collateral.getAddress())
-
-  const collateral = Collateral.attach(
-    '0x494E750c3ED3AD9e2fcD8aEEDf54b2D98Bd8B1dA',
-  )
+  console.log('Collateral Contract deployed to:', await collateral.getAddress())
 
   console.log('Deploying Bidding Contract...')
 

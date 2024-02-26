@@ -7,26 +7,25 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
-
-    IERC20 public collateralToken;
-
     mapping(address => bool) public isAdmin;
     mapping(address => uint) public balances;
+    mapping(address => uint) public taskBalance;
+    mapping(address => uint) public frozenBalance;
 
     event Deposit(address fundingWallet, address receivingWallet, uint depositAmount);
     event Withdraw(address fundingWallet, uint withdrawAmount);
     event LockCollateral(address taskContract, address[] cpList, uint collateralAmount);
+    event UnlockCollateral(address taskContract, address cp, uint collateralAmount);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(address tokenAddress) initializer public {
+    function initialize() initializer public {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        collateralToken = IERC20(tokenAddress);
         isAdmin[msg.sender] = true;
     }
 
@@ -44,49 +43,40 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
         isAdmin[admin] = false;
     }
 
+    receive() external payable {
+        deposit(msg.sender);
+    }
+
     /**
-     * @param amount - amount to deposit
      * @notice - deposits tokens into the contract
-     * @dev - checks allowance and user balance before depositing
      */
-    function deposit(address recipient, uint amount) public {
-        require(collateralToken.allowance(msg.sender, address(this)) >= amount, "Please approve spending funds.");
-        require(collateralToken.balanceOf(msg.sender) >= amount, "Insufficient funds.");
+    function deposit(address recipient) public payable {
+        balances[recipient] += msg.value;
 
-        collateralToken.transferFrom(msg.sender, address(this), amount);
-        balances[recipient] += amount;
-
-        emit Deposit(msg.sender, recipient, amount);
+        emit Deposit(msg.sender, recipient, msg.value);
     }
     
-    /**
-     * @param amount - amount to withdraw
-     * @notice - withdraws tokens from the contract
-     * @dev - checks user's balance in contract before withdrawing
-     */
     function withdraw(uint amount) public {
         require(balances[msg.sender] >= amount, "Withdraw amount exceeds balance");
 
         balances[msg.sender] -= amount;
-        collateralToken.transfer(msg.sender, amount);
+        payable(msg.sender).transfer(amount);
 
         emit Withdraw(msg.sender, amount);
     }
 
-    /**
-     * @param taskContract - the created task contract address
-     * @param cpList - list of all the cps on this task
-     * @param collateral - collateral amount
-     * @notice - the bidding contract will move funds deposited by the CPs here to the task contract as collateral
-     * @dev - checks the balance of each cp in the list to make sure there is enough funds deposited
-     */
     function lockCollateral(address taskContract, address[] memory cpList, uint collateral) public onlyAdmin {
         for (uint i = 0; i < cpList.length; i++) {
             require(balances[cpList[i]] >= collateral, 'Not enough balance for collateral');
-            balances[cpList[i]] -= collateral;
         }
 
-        collateralToken.transfer(taskContract, cpList.length * collateral);
+        for (uint i = 0; i < cpList.length; i++) {
+            balances[cpList[i]] -= collateral;
+            frozenBalance[cpList[i]] += collateral;
+        }
+
+        uint totalCollateral = cpList.length * collateral;
+        taskBalance[taskContract] += totalCollateral;
 
         emit LockCollateral(taskContract, cpList, collateral);
     }
@@ -99,5 +89,14 @@ contract CollateralContract is Initializable, OwnableUpgradeable, UUPSUpgradeabl
 
     function version() public pure returns(uint) {
         return 1;
+    }
+
+    function unlockCollateral(address recipient, uint amount) public {
+        require(taskBalance[msg.sender] >= amount, "task has no balance");
+        taskBalance[msg.sender] -= amount;
+        frozenBalance[recipient] -= amount;
+        balances[recipient] += amount;
+
+        emit UnlockCollateral(msg.sender, recipient, amount);
     }
 }
